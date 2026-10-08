@@ -132,9 +132,7 @@ final class AppModel {
     @ObservationIgnored private let libraryFile = SharedJSONFile(Storage.libraryURL)
     @ObservationIgnored private var sharedRefreshTask: Task<Void, Never>?
     @ObservationIgnored private var libraryStamp: SharedFileStamp?
-    @ObservationIgnored private var documentStamps: [UUID: SharedFileStamp] = [:]
     @ObservationIgnored private var synchronizingLibrary = false
-    @ObservationIgnored private var sharedThreadJobs: [UUID: Int] = [:]
     @ObservationIgnored private var lastSharedMCPError: String?
     @ObservationIgnored private var didRequestNotifications = false
 
@@ -248,10 +246,9 @@ final class AppModel {
         libraryLoad = load
         var library = await load.value
         let originalThreads = library.threads
-        ThreadAccess.shared.setFamilies(Self.sharedEditFamilies(library.threads))
         libraryFile.remember((try? JSONEncoder.storage.encode(library)) ?? Data(), existed: FileManager.default.fileExists(atPath: Storage.libraryURL.path))
         libraryStamp = nil
-        for index in library.threads.indices where (library.threads[index].lastStatus == .running || library.threads[index].hydra?.status == .running) && (try? ThreadAccess.shared.claim(library.threads[index].id)) != nil {
+        for index in library.threads.indices where (library.threads[index].lastStatus == .running || library.threads[index].hydra?.status == .running) {
             if library.threads[index].lastStatus == .running {
                 library.threads[index].lastStatus = .interrupted
             }
@@ -333,88 +330,7 @@ final class AppModel {
         // orphan reclamation is paused rather than deleting that process's data.
     }
 
-    // MARK: - Shared edition access
-
-    private static func sharedEditFamilies(_ threads: [ChatThread]) -> [UUID: UUID] {
-        let parents = Dictionary(threads.map { ($0.id, $0.parentThreadID) }, uniquingKeysWith: { _, last in last })
-        return Dictionary(threads.map { thread in
-            var root = thread.id
-            var path = [root]
-            while let parent = parents[root] ?? nil, parents[parent] != nil {
-                if let start = path.firstIndex(of: parent) {
-                    root = path[start...].min { $0.uuidString < $1.uuidString }!
-                    break
-                }
-                path.append(parent)
-                root = parent
-            }
-            return (thread.id, root)
-        }, uniquingKeysWith: { _, last in last })
-    }
-
-    /// Acquire before any mutation. A newly acquired editor re-reads metadata/history.
-    @discardableResult
-    func ensureThreadEditable(_ id: UUID) -> Bool {
-        guard thread(id) != nil else { return false }
-        if ThreadAccess.shared.owns(id) { return true }
-        do {
-            let group = Self.sharedEditFamilies(threads)[id] ?? id
-            let alreadyOwnedFamily = ThreadAccess.shared.ownsFamily(group)
-            let acquired = try ThreadAccess.shared.claim(id, group: group)
-            if acquired, !synchronizingLibrary {
-                guard saveLibrary() else { ThreadAccess.shared.release(id); return false }
-                readSharedLibrary()
-                guard thread(id) != nil else { ThreadAccess.shared.release(id); return false }
-                if !alreadyOwnedFamily {
-                    let families = Self.sharedEditFamilies(threads)
-                    var repaired = threads
-                    for index in repaired.indices where families[repaired[index].id] == group {
-                        if repaired[index].lastStatus == .running { repaired[index].lastStatus = .interrupted }
-                        if repaired[index].hydra?.status == .running {
-                            repaired[index].hydra?.status = .stopped
-                            repaired[index].hydra?.finishedAt = .now
-                        }
-                    }
-                    if repaired != threads { threads = repaired; scheduleSave() }
-                }
-                runtimes[id]?.takeEditing()
-                DocumentPrefetch.shared.forget(id)
-            }
-            return ThreadAccess.shared.owns(id)
-        } catch { return false }
-    }
-
-    func takeThreadEditing(_ id: UUID) {
-        if !ensureThreadEditable(id) {
-            alert = AppAlert(title: "Read-only conversation", message: "The other edition is editing this conversation. Switch it to another conversation or release editing there, then try again.")
-        }
-    }
-
-    func releaseThreadEditing(_ id: UUID) {
-        guard let runtime = runtimes[id], !runtime.isReadOnly else { return }
-        guard sharedThreadJobs[id, default: 0] == 0, terminals.sessions(for: id).isEmpty,
-              !runtime.isRunning, !runtime.isReverting, !runtime.isHydraMerging, runtime.draft.isEmpty else {
-            alert = AppAlert(title: "Conversation still in use", message: "Finish the running work, close terminals, and send or clear the draft before releasing editing.")
-            return
-        }
-        runtime.stopSession()
-        guard runtime.holdsOnlyPersistedState, saveLibrary() else { return }
-        guard DiskWriter.shared.writeThreadSynchronously(runtime.snapshotForSharedSave()) else {
-            alert = AppAlert(title: "Editing was not released", message: "The final conversation snapshot could not be saved. Check permissions and disk space; this edition keeps editing ownership.")
-            return
-        }
-        ThreadAccess.shared.release(id)
-        runtime.becomeReadOnly()
-        documentStamps[id] = nil
-    }
-
-    private func ensureEditableThreads(_ ids: [UUID]) -> Bool {
-        for id in ids where !ensureThreadEditable(id) {
-            alert = AppAlert(title: "Conversation in use", message: "The other edition owns one of these conversations. No deletion or archive was performed.")
-            return false
-        }
-        return true
-    }
+    // MARK: - Shared library refresh
 
     private func readSharedLibrary() {
         let stamp = SharedFileStamp(Storage.libraryURL)
@@ -423,7 +339,6 @@ final class AppModel {
             alert = AppAlert(title: "Shared library could not be refreshed", message: "The file is missing or unreadable. The current conversations remain in memory; restore the library before retrying.")
             return
         }
-        ThreadAccess.shared.setFamilies(Self.sharedEditFamilies(library.threads))
         libraryFile.remember((try? JSONEncoder.storage.encode(library)) ?? Data(), existed: FileManager.default.fileExists(atPath: Storage.libraryURL.path))
         projects = library.projects
         threads = library.threads
@@ -432,7 +347,6 @@ final class AppModel {
             runtimes[id]?.cancelPersistence()
             runtimes[id]?.stopSession()
             runtimes[id] = nil
-            ThreadAccess.shared.release(id)
         }
         if let id = selectedThreadID, thread(id) == nil { selectedThreadID = nil }
         updateDockBadge()
@@ -445,49 +359,11 @@ final class AppModel {
         // Don't replace a local dirty index; its existing four-second debounce will
         // commit it first, then the next refresh reads the merged global snapshot.
         if saveTask == nil, SharedFileStamp(Storage.libraryURL) != libraryStamp { readSharedLibrary() }
-        for runtime in runtimes.values where runtime.isReadOnly {
-            let stamp = SharedFileStamp(Storage.threadURL(runtime.threadID))
-            if documentStamps[runtime.threadID] != stamp {
-                DocumentPrefetch.shared.forget(runtime.threadID)
-                runtime.refreshReadOnlyDocument()
-                documentStamps[runtime.threadID] = stamp
-            }
-        }
         mcp.refreshSharedData()
         if let error = mcp.sharedWriteError, error != lastSharedMCPError {
             alert = AppAlert(title: "Shared MCP write blocked", message: error)
         }
         lastSharedMCPError = mcp.sharedWriteError
-        releaseUnusedEditLeases()
-    }
-
-    private func releaseUnusedEditLeases() {
-        guard saveTask == nil else { return }
-        for id in ThreadAccess.shared.ownedIDs where id != selectedThreadID {
-            guard sharedThreadJobs[id, default: 0] == 0, terminals.sessions(for: id).isEmpty else { continue }
-            if let head = thread(id)?.hydra, !head.isFinished { continue }
-            if let thread = thread(id), thread.parentThreadID == selectedThreadID { continue }
-            if let runtime = runtimes[id] {
-                guard !runtime.isRunning, !runtime.isReverting, !runtime.isHydraMerging, runtime.draft.isEmpty else { continue }
-                runtime.stopSession()
-                guard runtime.holdsOnlyPersistedState else { continue }
-                if saveTask != nil, !saveLibrary() { continue }
-                guard DiskWriter.shared.writeThreadSynchronously(runtime.snapshotForSharedSave()) else { continue }
-                runtime.becomeReadOnly()
-            }
-            ThreadAccess.shared.release(id)
-        }
-    }
-
-    @discardableResult
-    func beginSharedThreadJob(_ id: UUID) -> Bool {
-        guard ensureThreadEditable(id) else { return false }
-        sharedThreadJobs[id, default: 0] += 1
-        return true
-    }
-
-    func endSharedThreadJob(_ id: UUID) {
-        sharedThreadJobs[id, default: 0] = max(0, sharedThreadJobs[id, default: 0] - 1)
     }
 
     // MARK: - Lookup
@@ -639,7 +515,6 @@ final class AppModel {
     func runtime(for id: UUID) -> ThreadRuntime {
         runtimeLastAccess[id] = ContinuousClock.now
         if let runtime = runtimes[id] { return runtime }
-        ensureThreadEditable(id)
         let runtime = ThreadRuntime(threadID: id, app: self)
         runtimes[id] = runtime
         if !runtimeCapacityScheduled {
@@ -738,8 +613,7 @@ final class AppModel {
               !children(of: id).contains(where: {
                   $0.hydra?.status == .running || existingRuntime(for: $0.id)?.isRunning == true
               }) else { return false }
-        // Persist before dropping the runtime: its editing lease may be handed to
-        // another edition as soon as the library debounce completes.
+        // Persist unsaved changes before dropping the runtime.
         if let snapshot = runtime.unsavedSnapshot(), !DiskWriter.shared.writeThreadSynchronously(snapshot) { return false }
         runtime.cancelPersistence()
         runtimes[id] = nil
@@ -800,7 +674,6 @@ final class AppModel {
 
     func removeProject(_ project: Project) {
         let removed = threads.filter { $0.projectID == project.id }
-        guard ensureEditableThreads(removed.map(\.id)) else { return }
         threads.removeAll { $0.projectID == project.id }
         projects.removeAll { $0.id == project.id }
         guard saveLibrary() else { return }
@@ -939,7 +812,6 @@ final class AppModel {
     }
 
     func updateThread(_ id: UUID, _ change: (inout ChatThread) -> Void) {
-        guard ensureThreadEditable(id) else { return }
         guard let index = threadIndex.positions[id] else { return }
         let previous = threadStorage[index]
         var thread = previous
@@ -976,7 +848,6 @@ final class AppModel {
     /// folder the chat has left. Wrap the call in `withAnimation` to make the move glide
     /// in the sidebar; the model itself never animates.
     func moveThread(_ id: UUID, toProject project: Project) {
-        guard ensureThreadEditable(id) else { return }
         existingRuntime(for: id)?.stopSession()
         updateThread(id) { thread in
             thread.projectID = project.id
@@ -991,7 +862,6 @@ final class AppModel {
     }
 
     private func updateThreads(_ ids: [UUID], _ change: (Int, inout ChatThread) -> Void) {
-        guard ensureEditableThreads(ids) else { return }
         var updated = threads
         var changed = false
         for (position, id) in ids.enumerated() {
@@ -1015,7 +885,6 @@ final class AppModel {
     }
 
     func archive(_ id: UUID) {
-        guard ensureEditableThreads([id] + children(of: id).map(\.id)) else { return }
         // The helpers under a thread go with it, and come back with it.
         for helper in helpers(of: id) { archive(helper.id) }
         if selectedThreadID == id { selectNeighbor(of: id) }
@@ -1193,7 +1062,7 @@ final class AppModel {
     var archiveRequest: ArchiveRequest?
 
     func delete(_ id: UUID, removeWorktree: Bool = false) {
-        guard ensureEditableThreads([id] + children(of: id).map(\.id)), let thread = thread(id) else { return }
+        guard let thread = thread(id) else { return }
         // A helper still in its panel goes with the thread it belongs to.
         for helper in children(of: id) { delete(helper.id) }
         if selectedThreadID == id { selectNeighbor(of: id) }
@@ -1229,7 +1098,6 @@ final class AppModel {
             guard let parent = helper.parentThreadID else { return false }
             return archivedIDs.contains(parent) && !archivedIDs.contains(helper.id)
         }
-        guard ensureEditableThreads(removed.map(\.id)) else { return }
         let removedIDs = Set(removed.map(\.id))
         threads.removeAll { removedIDs.contains($0.id) }
         guard saveLibrary() else { return }
@@ -1282,7 +1150,6 @@ final class AppModel {
     /// turn otherwise.
     @discardableResult
     func spawnSubagent(from parentID: UUID, title: String, prompt: String) -> ChatThread? {
-        guard ensureThreadEditable(parentID) else { return nil }
         guard let parent = thread(parentID) else { return nil }
         if let existing = subagent(of: parentID) {
             let runtime = runtime(for: existing.id)
@@ -1317,7 +1184,6 @@ final class AppModel {
     /// Closes a helper's panel: its turn stops, and it moves to the sidebar under the thread
     /// that spawned it, as a smaller row, so what it did stays a click away.
     func closeSubagent(_ id: UUID) {
-        guard ensureThreadEditable(id) else { return }
         guard thread(id) != nil else { return }
         if let runtime = existingRuntime(for: id) {
             // A running turn ends as interrupted and releases its session once it has
@@ -1379,8 +1245,6 @@ final class AppModel {
     }
 
     func createWorktree(for threadID: UUID) async {
-        guard beginSharedThreadJob(threadID) else { return }
-        defer { endSharedThreadJob(threadID) }
         guard let thread = thread(threadID), thread.worktreePath == nil, let project = project(thread.projectID) else { return }
         let git = Git(project.path)
         guard await git.isRepository(), await git.hasCommits() else {
@@ -1491,7 +1355,7 @@ final class AppModel {
     /// Several threads read at once cost one write to the library, so the cells and
     /// the sidebar see one change, not one per thread.
     func markRead(_ ids: [UUID]) {
-        let wanted = Set(ids.filter { thread($0)?.hasUnread == true && ensureThreadEditable($0) })
+        let wanted = Set(ids.filter { thread($0)?.hasUnread == true })
         var copy = threads
         var changed = false
         for index in copy.indices where wanted.contains(copy[index].id) && copy[index].hasUnread {
@@ -1627,7 +1491,7 @@ final class AppModel {
             runtime.cancelPersistence()
             runtime.stopSession()
             // A thread only read since its last save is already on disk as it is.
-            guard !runtime.isReadOnly, let snapshot = runtime.unsavedSnapshot() else { continue }
+            guard let snapshot = runtime.unsavedSnapshot() else { continue }
             DiskWriter.shared.writeThreadSynchronously(snapshot)
         }
         DiskWriter.shared.waitForQueuedWrites()

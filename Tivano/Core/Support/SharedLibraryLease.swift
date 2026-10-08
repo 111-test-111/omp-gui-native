@@ -2,7 +2,7 @@ import Foundation
 import Darwin
 
 /// OS-owned advisory lease. Never unlink lock files: that would create a second inode.
-/// Shared lifetime leases exclude older exclusive-only editions; edits use exclusive leases.
+/// Shared lifetime leases exclude older exclusive-only editions; file transactions use exclusive leases.
 final class SharedLibraryLease: Sendable {
     enum Mode { case shared, exclusive }
     private let descriptor: Int32

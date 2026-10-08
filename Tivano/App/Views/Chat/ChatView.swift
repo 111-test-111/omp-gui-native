@@ -100,7 +100,7 @@ struct ChatView: View {
                 scrollState: scrollState,
                 projectName: project?.name,
                 workingDirectory: workingDirectory,
-                supportsRewind: !runtime.isReadOnly && (thread?.provider.supportsRewind ?? false),
+                supportsRewind: thread?.provider.supportsRewind ?? false,
                 columnHeight: columnHeight,
                 // A panel docked on the left takes the rail's edge; the rail goes with it. So
                 // does a pane too narrow for both: the column reads at up to 820 points and the
@@ -275,7 +275,7 @@ struct ChatView: View {
                 for id in autoDrags.keys where !ids.contains(id) { autoDrags[id] = nil }
             }
 
-            if runtime.isTerminalVisible && !runtime.isReadOnly {
+            if runtime.isTerminalVisible {
                 TerminalPanel(runtime: runtime, directory: directory)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }

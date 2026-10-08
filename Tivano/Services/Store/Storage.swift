@@ -132,8 +132,7 @@ enum Storage {
     /// Returns the folder, or nil when there was nothing to keep or it could not be made.
     nonisolated static func setAside(_ id: UUID, moving: Bool) -> URL? {
         DiskWriter.shared.readSynchronously {
-            guard ThreadAccess.shared.owns(id),
-                  let lease = try? SharedLibraryLease(at: documentLockURL(id), wait: true) else { return nil }
+            guard let lease = try? SharedLibraryLease(at: documentLockURL(id), wait: true) else { return nil }
             defer { withExtendedLifetime(lease) {} }
             let manager = FileManager.default
             let sources = [threadURL(id), turnsURL(id)].filter { manager.fileExists(atPath: $0.path) }
@@ -510,12 +509,6 @@ final class DiskWriter: Sendable {
     }
 
     private func writeThread(_ snapshot: ThreadSave) -> Bool {
-        ThreadAccess.shared.withWritePermission(for: snapshot.head.threadID) {
-            writeOwnedThread(snapshot)
-        } ?? false
-    }
-
-    private func writeOwnedThread(_ snapshot: ThreadSave) -> Bool {
         let head = snapshot.head
         let url = Storage.threadURL(head.threadID)
         do {
@@ -610,10 +603,8 @@ final class DiskWriter: Sendable {
         queue.sync {
             for url in urls {
                 if let id = Self.threadID(for: url) {
-                    ThreadAccess.shared.withWritePermission(for: id) {
-                        guard let lease = try? SharedLibraryLease(at: Storage.documentLockURL(id), wait: true) else { return }
-                        withExtendedLifetime(lease) { try? FileManager.default.removeItem(at: url) }
-                    }
+                    guard let lease = try? SharedLibraryLease(at: Storage.documentLockURL(id), wait: true) else { continue }
+                    withExtendedLifetime(lease) { try? FileManager.default.removeItem(at: url) }
                 } else { try? FileManager.default.removeItem(at: url) }
             }
             for completion in threadCompletions { completion(false) }
@@ -637,13 +628,6 @@ final class DiskWriter: Sendable {
     }
 
     private func write(_ value: any Encodable, to url: URL) -> Int? {
-        if let id = Self.threadID(for: url) {
-            return ThreadAccess.shared.withWritePermission(for: id) { writeOwned(value, to: url) } ?? nil
-        }
-        return writeOwned(value, to: url)
-    }
-
-    private func writeOwned(_ value: any Encodable, to url: URL) -> Int? {
         do {
             let data = try JSONEncoder.storage.encode(value)
             try data.write(to: url, options: .atomic)
