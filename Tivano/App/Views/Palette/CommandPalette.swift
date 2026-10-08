@@ -45,7 +45,7 @@ struct CommandPalette: View {
                         .foregroundStyle(Chrome.secondaryText)
                     TextField("Search threads, projects and actions", text: $query)
                         .textFieldStyle(.plain)
-                        .font(.title3)
+                        .font(.ui(.title3))
                         .focused($isFocused)
                         .onSubmit { run(items) }
                         .onKeyPress(.upArrow) {
@@ -67,7 +67,7 @@ struct CommandPalette: View {
                     // Never a blank box: a query that matches nothing says so rather
                     // than leaving the field alone above an empty panel.
                     Text("Nothing matches “\(query)”")
-                        .font(.system(.body))
+                        .font(.ui(.body))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -123,7 +123,7 @@ struct CommandPalette: View {
                     .lineLimit(1)
                 if let subtitle = item.subtitle {
                     Text(subtitle)
-                        .font(.caption)
+                        .font(.ui(.caption))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -132,7 +132,7 @@ struct CommandPalette: View {
             Spacer(minLength: 8)
             if let shortcut = item.shortcut {
                 Text(shortcut)
-                    .font(.caption)
+                    .font(.ui(.caption))
                     .foregroundStyle(Chrome.secondaryText)
             }
         }

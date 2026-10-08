@@ -53,7 +53,7 @@ struct TokenActivitySection: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text("Token activity")
-                    .font(.system(.title3, weight: .semibold))
+                    .font(.ui(.title3, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                     .accessibilityAddTraits(.isHeader)
@@ -74,7 +74,7 @@ struct TokenActivitySection: View {
                         }
                     } label: {
                         Text(verbatim: Chrome.localized(option.title))
-                            .font(.system(.body, weight: mode == option ? .medium : .regular))
+                            .font(.ui(.body, weight: mode == option ? .medium : .regular))
                     }
                     // A capsule chip, like every other small switch in the app: these
                     // were bare words with no hover, no hit target and no button trait.
@@ -120,7 +120,7 @@ struct TokenActivitySection: View {
                 let placed = placedTicks(grid.monthTicks, stride: stride)
                 ForEach(placed.indices, id: \.self) { index in
                     Text(verbatim: placed[index].label)
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .fixedSize()
                         .position(
@@ -147,13 +147,13 @@ struct TokenActivitySection: View {
 
         return HStack(spacing: 8) {
             Text(verbatim: summary)
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
                 .lineLimit(1)
                 .help(Text(verbatim: detail))
             Spacer(minLength: 12)
             Text("Less")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
             ForEach(Array(Self.ladder.enumerated()), id: \.offset) { _, step in
                 RoundedRectangle(cornerRadius: TokenActivityStyle.cellRadius, style: .continuous)
@@ -161,7 +161,7 @@ struct TokenActivitySection: View {
                     .frame(width: 10, height: 10)
             }
             Text("More")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         }
         .accessibilityElement(children: .ignore)

@@ -71,7 +71,7 @@ struct MCPSetupPanelView: View {
                 successView
             } else {
                 Text(verbatim: Chrome.localized(guide.reason))
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.primaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 VStack(alignment: .leading, spacing: 6) {
@@ -91,7 +91,7 @@ struct MCPSetupPanelView: View {
                         HStack(spacing: 6) {
                             WorkingSpinner(cellSize: 3)
                             Text("Checking")
-                                .font(.system(.subheadline))
+                                .font(.ui(.subheadline))
                                 .foregroundStyle(Chrome.secondaryText)
                         }
                     } else {
@@ -105,12 +105,12 @@ struct MCPSetupPanelView: View {
                 if checkedOnce && !state.isConnecting {
                     if case .needsSetup = state {
                         Text(verbatim: String(format: Chrome.localized("Still off on the server's side. %@"), guide.note.map { Chrome.localized($0) } ?? ""))
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.warning)
                             .fixedSize(horizontal: false, vertical: true)
                     } else if case .failed(let message) = state {
                         Text(verbatim: message)
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -148,10 +148,10 @@ struct MCPSetupPanelView: View {
             MCPIcon(entry: entry, size: 26)
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: entry.name)
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: Chrome.localized(guide.title))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             Spacer(minLength: 8)
@@ -159,7 +159,7 @@ struct MCPSetupPanelView: View {
                 onDone()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(.subheadline, weight: .semibold))
+                    .font(.ui(.subheadline, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
             }
             .buttonStyle(.plain)
@@ -173,12 +173,12 @@ struct MCPSetupPanelView: View {
                     .fill(Chrome.accent.opacity(0.18))
                     .frame(width: 18, height: 18)
                 Text(verbatim: "\(number)")
-                    .font(.system(.footnote, weight: .semibold))
+                    .font(.ui(.footnote, weight: .semibold))
                     .foregroundStyle(Chrome.accent)
             }
             HStack(spacing: 4) {
                 text
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.primaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 if let accessory { accessory }
@@ -197,7 +197,7 @@ struct MCPSetupPanelView: View {
                 return 0
             }()
             Text(verbatim: String(format: Chrome.localized("Connected · %lld tools"), count))
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.primaryText)
         }
         .frame(maxWidth: .infinity, minHeight: 120, alignment: .center)

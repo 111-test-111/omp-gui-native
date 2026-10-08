@@ -15,7 +15,7 @@ struct PlanLimitsView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
                 Text(verbatim: limits?.planName.map { String(format: Chrome.localized("Plan usage limits · %@"), $0) } ?? Chrome.localized("Plan usage limits"))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.secondaryText)
                 Spacer(minLength: 8)
                 if isLoading {
@@ -45,10 +45,10 @@ struct PlanLimitsView: View {
                     if provider.isAPIKeyBased {
                         HStack(alignment: .center, spacing: 6) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                                 .foregroundStyle(Chrome.warning)
                             Text(verbatim: Chrome.localized(problem))
-                                .font(.system(.subheadline))
+                                .font(.ui(.subheadline))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -58,7 +58,7 @@ struct PlanLimitsView: View {
                     } else {
                         HStack(spacing: 8) {
                             Text("Click here to login again")
-                                .font(.system(.callout))
+                                .font(.ui(.callout))
                                 .foregroundStyle(Chrome.secondaryText)
                             Spacer(minLength: 8)
                             Button("Login") { Workspace.openTerminal(running: provider.loginCommand) }
@@ -70,7 +70,7 @@ struct PlanLimitsView: View {
                 }
             } else if !isLoading {
                 Text(verbatim: String(format: Chrome.localized("%@ did not report plan limits."), provider.displayName))
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.top, 8)
             }
@@ -94,11 +94,11 @@ struct CreditsView: View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Remaining credits")
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.primaryText)
                 if let note = note(for: credits, isLoading: isLoading) {
                     Text(verbatim: Chrome.localized(note))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -110,7 +110,7 @@ struct CreditsView: View {
                 }
                 if let credits {
                     Text(verbatim: credits.amountText)
-                        .font(.system(.body, weight: .semibold))
+                        .font(.ui(.body, weight: .semibold))
                         .monospacedDigit()
                         .foregroundStyle(credits.isDepleted ? Chrome.danger : Chrome.primaryText)
                         .lineLimit(1)
@@ -145,24 +145,24 @@ private struct LimitRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
                 Text(verbatim: Chrome.localized(window.title))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 if let resetsAt = window.resetsAt {
                     Text(verbatim: String(format: Chrome.localized("Resets %@"), Self.resetText(resetsAt)))
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                 }
                 Text(verbatim: "\(Int(window.percent.rounded()))%")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .monospacedDigit()
             }
             if let detail = window.detail {
                 Text(verbatim: Chrome.localized(detail))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
             }
@@ -227,10 +227,10 @@ private struct BankedResetsView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Text("Banked resets")
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: "· \(countText)")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .contentTransition(.numericText())
             }
@@ -262,18 +262,18 @@ private struct BankedResetsView: View {
         case .done(let outcome):
             HStack(spacing: 5) {
                 Image(systemName: outcome == .reset ? "checkmark.circle.fill" : "info.circle")
-                    .font(.system(.subheadline, weight: .semibold))
+                    .font(.ui(.subheadline, weight: .semibold))
                     .foregroundStyle(outcome == .reset ? Chrome.success : Chrome.secondaryText)
                     .symbolEffect(.bounce, value: phase)
                 Text(verbatim: Chrome.localized(outcome.message))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(outcome == .reset ? Chrome.success : Chrome.secondaryText)
             }
             .padding(.top, 4)
             .transition(.blurReplace)
         case .failed(let message):
             Text(verbatim: Chrome.localized(message))
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.danger)
                 .padding(.top, 4)
                 .transition(.blurReplace)
@@ -323,11 +323,11 @@ private struct BankedResetRow: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: row.credit?.title.map { Chrome.localized($0) } ?? (several ? String(format: Chrome.localized("Reset %lld"), index + 1) : Chrome.localized("Reset")))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                 Text(verbatim: row.credit?.detail.map { Chrome.localized($0) } ?? expiryText)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
             }
@@ -354,7 +354,7 @@ private struct BankedResetRow: View {
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
                 Text("Resetting…")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
             }
             .transition(.blurReplace)

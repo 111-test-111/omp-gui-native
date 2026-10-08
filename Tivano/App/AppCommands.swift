@@ -51,14 +51,14 @@ struct AppCommands: Commands {
             }
             .keyboardShortcut(shortcuts.keyboardShortcut(for: .toggleActivityView))
             Divider()
-            Button("Zoom In") { model.settings.appZoom = AppZoom.next(model.settings.appZoom, increasing: true) }
+            Button("Increase Font Size") { model.settings.stepFontSizes(by: 1) }
                 .keyboardShortcut("+", modifiers: .command)
-            Button("Zoom Out") { model.settings.appZoom = AppZoom.next(model.settings.appZoom, increasing: false) }
+            Button("Decrease Font Size") { model.settings.stepFontSizes(by: -1) }
                 .keyboardShortcut("-", modifiers: .command)
-            Button("Actual Size") { model.settings.appZoom = 100 }
+            Button("Default Font Size") { model.settings.resetFontSizes() }
                 .keyboardShortcut("0", modifiers: .command)
             // US keyboards produce '=' for Command-plus without Shift.
-            Button("Zoom In") { model.settings.appZoom = AppZoom.next(model.settings.appZoom, increasing: true) }
+            Button("Increase Font Size") { model.settings.stepFontSizes(by: 1) }
                 .keyboardShortcut("=", modifiers: .command)
                 .hidden()
         }

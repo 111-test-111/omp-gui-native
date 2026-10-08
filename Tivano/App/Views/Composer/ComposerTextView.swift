@@ -67,7 +67,7 @@ final class ComposerController {
         // The host never publishes its own size (see setFixedContent), so this
         // is the only size the panel is ever positioned against and it stays
         // on the caret while the list changes under typing.
-        let size = NSSize(width: 340, height: min(340, 44 + CGFloat(max(itemCount, 1)) * 26))
+        let size = NSSize(width: 340, height: min(340, 44 + CGFloat(max(itemCount, 1)) * TypeScale.shared.ui(26)))
         let sized = AnyView(content.frame(width: size.width, height: size.height).presentedChrome())
         if let host = suggestionHost {
             host.rootView = sized
@@ -200,7 +200,7 @@ final class ComposerNSTextView: NSTextView {
         placeholderShown = string.isEmpty && !placeholder.isEmpty
         guard placeholderShown else { return }
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: font ?? NSFont.systemFont(ofSize: 14),
+            .font: font ?? NSFont.systemFont(ofSize: TypeScale.shared.content(14)),
             .foregroundColor: NSColor.placeholderTextColor,
         ]
         let origin = NSPoint(
@@ -224,6 +224,7 @@ struct ComposerTextView: NSViewRepresentable {
     /// floating panel's never does, so a head arriving or coming on stage while the user
     /// types in the chat leaves the caret where it is.
     var takesFocusOnAppear = true
+    var pointSize: CGFloat = TypeScale.shared.content(14)
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -243,7 +244,7 @@ struct ComposerTextView: NSViewRepresentable {
         textView.importsGraphics = false
         textView.allowsUndo = true
         textView.drawsBackground = false
-        textView.font = .systemFont(ofSize: 14)
+        textView.font = .systemFont(ofSize: TypeScale.shared.content(14))
         textView.textColor = .labelColor
         textView.insertionPointColor = Chrome.accentNSColor
         textView.textContainerInset = NSSize(width: 0, height: 2)
@@ -294,6 +295,13 @@ struct ComposerTextView: NSViewRepresentable {
         context.coordinator.parent = self
         guard let textView = scrollView.documentView as? ComposerNSTextView else { return }
         textView.onAttach = onAttach
+        if textView.font?.pointSize != pointSize {
+            let selection = textView.selectedRanges
+            textView.font = .systemFont(ofSize: pointSize)
+            textView.setSelectedRanges(selection, affinity: textView.selectionAffinity, stillSelecting: false)
+            textView.needsDisplay = true
+            Task { @MainActor in context.coordinator.updateHeight() }
+        }
         if textView.placeholder != placeholder { textView.placeholder = placeholder }
         // The caret follows the theme's accent; a theme change never rebuilds the view.
         let caret = Chrome.accentNSColor
@@ -371,7 +379,7 @@ struct ComposerTextView: NSViewRepresentable {
                 layoutManager.ensureLayout(for: container)
                 contentHeight = layoutManager.usedRect(for: container).height
             }
-            let total = ceil(max(18, contentHeight) + textView.textContainerInset.height * 2)
+            let total = ceil(max(TypeScale.shared.content(18), contentHeight) + textView.textContainerInset.height * 2)
             if abs(parent.height - total) > 0.5 { parent.height = total }
         }
     }

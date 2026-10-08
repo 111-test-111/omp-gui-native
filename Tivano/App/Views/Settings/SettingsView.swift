@@ -166,10 +166,10 @@ struct SettingsView: View {
                     if visiblePages.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("No results")
-                                .font(.system(.body, weight: .semibold))
+                                .font(.ui(.body, weight: .semibold))
                                 .foregroundStyle(Chrome.primaryText.opacity(0.92))
                             Text("Try a setting or a provider name.")
-                                .font(.system(.subheadline))
+                                .font(.ui(.subheadline))
                                 .foregroundStyle(Chrome.secondaryText)
                         }
                         .padding(.horizontal, 8)
@@ -424,7 +424,7 @@ private struct GeneralSettingsPage: View {
 }
 
 /// The window's look: theme, transparency, sidebar and activity styling, the wallpaper
-/// behind the glass, and the conversation's text size.
+/// behind the glass, and the base font sizes.
 private struct AppearanceSettingsPage: View {
     @Environment(AppModel.self) private var model
 
@@ -469,67 +469,110 @@ private struct AppearanceSettingsPage: View {
                 .opacity(settings.sidebarMode == .panelOnly ? 0.5 : 1)
             }
             WallpaperCard()
-            AppZoomCard(percent: $settings.appZoom)
         }
+        FontSizeSection()
     }
 }
 
-/// The app-wide zoom: Zoom out and Zoom in step through the levels, the stock size is a
-/// click away, and the percentage says where it sits.
-private struct AppZoomCard: View {
-    @Binding var percent: Int
-
-    private var current: Int { AppZoom.normalized(percent) }
+/// Interface, Content and Code. The header stays collapsed until it is opened;
+/// Reset is inert while every size is still the stock one.
+private struct FontSizeSection: View {
+    @Environment(AppModel.self) private var model
+    @State private var isExpanded = false
 
     var body: some View {
-        ChromeCard {
-            ChromeRow(title: "Zoom", detail: current == 100 ? "The stock size" : String(format: Chrome.localized("%lld%% of the stock size"), current)) {
-                HStack(spacing: 8) {
-                    Button {
-                        percent = AppZoom.next(percent, increasing: false)
-                    } label: {
-                        Image(systemName: "textformat.size.smaller")
-                            .font(.system(.subheadline))
-                            .foregroundStyle(Chrome.secondaryText)
-                            .frame(width: 22, height: 22)
-                            .contentShape(.rect)
+        @Bindable var settings = model.settings
+        ChromeSection(
+            title: "Advanced",
+            accessory: AnyView(disclosure),
+            trailing: AnyView(
+                Button("Reset to defaults") { settings.resetFontSizes() }
+                    .font(.ui(.body))
+                    .buttonStyle(.glass)
+                    .controlSize(.small)
+                    .disabled(settings.isDefault)
+            )
+        ) {
+            if isExpanded {
+                ChromeCard {
+                    ChromeRow(title: "Interface font size", detail: "Adjust Tivano's base font size") {
+                        FontSizeField(value: $settings.uiFontSize, range: TypeScale.uiRange)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(current == AppZoom.levels.first)
-                    .help("Zoom out")
-                    Text("\(current)%")
-                        .font(.system(.subheadline, weight: .medium).monospacedDigit())
-                        .foregroundStyle(Chrome.primaryText)
-                        .frame(minWidth: 46)
-                    Button {
-                        percent = AppZoom.next(percent, increasing: true)
-                    } label: {
-                        Image(systemName: "textformat.size.larger")
-                            .font(.system(.subheadline))
-                            .foregroundStyle(Chrome.secondaryText)
-                            .frame(width: 22, height: 22)
-                            .contentShape(.rect)
+                    ChromeRowDivider()
+                    ChromeRow(title: "Content font size", detail: "Adjust the base font size of conversations") {
+                        FontSizeField(value: $settings.contentFontSize, range: TypeScale.contentRange)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(current == AppZoom.levels.last)
-                    .help("Zoom in")
-                    Button {
-                        percent = 100
-                    } label: {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(.subheadline, weight: .medium))
-                            .foregroundStyle(Chrome.secondaryText)
-                            .frame(width: 22, height: 22)
-                            .contentShape(.rect)
+                    ChromeRowDivider()
+                    ChromeRow(title: "Code font size", detail: "Adjust the base font size of code in chat and diff views") {
+                        FontSizeField(value: $settings.codeFontSize, range: TypeScale.codeRange)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(current == 100)
-                    .opacity(current == 100 ? 0 : 1)
-                    .help("Back to the stock size")
                 }
-                .animation(.snappy(duration: 0.2), value: current)
             }
         }
+    }
+
+    private var disclosure: some View {
+        Button {
+            withAnimation(Chrome.panelSlide) { isExpanded.toggle() }
+        } label: {
+            Image(systemName: "chevron.right")
+                .font(Font.ui(.subheadline, weight: .semibold))
+                .foregroundStyle(Chrome.secondaryText)
+                .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                .animation(Chrome.panelSlide, value: isExpanded)
+                .frame(width: 22, height: 22)
+                .contentShape(.rect)
+        }
+        .buttonStyle(ChromeQuietButtonStyle())
+        .accessibilityLabel(Text("Advanced"))
+        .accessibilityValue(Text(verbatim: Chrome.localized(isExpanded ? "Expanded" : "Collapsed")))
+    }
+}
+
+/// Commits a point size on Return or when focus leaves. Anything that is not an integer
+/// snaps back; an integer outside the range clamps into it.
+private struct FontSizeField: View {
+    @Binding var value: Int
+    let range: ClosedRange<Int>
+    @State private var draft: String
+    @FocusState private var isFocused: Bool
+
+    init(value: Binding<Int>, range: ClosedRange<Int>) {
+        _value = value
+        self.range = range
+        _draft = State(initialValue: String(value.wrappedValue))
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            TextField("", text: $draft)
+                .textFieldStyle(.roundedBorder)
+                .font(Font.ui(size: 12, design: .monospaced).monospacedDigit())
+                .multilineTextAlignment(.center)
+                .frame(width: 56)
+                .focused($isFocused)
+                .onSubmit(commit)
+                .onChange(of: isFocused) { _, focused in
+                    if !focused { commit() }
+                }
+                .help(Text(verbatim: "\(range.lowerBound)–\(range.upperBound)"))
+            Text("px")
+                .font(Font.ui(size: 12))
+                .foregroundStyle(Chrome.secondaryText)
+        }
+        .onChange(of: value) { _, newValue in
+            let typed = Int(draft.trimmingCharacters(in: .whitespacesAndNewlines)).map { TypeScale.clamp($0, to: range) }
+            if !isFocused || typed != newValue {
+                draft = String(newValue)
+            }
+        }
+    }
+
+    private func commit() {
+        if let parsed = Int(draft.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            value = TypeScale.clamp(parsed, to: range)
+        }
+        draft = String(value)
     }
 }
 
@@ -543,14 +586,14 @@ private struct BackdropOpacitySlider: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "circle.dotted")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
                 .help("Transparent")
             Slider(value: $value, in: 0...1)
                 .controlSize(.small)
                 .frame(width: 140)
             Image(systemName: "circle.fill")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
                 .help("Solid")
         }
@@ -563,7 +606,7 @@ private struct BackdropOpacitySlider: View {
                     withAnimation(.snappy(duration: 0.2)) { value = AppSettings.defaultBackdropOpacity }
                 } label: {
                     Image(systemName: "arrow.counterclockwise")
-                        .font(.system(.subheadline, weight: .medium))
+                        .font(.ui(.subheadline, weight: .medium))
                         .foregroundStyle(Chrome.secondaryText)
                         .frame(width: 22, height: 22)
                         .contentShape(.rect)
@@ -670,14 +713,14 @@ private struct ProviderSettingsSection: View {
                             .frame(width: 22)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: Chrome.localized(status.isChecking ? "Checking…" : status.summary))
-                                .font(.system(size: 13))
+                                .font(.ui(size: 13))
                             if let version = status.version, !provider.isAPIKeyBased {
                                 Text(verbatim: String(format: Chrome.localized("Version %@"), version))
-                                    .font(.system(size: 11))
+                                    .font(.ui(size: 11))
                                     .foregroundStyle(Chrome.secondaryText)
                             } else if provider.isAPIKeyBased, status.apiKeyConfigured, let host = provider.apiHost {
                                 Text(verbatim: String(format: Chrome.localized("Native API · %@"), host))
-                                    .font(.system(size: 11))
+                                    .font(.ui(size: 11))
                                     .foregroundStyle(Chrome.secondaryText)
                             }
                         }
@@ -720,13 +763,13 @@ private struct ProviderSettingsSection: View {
                                     }
                                 }
                                 .textFieldStyle(.roundedBorder)
-                                .font(.system(size: 12, design: .monospaced))
+                                .font(.ui(size: 12, design: .monospaced))
                                 .frame(width: 200)
                                 Button {
                                     showsAPIKey.toggle()
                                 } label: {
                                     Image(systemName: showsAPIKey ? "eye.slash" : "eye")
-                                        .font(.system(size: 12))
+                                        .font(.ui(size: 12))
                                 }
                                 .buttonStyle(.plain)
                                 .foregroundStyle(Chrome.secondaryText)
@@ -749,7 +792,7 @@ private struct ProviderSettingsSection: View {
                         ChromeRow(title: "Binary path", detail: status.executable?.path) {
                             TextField("", text: $binaryPath, prompt: Text(provider.executableName))
                                 .textFieldStyle(.roundedBorder)
-                                .font(.system(size: 12, design: .monospaced))
+                                .font(.ui(size: 12, design: .monospaced))
                                 .frame(width: 200)
                         }
                         if !status.isInstalled {
@@ -837,12 +880,12 @@ private struct SourceControlSettingsPage: View {
             ChromeCard {
                 ZStack(alignment: .topLeading) {
                     TextEditor(text: $settings.commitInstructions)
-                        .font(.system(.body))
+                        .font(.ui(.body))
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 90)
                     if settings.commitInstructions.isEmpty {
                         Text("For example: use conventional commit prefixes")
-                            .font(.system(.body))
+                            .font(.ui(.body))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 5)
                             .allowsHitTesting(false)
@@ -991,9 +1034,9 @@ private struct AboutSettingsPage: View {
                     .frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Tivano")
-                        .font(.system(.title3, weight: .semibold))
+                        .font(.ui(.title3, weight: .semibold))
                     Text(verbatim: String(format: Chrome.localized("Version %@ (%@)"), AppInfo.version, AppInfo.build))
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Spacer()
@@ -1007,13 +1050,13 @@ private struct AboutSettingsPage: View {
             AboutUpdateCheckRow()
             ChromeRowDivider()
             Text("A native home for your coding agents, built in Swift with Liquid Glass. A fork of Droppy Code by Jordy Spruit (Droppy).")
-                .font(.system(.body))
+                .font(.ui(.body))
                 .padding(.leading, 16)
                 .padding(.trailing, Chrome.rowControlTrailingPadding)
                 .padding(.vertical, 11)
             ChromeRowDivider()
             Text("Tivano is licensed under the GNU AGPL v3.0 with attribution terms; SwiftTerm is MIT licensed.")
-                .font(.system(.callout))
+                .font(.ui(.callout))
                 .foregroundStyle(Chrome.secondaryText)
                 .padding(.leading, 16)
                 .padding(.trailing, Chrome.rowControlTrailingPadding)
@@ -1044,9 +1087,9 @@ private struct LicensesRow: View {
                             ForEach(Self.files, id: \.resource) { file in
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(verbatim: Chrome.localized(file.title))
-                                        .font(.system(.body, weight: .semibold))
+                                        .font(.ui(.body, weight: .semibold))
                                     MarkdownView(text: Self.text(of: file.resource)).equatable()
-                                        .environment(\.markdownPointSize, 12)
+                                        .environment(\.markdownPointSize, TypeScale.shared.content(12))
                                         .foregroundStyle(Chrome.secondaryText)
                                         .textSelection(.enabled)
                                 }
@@ -1085,19 +1128,19 @@ private struct UpstreamAttributionRow: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Based on Droppy Code")
-                        .font(.system(.body, weight: .semibold))
+                        .font(.ui(.body, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     Text("Droppy Code by Jordy Spruit (Droppy)")
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Spacer(minLength: 12)
                 HStack(spacing: 4) {
                     Text(verbatim: "getdroppycode.app")
                     Image(systemName: "arrow.up.right")
-                        .font(.system(.footnote, weight: .semibold))
+                        .font(.ui(.footnote, weight: .semibold))
                 }
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.accent)
                 .opacity(isHovering ? 1 : 0.9)
             }
@@ -1124,9 +1167,9 @@ private struct CreditLink: View {
             HStack(spacing: 4) {
                 Text(verbatim: title)
                 Image(systemName: "arrow.up.right")
-                    .font(.system(.footnote, weight: .semibold))
+                    .font(.ui(.footnote, weight: .semibold))
             }
-            .font(.system(.callout, weight: .medium))
+            .font(.ui(.callout, weight: .medium))
             .foregroundStyle(Chrome.accent)
         }
         .buttonStyle(.plain)
@@ -1187,7 +1230,7 @@ private struct ThemePickerButton: View {
                 selection.swatch
                     .frame(width: 14, height: 14)
                 Text(verbatim: Chrome.localized(selection.displayName))
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.ui(size: 12.5, weight: .medium))
                     .lineLimit(1)
                 Image(systemName: "chevron.down")
                     .font(.system(size: 8, weight: .bold))

@@ -64,10 +64,10 @@ struct WallpaperCard: View {
                         .overlay {
                             VStack(spacing: 6) {
                                 Image(systemName: "photo.on.rectangle.angled")
-                                    .font(.system(.title))
+                                    .font(.ui(.title))
                                     .foregroundStyle(Chrome.secondaryText)
                                 Text("Drop a picture here, or choose one")
-                                    .font(.system(.callout))
+                                    .font(.ui(.callout))
                                     .foregroundStyle(Chrome.secondaryText)
                             }
                         }
@@ -127,7 +127,7 @@ struct WallpaperCard: View {
         ChromeRow(title: "Softness", detail: "Blurs the picture so text stays easy to read") {
             HStack(spacing: 8) {
                 Image(systemName: "drop")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .help("Sharp")
                 Slider(
@@ -138,7 +138,7 @@ struct WallpaperCard: View {
                 .controlSize(.small)
                 .frame(width: 140)
                 Image(systemName: "drop.fill")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .help("Blurred")
             }
@@ -148,7 +148,7 @@ struct WallpaperCard: View {
                         store.softness = 0
                     } label: {
                         Image(systemName: "arrow.counterclockwise")
-                            .font(.system(.subheadline, weight: .medium))
+                            .font(.ui(.subheadline, weight: .medium))
                             .foregroundStyle(Chrome.secondaryText)
                             .frame(width: 22, height: 22)
                             .contentShape(.rect)

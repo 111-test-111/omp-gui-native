@@ -106,7 +106,7 @@ struct HydraMergePopover: View {
                             .aspectRatio(contentMode: .fit)
                     } else {
                         Image(systemName: "arrow.triangle.merge")
-                            .font(.system(size: 18))
+                            .font(.ui(size: 18))
                             .foregroundStyle(Chrome.accent)
                     }
                 }
@@ -114,15 +114,15 @@ struct HydraMergePopover: View {
                 .clipShape(RoundedRectangle(cornerRadius: 6))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Merged")
-                        .font(.system(.title3, weight: .semibold))
+                        .font(.ui(.title3, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     Text(verbatim: String(format: Chrome.localized("%@ on %@"), note.link.label, host))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Spacer()
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 20))
+                    .font(.ui(size: 20))
                     .foregroundStyle(Chrome.success)
             }
             HStack(spacing: 8) {
@@ -155,7 +155,7 @@ struct HydraMergePopover: View {
                     }
                     Spacer(minLength: 8)
                     Text(verbatim: note.heads.count == 1 ? Chrome.localized("1 head landed") : String(format: Chrome.localized("%d heads landed"), note.heads.count))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
             }
@@ -163,7 +163,7 @@ struct HydraMergePopover: View {
                 chip(note.branch, fills: true)
                     .help(note.branch)
                 Image(systemName: "arrow.right")
-                    .font(.system(.caption2, weight: .semibold))
+                    .font(.ui(.caption2, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
                 chip(note.target)
                     .fixedSize()
@@ -171,10 +171,10 @@ struct HydraMergePopover: View {
             ForEach(Array(note.notes.enumerated()), id: \.offset) { _, entry in
                 HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "info.circle")
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                     Text(verbatim: entry)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -196,7 +196,7 @@ struct HydraMergePopover: View {
                     HStack(spacing: 5) {
                         if didCopyLink {
                             Image(systemName: "checkmark")
-                                .font(.system(.subheadline, weight: .semibold))
+                                .font(.ui(.subheadline, weight: .semibold))
                                 .foregroundStyle(Chrome.success)
                                 .transition(.scale(scale: 0.6).combined(with: .opacity))
                         }
@@ -230,21 +230,21 @@ struct HydraMergePopover: View {
     private func headCard(_ head: HydraMergeNote.Head) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: head.name)
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
             Text(verbatim: head.task)
-                .font(.system(.callout))
+                .font(.ui(.callout))
                 .foregroundStyle(Chrome.secondaryText)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
             Divider()
             if head.files.isEmpty {
                 Text("No files of its own in this merge")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             } else {
                 ForEach(head.files, id: \.self) { path in
                     Text(verbatim: path)
-                        .font(.system(.subheadline, design: .monospaced))
+                        .font(.ui(.subheadline, design: .monospaced))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -258,10 +258,10 @@ struct HydraMergePopover: View {
     private func stat(value: String, label: String, tint: Color? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: value)
-                .font(.system(.title2, weight: .semibold).monospacedDigit())
+                .font(.ui(.title2, weight: .semibold).monospacedDigit())
                 .foregroundStyle(tint ?? Chrome.primaryText)
             Text(verbatim: Chrome.localized(label))
-                .font(.system(.footnote, weight: .medium))
+                .font(.ui(.footnote, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText)
         }
         .padding(.horizontal, 12)
@@ -274,7 +274,7 @@ struct HydraMergePopover: View {
     /// A filling chip stretches its capsule across the width it is given.
     private func chip(_ name: String, fills: Bool = false) -> some View {
         Text(verbatim: name)
-            .font(.system(.subheadline, design: .monospaced))
+            .font(.ui(.subheadline, design: .monospaced))
             .foregroundStyle(Chrome.primaryText.opacity(0.9))
             .lineLimit(1)
             .truncationMode(.middle)

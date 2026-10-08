@@ -123,7 +123,7 @@ struct PopoverSectionHeader: View {
 
     var body: some View {
         Text(verbatim: Chrome.localized(title))
-            .font(.system(.subheadline, weight: .semibold))
+            .font(.ui(.subheadline, weight: .semibold))
             .foregroundStyle(Chrome.secondaryText)
             .padding(.horizontal, 8)
             .padding(.top, 6)
@@ -141,7 +141,7 @@ struct PopoverNote: View {
 
     var body: some View {
         Text(verbatim: Chrome.localized(text))
-            .font(.system(.callout))
+            .font(.ui(.callout))
             .foregroundStyle(Chrome.secondaryText)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
@@ -275,7 +275,7 @@ struct PopoverItem: View {
             HStack(spacing: 8) {
                 if let isChecked {
                     Image(systemName: "checkmark")
-                        .font(.system(.subheadline, weight: .semibold))
+                        .font(.ui(.subheadline, weight: .semibold))
                         .opacity(isChecked ? 1 : 0)
                         .frame(width: 14)
                 }
@@ -294,25 +294,25 @@ struct PopoverItem: View {
                         .frame(width: 16, height: 16)
                 } else if isConfirmed {
                     Image(systemName: "checkmark")
-                        .font(.system(.callout, weight: .semibold))
+                        .font(.ui(.callout, weight: .semibold))
                         .foregroundStyle(Chrome.success)
                         .frame(width: 16)
                         .transition(.scale(scale: 0.6).combined(with: .opacity))
                 } else if let symbol {
                     Image(systemName: symbol)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .frame(width: 16)
                         .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
                 (isConfirmed ? Text(verbatim: Chrome.localized(confirmation ?? title)) : (titleText ?? Text(verbatim: Chrome.localized(title))))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .contentTransition(.numericText())
                 Spacer(minLength: 16)
                 if let detail {
                     Text(verbatim: Chrome.localized(detail))
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                 }

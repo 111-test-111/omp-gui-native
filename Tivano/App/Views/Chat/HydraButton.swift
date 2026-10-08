@@ -627,7 +627,7 @@ private struct HydraSendWorkingBadge: View {
                 MiniSpinner(cellSize: 2.4)
             } else {
                 Text(verbatim: "\(running)")
-                    .font(.system(.caption2, weight: .bold).monospacedDigit())
+                    .font(.ui(.caption2, weight: .bold).monospacedDigit())
                     .foregroundStyle(.white)
                     .contentTransition(.opacity)
             }
