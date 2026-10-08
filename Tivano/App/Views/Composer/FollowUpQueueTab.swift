@@ -151,7 +151,7 @@ struct FollowUpQueueTab: View {
         .padding(.top, 7)
         .padding(.bottom, 7 + Self.overlap)
         .frame(maxWidth: 560)
-        .glassEffect(.regular, in: shape)
+        .modifier(FollowUpQueueSurface())
         .contentShape(shape)
         .onChange(of: runtime.followUps.map(\.id)) { _, ids in
             // A row that left mid-drag (deleted, or sent) ends the drag cleanly, and its
@@ -325,6 +325,7 @@ private struct FollowUpRow: View {
     /// Held while the grip's drag runs; SwiftUI resets it when the gesture ends or is
     /// cancelled, and a cancelled gesture calls no `onEnded` of its own.
     @GestureState private var isGrabbing = false
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     /// How far the prose is lifted to centre its x-height on the row's line: half the
     /// gap between cap height and x-height of its 12 pt font, on the half point.
@@ -474,7 +475,7 @@ private struct FollowUpRow: View {
             if isDragged {
                 Capsule(style: .continuous)
                     .fill(Chrome.overlay(0.12))
-                    .shadow(color: .black.opacity(0.28), radius: 10, y: 4)
+                    .shadow(color: .black.opacity(performanceMode ? 0 : 0.28), radius: performanceMode ? 0 : 10, y: performanceMode ? 0 : 4)
             }
         }
         // A scale above the scroll view's edge would be cut off there, so the lift reads
@@ -528,5 +529,35 @@ private struct QueueIconButton: View {
         .disabled(!isEnabled)
         .help(Text(verbatim: Chrome.localized(help)))
         .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
+    }
+}
+
+private struct FollowUpQueueSurface: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
+
+    func body(content: Content) -> some View {
+        let shape = UnevenRoundedRectangle(topLeadingRadius: 12, topTrailingRadius: 12, style: .continuous)
+        let isDark = colorScheme == .dark
+        if !performanceMode {
+            content
+                .glassEffect(.regular, in: shape)
+                .background {
+                    shape
+                        .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+                        .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+                }
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
+        } else {
+            content
+                .background(shape.fill(Color(nsColor: .controlBackgroundColor)))
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
+        }
     }
 }

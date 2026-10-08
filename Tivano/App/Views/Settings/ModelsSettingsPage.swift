@@ -27,7 +27,9 @@ struct ModelsSettingsPage: View {
         }
         // Filtering is instant with no transitions: animating dozens of rows with blur on every
         // keystroke (and all of them again when clearing) is what made entries overlap and jump.
-        VStack(alignment: .leading, spacing: Chrome.sectionSpacing) {
+        // Lazy all the way down: expanded catalogues run to hundreds of rows, and the
+        // settings scroll view builds and measures every row of an eager stack.
+        LazyVStack(alignment: .leading, spacing: Chrome.sectionSpacing) {
             if trimmed.isEmpty || !visiblePins.isEmpty {
                 ChromeSection(title: "Your models") {
                     ChromeCard {
@@ -165,6 +167,7 @@ private struct PinnedModelRow: View {
     let onDragChanged: (CGFloat) -> Void
     let onDragEnded: () -> Void
 
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     @State private var isPresented = false
     @State private var isHovering = false
     /// Whether the pointer is over the reorder grip, which brightens its icon.
@@ -256,7 +259,7 @@ private struct PinnedModelRow: View {
             if isDragged {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Chrome.overlay(0.12))
-                    .shadow(color: .black.opacity(0.28), radius: 10, y: 4)
+                    .shadow(color: .black.opacity(performanceMode ? 0 : 0.28), radius: performanceMode ? 0 : 10, y: performanceMode ? 0 : 4)
             }
         }
         .scaleEffect(isDragged ? 1.02 : 1)
@@ -307,26 +310,23 @@ private struct ProviderModelsSection: View {
     var body: some View {
         let settings = model.settings
         let registry = model.providers
-        // The catalogue is the stable row set: the ForEach below always walks it in
-        // catalogue order, and visibility only opens or closes each row's reveal.
         let catalogue = registry.models(for: provider)
         let isFull = settings.modelList.count >= AppSettings.modelListLimit
         let isFiltering = !query.isEmpty
         // Search shows only matches; otherwise expanded shows everything and collapsed
         // shows just the chosen models, all in catalogue order.
-        let visibleIDs = Set(catalogue.filter { option in
+        let pinned = Set(settings.modelList)
+        let visibleOptions = catalogue.filter { option in
             isFiltering
                 ? ModelsSettingsPage.matches(option, id: option.id, provider: provider, query: query)
-                : isExpanded || settings.isInModelList(ModelPin(provider: provider, modelID: option.id))
-        }.map(\.id))
-        let firstVisibleID = catalogue.first { visibleIDs.contains($0.id) }?.id
+                : isExpanded || pinned.contains(ModelPin(provider: provider, modelID: option.id))
+        }
         // Collapsed with nothing chosen closes the card outright.
-        let cardVisible = isExpanded || isFiltering || !visibleIDs.isEmpty
+        let cardVisible = isExpanded || isFiltering || !visibleOptions.isEmpty
         VStack(alignment: .leading, spacing: Chrome.sectionHeaderSpacing) {
             CollapsibleProviderHeader(provider: provider, isExpanded: $isExpanded, subject: "model list")
-            // An eager surface instead of ChromeCard: its LazyVStack rebuilds rows
-            // that stay mounted while their reveal animates. Same fill and shape.
-            VStack(spacing: 0) {
+            // Lazy, so only the rows on screen are built. Same fill and shape as ChromeCard.
+            LazyVStack(spacing: 0) {
                 if catalogue.isEmpty {
                     // The loading/empty row is the expanded state; collapsed closes it.
                     ChromeRevealLayout(fraction: cardVisible ? 1 : 0) {
@@ -343,55 +343,48 @@ private struct ProviderModelsSection: View {
                     .allowsHitTesting(cardVisible)
                     .accessibilityHidden(!cardVisible)
                 } else {
-                    ForEach(catalogue, id: \.id) { option in
+                    // Only visible rows are built: catalogues run to hundreds of models, and
+                    // mounting every hidden one (each with its own tooltip tracking area)
+                    // made the page re-measure them all on every hover, keystroke and resize.
+                    ForEach(visibleOptions, id: \.id) { option in
                         let pin = ModelPin(provider: provider, modelID: option.id)
-                        let isAdded = settings.isInModelList(pin)
-                        let isVisible = visibleIDs.contains(option.id)
-                        // Divider and row reveal independently: a row's divider exists
-                        // only when a visible row sits above it (never one on top).
-                        ChromeRevealLayout(fraction: isVisible && option.id != firstVisibleID ? 1 : 0) {
+                        let isAdded = pinned.contains(pin)
+                        if option.id != visibleOptions.first?.id {
                             ChromeRowDivider()
                         }
-                        .clipped()
-                        ChromeRevealLayout(fraction: isVisible ? 1 : 0) {
-                            ChromeRow(title: option.shortName, detail: option.detail) {
-                                HStack(spacing: 10) {
-                                    if option.supportsFast {
-                                        Image(systemName: "bolt")
-                                            .font(.system(size: 11))
-                                            .foregroundStyle(Chrome.secondaryText)
-                                            .help("Supports fast mode")
-                                    }
-                                    Button {
-                                        // Re-filtering mid-search is instant, like the
-                                        // rest of the page; otherwise rows slide.
-                                        if isFiltering {
-                                            if isAdded { settings.removeFromModelList(pin) } else { settings.addToModelList(pin) }
-                                        } else {
-                                            withAnimation(Chrome.panelSlide) {
-                                                if isAdded { settings.removeFromModelList(pin) } else { settings.addToModelList(pin) }
-                                            }
-                                        }
-                                    } label: {
-                                        Image(systemName: isAdded ? "checkmark.circle.fill" : "plus.circle")
-                                            .font(.system(size: 17))
-                                            .foregroundStyle(isAdded ? Chrome.accent : Chrome.secondaryText)
-                                            .contentTransition(.symbolEffect(.replace))
-                                    }
-                                    .buttonStyle(.plain)
-                                    .disabled(!isAdded && isFull)
-                                    // A plain button does not dim itself; the same 0.35 as
-                                    // every other disabled control on this page.
-                                    .opacity(!isAdded && isFull ? 0.35 : 1)
-                                    .help(Text(verbatim: isAdded ? Chrome.localized("Remove from the picker") : (isFull ? String(format: Chrome.localized("The picker holds up to %lld models"), AppSettings.modelListLimit) : Chrome.localized("Add to the picker"))))
-                                    .accessibilityLabel(Text(verbatim: String(format: Chrome.localized(isAdded ? "Remove %@ from the picker" : "Add %@ to the picker"), option.shortName)))
+                        ChromeRow(title: option.shortName, detail: option.detail) {
+                            HStack(spacing: 10) {
+                                if option.supportsFast {
+                                    Image(systemName: "bolt")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(Chrome.secondaryText)
+                                        .help("Supports fast mode")
                                 }
+                                Button {
+                                    // Re-filtering mid-search is instant, like the
+                                    // rest of the page; otherwise rows slide.
+                                    if isFiltering {
+                                        if isAdded { settings.removeFromModelList(pin) } else { settings.addToModelList(pin) }
+                                    } else {
+                                        withAnimation(Chrome.panelSlide) {
+                                            if isAdded { settings.removeFromModelList(pin) } else { settings.addToModelList(pin) }
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: isAdded ? "checkmark.circle.fill" : "plus.circle")
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(isAdded ? Chrome.accent : Chrome.secondaryText)
+                                        .contentTransition(.symbolEffect(.replace))
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(!isAdded && isFull)
+                                // A plain button does not dim itself; the same 0.35 as
+                                // every other disabled control on this page.
+                                .opacity(!isAdded && isFull ? 0.35 : 1)
+                                .help(Text(verbatim: isAdded ? Chrome.localized("Remove from the picker") : (isFull ? String(format: Chrome.localized("The picker holds up to %lld models"), AppSettings.modelListLimit) : Chrome.localized("Add to the picker"))))
+                                .accessibilityLabel(Text(verbatim: String(format: Chrome.localized(isAdded ? "Remove %@ from the picker" : "Add %@ to the picker"), option.shortName)))
                             }
                         }
-                        .clipped()
-                        .disabled(!isVisible)
-                        .allowsHitTesting(isVisible)
-                        .accessibilityHidden(!isVisible)
                     }
                 }
             }

@@ -164,6 +164,38 @@ struct HydraSettingsPage: View {
         .disabled(!settings.hydraEnabled)
         .opacity(settings.hydraEnabled ? 1 : 0.5)
         .animation(.smooth(duration: 0.2), value: settings.hydraEnabled)
+        ChromeSection(title: "Provider history") {
+            ChromeCard {
+                ChromeRow(
+                    title: "Codex local session history",
+                    detail: "For new delegated Tivano-run Codex heads after successful completion. Archived sessions keep their IDs and resume on the next message. Lead chats, native heads, older sessions and heads with user follow-ups stay visible."
+                ) {
+                    ChromeVisualPicker(options: [(false, "Keep visible"), (true, "Auto-archive")], selection: $settings.hydraArchivesCodexHeads) { archive in
+                        Image(systemName: archive ? "archivebox" : "eye")
+                    }
+                }
+                ChromeRowDivider()
+                ChromeRow(title: "Claude Code and Antigravity", detail: "Keep visible. Their connected streaming CLIs do not expose a verified archive operation that preserves resume history.") {
+                    Text("Unavailable")
+                        .foregroundStyle(Chrome.secondaryText)
+                }
+                ChromeRowDivider()
+                ChromeRow(title: "Permanent deletion", detail: "Disabled. Codex deletion also deletes descendant sessions, without an atomic safeguard against newly active work. Claude Code and Antigravity have no verified deletion operation for these connected sessions.") {
+                    Button("Delete…", role: .destructive) {}
+                        .disabled(true)
+                }
+            }
+            Text("These controls affect Codex's local CLI/app session history, independently of Tivano's sidebar. They do not manage conversations on provider websites. Heads with descendants or an unconfirmed idle state are not archived. Changing this setting never sweeps existing history.")
+                .font(.system(.subheadline))
+                .foregroundStyle(Chrome.secondaryText)
+                .padding(.horizontal, 4)
+            ForEach(model.threads.filter { $0.provider == .codex && $0.hydra?.providerHistoryIssue != nil }) { head in
+                Text("\(head.title): \(head.hydra?.providerHistoryIssue ?? "")")
+                    .font(.system(.subheadline))
+                    .foregroundStyle(Chrome.secondaryText)
+                    .padding(.horizontal, 4)
+            }
+        }
         ChromeSection(title: "Where heads run") {
             ChromeCard {
                 ChromeRow(title: "Claude, Codex and Copilot", detail: "In the provider's own session, through the lead's own agent tools.") {

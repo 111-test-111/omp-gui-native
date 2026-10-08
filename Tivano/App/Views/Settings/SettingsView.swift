@@ -66,12 +66,12 @@ enum SettingsPage: String, CaseIterable, Identifiable {
     var keywords: [String] {
         switch self {
         case .general: ["permissions", "worktree", "reasoning", "thinking", "notifications", "token", "tokens", "activity", "usage", "panel", "limits", "credits", "heatmap", "daily", "weekly", "cumulative", "settle", "settled", "finish", "finished", "done", "sound", "chime", "icon", "icons", "emoji", "symbol", "symbols", "project mark", "compact", "concise", "anti-slop", "slop", "verbose", "comments", "replies"]
-        case .appearance: ["appearance", "theme", "transparency", "transparent", "opacity", "glass", "dark", "light", "accent", "tint", "catppuccin", "dracula", "tokyo", "nord", "gruvbox", "solarized", "github", "claude", "codex", "cursor", "matrix", "text", "size", "font", "zoom", "wallpaper", "sidebar"]
+        case .appearance: ["appearance", "theme", "transparency", "transparent", "opacity", "glass", "dark", "light", "accent", "tint", "catppuccin", "dracula", "tokyo", "nord", "gruvbox", "solarized", "github", "claude", "codex", "cursor", "matrix", "text", "size", "font", "zoom", "wallpaper", "sidebar", "performance", "gpu"]
         case .models: ["model", "effort", "reasoning", "fast", "slider", "picker"]
         case .hydra: ["hydra", "heads", "subagents", "sub-agents", "agents", "team", "orchestrator", "worker", "pair", "pairs", "parallel", "delegate", "queue"]
         case .providers: ["codex", "claude", "cursor", "opencode", "opencode zen", "opencode go", "zen", "grok", "deepseek", "meta", "muse", "spark", "zai", "z.ai", "glm", "coding plan", "devin", "cognition", "antigravity", "agy", "google", "gemini", "copilot", "github", "command code", "commandcode", "cmd", "binary", "path", "sign in", "login", "api key", "usage", "limits", "limit", "plan", "quota", "credits", "balance"]
         case .mcp: ["mcp", "model context protocol", "servers", "tools", "connect", "integrations", "github", "playwright", "notion", "linear", "slack", "figma", "supabase", "stripe", "resend", "email", "context7", "sentry", "postgres", "browser", "netlify", "deploy", "hosting"]
-        case .sourceControl: ["git", "commit", "pull request", "titles", "text generation"]
+        case .sourceControl: ["git", "commit", "pull request", "titles", "text generation", "github", "clone", "repository", "repositories", "repo", "sign in", "token", "connect", "account"]
         case .shortcuts: ["keyboard", "keys"]
         case .archive: ["archived", "restore"]
         case .about: ["version", "license"]
@@ -116,7 +116,7 @@ struct SettingsView: View {
         }
         .onDisappear { scrollTracker.end() }
         .background { WindowBackdrop(opacity: model.settings.backdropOpacity) }
-        .background { WindowChromeConfigurator() }
+        .background { WindowChromeConfigurator(performanceMode: model.settings.performanceMode) }
         .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .ignoresSafeArea()
         .frame(width: 780, height: 580)
@@ -347,6 +347,10 @@ private struct GeneralSettingsPage: View {
                         }
                     }
                     ChromeRowDivider()
+                    ChromeRow(title: "Timeline haptics", detail: "Play haptic feedback when hovering over timeline ticks and progress bars") {
+                        GlassPickerButton(options: TimelineHapticStyle.allCases.map { ($0, $0.title) }, selection: $settings.timelineHapticStyle)
+                    }
+                    ChromeRowDivider()
                     ChromeRow(title: "Recent downloads", detail: "The attach button offers recent downloads first") {
                         SettingsSwitch(isOn: $settings.recentDownloadsPicker)
                     }
@@ -434,6 +438,12 @@ private struct AppearanceSettingsPage: View {
                 ChromeRowDivider()
                 ChromeRow(title: "Transparency", detail: "How much shows through the window") {
                     BackdropOpacitySlider(value: $settings.backdropOpacity)
+                }
+                .disabled(settings.performanceMode)
+                .opacity(settings.performanceMode ? 0.5 : 1)
+                ChromeRowDivider()
+                ChromeRow(title: "Performance Mode", detail: "Disable window transparency, blurs, glows and background effects for lowest GPU usage") {
+                    SettingsSwitch(isOn: $settings.performanceMode)
                 }
                 ChromeRowDivider()
                 ChromeRow(title: "Sidebar", detail: settings.sidebarMode.detail) {
@@ -812,6 +822,7 @@ private struct SourceControlSettingsPage: View {
 
     var body: some View {
         @Bindable var settings = model.settings
+        GitHubSettingsSection()
         ChromeSection(title: "Text generation") {
             ChromeCard {
                 ChromeRow(

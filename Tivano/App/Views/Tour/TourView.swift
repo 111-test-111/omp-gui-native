@@ -33,6 +33,7 @@ struct TourView: View {
     let onClose: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     @State var currentIndex: Int
 
     init(
@@ -77,12 +78,16 @@ struct TourView: View {
         // The floating-panel recipe from SubagentPanel: one shared rounded shape for
         // either state, one glass/tint surface, one clip, and one inset hairline.
         .background {
-            shape
-                .fill(.clear)
-                .glassEffect(.regular, in: shape)
-                .overlay {
-                    shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
-                }
+            if performanceMode {
+                shape.fill(Color(nsColor: .windowBackgroundColor))
+            } else {
+                shape
+                    .fill(.clear)
+                    .glassEffect(.regular, in: shape)
+                    .overlay {
+                        shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
+                    }
+            }
         }
         .clipShape(shape)
         .overlay {
@@ -202,13 +207,25 @@ struct TourView: View {
     }
 
     private var primaryActionButton: some View {
-        Button(action: advance) {
-            Text(verbatim: Chrome.localized(isLastPage ? finishButtonTitle : continueButtonTitle))
-                .font(.system(.title3, weight: .semibold))
-                .frame(width: 220, height: 42)
+        Group {
+            if performanceMode {
+                Button(action: advance) {
+                    Text(verbatim: Chrome.localized(isLastPage ? finishButtonTitle : continueButtonTitle))
+                        .font(.system(.title3, weight: .semibold))
+                        .frame(width: 220, height: 42)
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+            } else {
+                Button(action: advance) {
+                    Text(verbatim: Chrome.localized(isLastPage ? finishButtonTitle : continueButtonTitle))
+                        .font(.system(.title3, weight: .semibold))
+                        .frame(width: 220, height: 42)
+                }
+                .buttonStyle(.glassProminent)
+                .keyboardShortcut(.defaultAction)
+            }
         }
-        .buttonStyle(.glassProminent)
-        .keyboardShortcut(.defaultAction)
     }
 
     private func iconButton(systemName: String, action: @escaping () -> Void) -> some View {

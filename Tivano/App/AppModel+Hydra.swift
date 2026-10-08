@@ -474,6 +474,7 @@ extension AppModel {
         if let routed { head.title += " · \(routed.name)" }
         head.hasCustomTitle = true
         var info = HydraHeadInfo(index: index, task: task, kind: kind, origin: origin)
+        info.tracksProviderHistory = kind == .tivano
         info.profile = routed?.name
         info.nativeID = native?.id
         info.nativeTaskID = native?.taskID
@@ -667,8 +668,11 @@ extension AppModel {
             updateHydraHead(head.id) { $0.toolCalls = tools }
         }
         // An API session is memory only, and keeping it is what lets the head be steered
-        // on with its brief and its work still in mind; a process goes, and resumes by id.
-        if !head.provider.isAPIKeyBased { headRuntime?.stopSession() }
+        // on with its brief and its work still in mind. Normally a process goes now;
+        // an eligible Codex completion keeps its exact session through landing/archive.
+        // Setting off, failed turns and retry paths retain the immediate-stop behavior.
+        let historySession = status == .completed ? headRuntime?.retainCodexHeadSessionForHistory() : nil
+        if !head.provider.isAPIKeyBased, historySession == nil { headRuntime?.stopHeadSessionAfterProviderHistory() }
         // A head that died at the door, before a tool ran (the agent's own store locked
         // while several started at once, or its process gone before a word), is started
         // again on its brief after a short pause rather than reported as failed: the lead
@@ -698,6 +702,11 @@ extension AppModel {
             return
         }
         Task {
+            defer {
+                if let headRuntime, let historySession {
+                    Task { await headRuntime.stopCompletedCodexHeadSession(historySession) }
+                }
+            }
             // Only finished work lands: a stopped or failed head keeps its half-done edits
             // in its copy, where a later turn can carry on from them.
             var landing: HydraLanding?
@@ -707,11 +716,14 @@ extension AppModel {
             // again, so it is not finished. Marking it so would hand the lead a report for
             // a turn still running and give back the copy the head's tools are writing
             // into. It reports again when this new turn ends.
-            guard existingRuntime(for: head.id)?.isRunning != true else { return }
+            guard !Task.isCancelled, existingRuntime(for: head.id)?.isRunning != true else { return }
             // The head reported; a report arriving on an already-finished head (the user
             // steered it on from the panel) goes to the lead as a fresh one.
             if thread(head.id)?.hydra?.isFinished == true { updateHydraHead(head.id) { $0.status = .running } }
             finishHydraHead(head.id, status: status, summary: report, landing: landing)
+            if let headRuntime, let historySession {
+                headRuntime.archiveCodexHeadHistory(completion: historySession)
+            }
         }
     }
 
@@ -963,6 +975,16 @@ extension AppModel {
     /// Removes the copy of the checkout a head worked in. Its work has landed, or its
     /// patch is kept; a head talked to afterwards works in the checkout itself.
     func releaseHydraCopy(of id: UUID) {
+        // Every caller, including manual panel clearing, must keep the session and
+        // its working directory alive until provider history has finished changing.
+        Task { [weak self] in
+            guard let self else { return }
+            await existingRuntime(for: id)?.waitForProviderHistory()
+            releaseHydraCopyAfterHistory(of: id)
+        }
+    }
+
+    private func releaseHydraCopyAfterHistory(of id: UUID) {
         guard let head = thread(id), let info = head.hydra, info.hasOwnCopy, let copy = head.worktreePath,
               let project = project(head.projectID) else { return }
         // A head back at work keeps its copy: `git worktree remove --force` on the folder

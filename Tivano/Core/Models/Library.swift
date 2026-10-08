@@ -191,6 +191,11 @@ struct ChatThread: Codable, Identifiable, Hashable, Sendable {
     /// A Hydra head, whichever side of the panel it is on.
     var isHydraHead: Bool { hydra != nil }
 
+    /// Eligible for a standalone sidebar or palette entry. Hydra heads never stand alone,
+    /// even after leaving their panel or when their lead is missing or archived.
+    /// Sidebar layouts separately nest ordinary helpers under their visible parents.
+    var isStandaloneListCandidate: Bool { !isArchived && !isInPanel && !isHydraHead }
+
     /// Defaults key holding the per-chat Hydra default; `AppSettings` reads it from here.
     static let hydraDefaultKey = "hydraDefaultEnabled"
 

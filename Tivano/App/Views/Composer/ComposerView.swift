@@ -18,42 +18,47 @@ struct ComposerArea: View {
     /// The changes popover presented from the tab. Driven by
     /// `runtime.isDiffVisible`, so every opener (tab, Review, ⌘D) shares it.
     @State private var diffPopover = DiffPopoverCoordinator()
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
-        GlassEffectContainer(spacing: 8) {
-            VStack(spacing: 12) {
-                ForEach(runtime.approvals) { request in
-                    ApprovalCard(request: request, runtime: runtime)
-                }
-                VStack(alignment: .center, spacing: -ThreadChangesTab.overlap) {
-                    TabSlot(runtime: runtime, diffPopover: diffPopover, showsChanges: showsChanges)
-                    ComposerView(runtime: runtime, workingDirectory: workingDirectory, compactModelChip: compactModelChip, takesFocusOnAppear: takesFocusOnAppear)
-                }
-                .background {
-                    AttachmentAnchorCapture { diffPopover.setFallbackAnchor($0) }
-                }
-                .background {
-                    // A box without the tab never runs git for the stats it would show.
-                    if showsChanges { ChangeStatsRefresh(runtime: runtime) }
-                }
-                .onAppear { diffPopover.sync(isVisible: runtime.isDiffVisible, runtime: runtime) }
-                // The box moved to another thread; the coordinator closes the popover it had and never opens one on arrival.
-                .onChange(of: runtime.threadID) { diffPopover.sync(isVisible: runtime.isDiffVisible, runtime: runtime) }
-                .onChange(of: runtime.isDiffVisible) { _, visible in
-                    diffPopover.sync(isVisible: visible, runtime: runtime)
-                }
-                .onChange(of: runtime.diffOpenRequest) {
-                    diffPopover.reopen(runtime: runtime)
-                }
-                .onDisappear { diffPopover.close() }
-                .onChange(of: isColumnShown) { _, shown in if !shown { diffPopover.close() } }
+        areaContent
+            .frame(maxWidth: 820)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 14)
+            .frame(maxWidth: .infinity)
+            .animation(Chrome.panelSlide, value: runtime.approvals.map(\.id))
+    }
+
+    private var areaContent: some View {
+        VStack(spacing: 12) {
+            ForEach(runtime.approvals) { request in
+                ApprovalCard(request: request, runtime: runtime)
             }
+            VStack(alignment: .center, spacing: -ThreadChangesTab.overlap) {
+                TabSlot(runtime: runtime, diffPopover: diffPopover, showsChanges: showsChanges)
+                    .zIndex(0)
+                ComposerView(runtime: runtime, workingDirectory: workingDirectory, compactModelChip: compactModelChip, takesFocusOnAppear: takesFocusOnAppear)
+                    .zIndex(1)
+            }
+            .background {
+                AttachmentAnchorCapture { diffPopover.setFallbackAnchor($0) }
+            }
+            .background {
+                // A box without the tab never runs git for the stats it would show.
+                if showsChanges { ChangeStatsRefresh(runtime: runtime) }
+            }
+            .onAppear { diffPopover.sync(isVisible: runtime.isDiffVisible, runtime: runtime) }
+            // The box moved to another thread; the coordinator closes the popover it had and never opens one on arrival.
+            .onChange(of: runtime.threadID) { diffPopover.sync(isVisible: runtime.isDiffVisible, runtime: runtime) }
+            .onChange(of: runtime.isDiffVisible) { _, visible in
+                diffPopover.sync(isVisible: visible, runtime: runtime)
+            }
+            .onChange(of: runtime.diffOpenRequest) {
+                diffPopover.reopen(runtime: runtime)
+            }
+            .onDisappear { diffPopover.close() }
+            .onChange(of: isColumnShown) { _, shown in if !shown { diffPopover.close() } }
         }
-        .frame(maxWidth: 820)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 14)
-        .frame(maxWidth: .infinity)
-        .animation(Chrome.panelSlide, value: runtime.approvals.map(\.id))
     }
 }
 
@@ -660,16 +665,17 @@ private struct ComposerControls: View {
 /// off the run flag, so starting and stopping a turn repaints the dots alone.
 private struct ComposerWorkingDotsSlot: View {
     let runtime: ThreadRuntime
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
-        if runtime.isRunning {
-            GeometryReader { proxy in
-                ComposerWorkingDots()
-                    .frame(height: proxy.size.height * 0.4)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-            }
-            .clipShape(.rect(cornerRadius: 22, style: .continuous))
-            .transition(.opacity.animation(.easeInOut(duration: 0.4)))
+        if performanceMode {
+            EmptyView()
+        } else if runtime.isRunning {
+            ComposerWorkingDots()
+                .frame(height: 24)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .clipShape(.rect(cornerRadius: 22, style: .continuous))
+                .transition(.opacity.animation(.easeInOut(duration: 0.4)))
         }
     }
 }
@@ -1287,21 +1293,35 @@ final class FileIndex {
     }
 }
 
-/// The chat box's surface: Liquid Glass, or, inside a floating glass panel (a helper's,
-/// a head's), the panel's flat control fill, since glass on the panel's glass sampled
-/// the same pixels twice on every frame the transcript moved under it.
+/// The chat box's surface: a high-contrast legible base that prevents the scrolled timeline
+/// and blue equalizer activity from bleeding through, with Liquid Glass depth and a hairline edge.
 private struct ComposerSurface: ViewModifier {
     @Environment(\.isOnGlassPanel) private var isOnGlassPanel
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
-        if isOnGlassPanel {
+        let isDark = colorScheme == .dark
+        if isOnGlassPanel || performanceMode {
             content
-                .background(shape.fill(Chrome.panelControlFill(isDark: colorScheme == .dark)))
+                .background(shape.fill(Color(nsColor: .controlBackgroundColor)))
                 .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
         } else {
-            content.glassEffect(.regular, in: shape)
+            content
+                .glassEffect(.regular, in: shape)
+                .background {
+                    shape
+                        .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+                        .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+                }
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
         }
     }
 }

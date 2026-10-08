@@ -9,6 +9,7 @@ import SwiftUI
 struct FloatingSidebarPanel: View {
     @Environment(AppModel.self) private var model
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     /// The chat area it floats in.
     let area: CGSize
     let canClose: Bool
@@ -85,19 +86,24 @@ struct FloatingSidebarPanel: View {
             }
             .background {
                 let isDark = colorScheme == .dark
-                shape
-                    .fill(.clear)
-                    .glassEffect(.regular, in: shape)
-                    .overlay {
-                        shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
-                    }
+                if !performanceMode {
+                    shape
+                        .fill(.clear)
+                        .glassEffect(.regular, in: shape)
+                        .overlay {
+                            shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
+                        }
+                } else {
+                    shape
+                        .fill(Color(nsColor: .windowBackgroundColor))
+                }
             }
             .clipShape(shape)
             .background {
                 let isDark = colorScheme == .dark
                 shape
                     .fill((isDark ? Color.black : Color.white).opacity(isDark ? 0.3 : 0.34))
-                    .shadow(color: .black.opacity(isDark ? 1 : 0.65), radius: 28, y: 10)
+                    .shadow(color: performanceMode ? .clear : .black.opacity(isDark ? 1 : 0.65), radius: performanceMode ? 0 : 28, y: performanceMode ? 0 : 10)
             }
             .offset(x: origin.x, y: origin.y)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

@@ -9,6 +9,7 @@ import SwiftUI
 struct UsageFloatingPanel: View {
     @Environment(WindowLiveResize.self) private var liveResize
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     let runtime: ThreadRuntime
     let provider: ProviderKind
     let headsProvider: ProviderKind?
@@ -54,12 +55,17 @@ struct UsageFloatingPanel: View {
             // The helper panel's recipe: one glass surface, a scrim for the text over
             // whatever the panel floats above, and the theme's tint.
             let isDark = colorScheme == .dark
-            shape
-                .fill(.clear)
-                .glassEffect(.regular, in: shape)
-                .overlay {
-                    shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
-                }
+            if !performanceMode {
+                shape
+                    .fill(.clear)
+                    .glassEffect(.regular, in: shape)
+                    .overlay {
+                        shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
+                    }
+            } else {
+                shape
+                    .fill(Color(nsColor: .windowBackgroundColor))
+            }
         }
         // Glass supplies the edge (as in `WindowBackdrop`): a hairline on top of it
         // read as a second ring around the panel whenever its window was key.
@@ -69,7 +75,7 @@ struct UsageFloatingPanel: View {
             let isDark = colorScheme == .dark
             shape
                 .fill((isDark ? Color.black : Color.white).opacity(isDark ? 0.3 : 0.34))
-                .shadow(color: .black.opacity(isDark ? 1 : 0.65), radius: 28, y: 10)
+                .shadow(color: performanceMode ? .clear : .black.opacity(isDark ? 1 : 0.65), radius: performanceMode ? 0 : 28, y: performanceMode ? 0 : 10)
         }
     }
 

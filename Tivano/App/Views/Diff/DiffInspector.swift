@@ -88,7 +88,7 @@ struct DiffInspector: View {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 10) {
                             ForEach(files) { file in
-                                DiffFileCard(file: file, isCollapsed: collapsed.contains(file.id)) {
+                                DiffFileCard(file: file, isCollapsed: collapsed.contains(file.id), selectionKey: loadKey) {
                                     if collapsed.contains(file.id) { collapsed.remove(file.id) } else { collapsed.insert(file.id) }
                                 }
                                 .equatable()
@@ -167,7 +167,7 @@ private func focusedFiles(_ edits: [FileEdit], missingFrom files: [DiffFile]) ->
         guard !files.contains(where: { TouchedPaths.matches($0, touched: touched) }),
               !missing.contains(where: { TouchedPaths.matches($0, touched: touched) }) else { continue }
         let file = DiffParser.parseHunks(patch, path: edit.path)
-        if !file.hunks.isEmpty { missing.append(file) }
+        if file.isDeferred || !file.hunks.isEmpty { missing.append(file) }
     }
     return missing
 }
@@ -175,12 +175,15 @@ private func focusedFiles(_ edits: [FileEdit], missingFrom files: [DiffFile]) ->
 private struct DiffFileCard: View, Equatable {
     let file: DiffFile
     let isCollapsed: Bool
+    let selectionKey: String
     let toggle: () -> Void
 
     // Skip re-renders when another card's collapse state changes: the closure
     // and hunk arrays defeat SwiftUI's default diffing, so compare cheap fields.
     nonisolated static func == (lhs: DiffFileCard, rhs: DiffFileCard) -> Bool {
         lhs.file.id == rhs.file.id
+            && lhs.file.revision == rhs.file.revision
+            && lhs.selectionKey == rhs.selectionKey
             && lhs.file.additions == rhs.file.additions
             && lhs.file.deletions == rhs.file.deletions
             && lhs.file.hunks.count == rhs.file.hunks.count
@@ -213,7 +216,10 @@ private struct DiffFileCard: View, Equatable {
             .buttonStyle(.plain)
 
             if !isCollapsed {
-                if file.isBinary || file.hunks.isEmpty {
+                if file.isDeferred {
+                    DeferredDiffLinesView(file: file)
+                        .id("\(selectionKey)|\(file.id)|\(file.revision)")
+                } else if file.isBinary || file.hunks.isEmpty {
                     Text(verbatim: Chrome.localized(file.isBinary ? "Binary file" : "Diff details unavailable"))
                         .font(.caption)
                         .foregroundStyle(Chrome.secondaryText)
@@ -249,25 +255,84 @@ private struct DiffFileCard: View, Equatable {
     }
 }
 
+private struct DeferredDiffLinesView: View {
+    let file: DiffFile
+
+    @State private var requested = false
+    @State private var parsed: DiffFile?
+
+    var body: some View {
+        Group {
+            if let parsed {
+                DiffLinesView(file: parsed)
+                    .equatable()
+                    .padding(.bottom, 6)
+            } else if requested {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.small)
+                    Text("Loading diff…")
+                        .foregroundStyle(Chrome.secondaryText)
+                }
+                .font(.caption)
+                .padding(10)
+            } else {
+                Button("Large diff, \(file.deferredLineCount) lines. Show it") {
+                    requested = true
+                }
+                .buttonStyle(.plain)
+                .font(.caption)
+                .foregroundStyle(Chrome.secondaryText)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
+            }
+        }
+        .task(id: requested) {
+            guard requested, let patch = file.deferredPatch else { return }
+            let revision = file.revision
+            let snapshot = file
+            let task = Task.detached(priority: .userInitiated) {
+                guard let expanded = DiffParser.parse(patch, limitsSize: false).first else { return Optional<DiffFile>.none }
+                var result = snapshot
+                result.hunks = expanded.hunks
+                result.deferredPatch = nil
+                return Optional(result)
+            }
+            let result = await withTaskCancellationHandler {
+                await task.value
+            } onCancel: {
+                task.cancel()
+            }
+            guard !Task.isCancelled, file.revision == revision else { return }
+            parsed = result
+            if result == nil { requested = false }
+        }
+        .onDisappear {
+            parsed = nil
+            requested = false
+        }
+    }
+}
+
 struct DiffLinesView: View, Equatable {
     let file: DiffFile
     var showsLineNumbers = true
 
-    // Skip re-renders when a sibling card changes: hunk arrays defeat the
-    // default diff, so compare only the file identity and hunk count.
+    // Skip re-renders when a sibling card changes using the content revision.
     nonisolated static func == (lhs: DiffLinesView, rhs: DiffLinesView) -> Bool {
         lhs.sectionsKey == rhs.sectionsKey && lhs.showsLineNumbers == rhs.showsLineNumbers
     }
 
-    /// What the rows depend on, cheaply: the same path with more or fewer lines (the
-    /// agent edited the file again) must rebuild them, a sibling's collapse must not.
+    /// Content revisions invalidate rows even when an edit preserves the line counts.
     private nonisolated var sectionsKey: String {
-        "\(file.id)|\(file.hunks.count)|\(file.additions)|\(file.deletions)|\(totalLines)"
+        "\(file.id)|\(file.revision)|\(file.hunks.count)|\(file.additions)|\(file.deletions)|\(totalLines)"
     }
 
     @State private var showsAll = false
     // Sections are built once per state change, not on every body pass.
     @State private var sections: [Section] = []
+    @State private var preparedKey: String?
+
+    private var preparationKey: String { "\(sectionsKey)|\(showsAll)|\(showsLineNumbers)" }
 
     /// Large files render collapsed: materializing thousands of rows at once is what
     /// makes opening a diff feel laggy. The full diff is one instant tap away.
@@ -282,7 +347,7 @@ struct DiffLinesView: View, Equatable {
     /// Tinted runs merge across hunk boundaries (edits often arrive as many
     /// single-line hunks), so only the block's top and bottom lines get corners.
     /// A header that would land inside a merged run is redundant, so it is dropped.
-    enum Section: Identifiable, Equatable {
+    enum Section: Identifiable, Equatable, Sendable {
         case header(String, Int)
         case tinted(lines: [DiffLine], offset: Int, count: Int)
         case plain([DiffLine])
@@ -311,6 +376,7 @@ struct DiffLinesView: View, Equatable {
             }
         }
         for (hunkIndex, hunk) in file.hunks.enumerated() {
+            if Task.isCancelled { return [] }
             guard !hunk.lines.isEmpty, remaining > 0 else { continue }
             // Only the lines the budget can show are grouped: a huge hunk behind a
             // collapsed card costs its first 200 lines, not all of them.
@@ -369,6 +435,14 @@ struct DiffLinesView: View, Equatable {
                 }
             }
         }
+        if showsAll, totalLines > Self.collapsedLineLimit, preparedKey != preparationKey {
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("Loading remaining lines…").foregroundStyle(Chrome.secondaryText)
+            }
+            .font(.caption)
+            .padding(10)
+        }
         if !showsAll, totalLines > Self.collapsedLineLimit {
             Button {
                 showsAll.toggle()
@@ -388,10 +462,9 @@ struct DiffLinesView: View, Equatable {
     }
 
     var body: some View {
-        let budget = showsAll ? Int.max : Self.collapsedLineLimit
-        // Built here as well as in the onChange below, so a card the panel materializes
-        // mid-scroll draws its rows on its first frame instead of one empty frame.
-        let rows = sections.isEmpty ? Self.makeSections(file: file, showsLineNumbers: showsLineNumbers, limit: budget) : sections
+        let rows = preparedKey == preparationKey ? sections : Self.makeSections(
+            file: file, showsLineNumbers: showsLineNumbers, limit: Self.collapsedLineLimit
+        )
         Group {
             if showsAll, totalLines > Self.collapsedLineLimit {
                 // Only a diff the reader asked to see in full stays lazy: the collapsed
@@ -405,8 +478,25 @@ struct DiffLinesView: View, Equatable {
         }
         .font(.system(size: 11.5, design: .monospaced))
         .textSelection(.enabled)
-        .onChange(of: "\(sectionsKey)|\(showsAll)", initial: true) {
-            sections = Self.makeSections(file: file, showsLineNumbers: showsLineNumbers, limit: showsAll ? Int.max : Self.collapsedLineLimit)
+        .task(id: preparationKey) {
+            let key = preparationKey
+            let snapshot = file
+            let numbers = showsLineNumbers
+            if showsAll, totalLines > Self.collapsedLineLimit {
+                let task = Task.detached(priority: .userInitiated) {
+                    Self.makeSections(file: snapshot, showsLineNumbers: numbers, limit: Int.max)
+                }
+                let result = await withTaskCancellationHandler {
+                    await task.value
+                } onCancel: {
+                    task.cancel()
+                }
+                guard !Task.isCancelled, preparationKey == key else { return }
+                sections = result
+            } else {
+                sections = Self.makeSections(file: snapshot, showsLineNumbers: numbers, limit: Self.collapsedLineLimit)
+            }
+            preparedKey = key
         }
     }
 }

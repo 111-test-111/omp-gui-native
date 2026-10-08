@@ -7,35 +7,45 @@ import SwiftUI
 struct WindowChromeConfigurator: NSViewRepresentable {
     var sidebarVisible = true
     var sidebarDragging = false
+    var performanceMode = false
 
     func makeNSView(context: Context) -> WindowChromeProbeView {
-        WindowChromeProbeView()
+        let view = WindowChromeProbeView()
+        view.performanceMode = performanceMode
+        return view
     }
 
     func updateNSView(_ nsView: WindowChromeProbeView, context: Context) {
         nsView.sidebarDragging = sidebarDragging
         nsView.sidebarVisible = sidebarVisible
+        nsView.performanceMode = performanceMode
     }
 }
 
 final class WindowChromeProbeView: NSView {
     var sidebarDragging = false
+    var performanceMode = false {
+        didSet {
+            guard performanceMode != oldValue, let window else { return }
+            WindowChrome.setPerformanceMode(performanceMode, on: window)
+        }
+    }
     var sidebarVisible = true {
         didSet {
-            guard sidebarVisible != oldValue, let window else { return }
-            // A restarted animation every frame of a live resize is what made the
-            // buttons lag behind the window; they follow unanimated, then settle.
-            WindowChrome.placeTrafficLights(on: window, sidebarVisible: sidebarVisible, animated: !window.inLiveResize && !sidebarDragging)
+            guard sidebarVisible != oldValue, let window, !window.styleMask.contains(.fullScreen) else { return }
+            scheduleTrafficLightPlacement(animated: true)
         }
     }
 
     /// The title bar whose height this view keeps (see `WindowChrome.fitTitlebar`), or nil until
     /// the view is in a window.
     private weak var titlebarContainer: NSView?
-    /// The window the didEndLiveResize observer belongs to, so moving windows never stack them.
-    private weak var resizeWindow: NSWindow?
+    /// The window the didEndLiveResize and fullscreen observers belong to, so moving windows never stack them.
+    private weak var observedWindow: NSWindow?
     /// A fit is queued for after AppKit's current layout pass.
     private var titlebarFitPending = false
+    private var trafficLightPlacementPending = false
+    private var pendingPlacementAnimated = false
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
@@ -43,18 +53,35 @@ final class WindowChromeProbeView: NSView {
             NotificationCenter.default.removeObserver(self, name: NSView.frameDidChangeNotification, object: titlebarContainer)
             self.titlebarContainer = nil
         }
-        if let resizeWindow {
-            NotificationCenter.default.removeObserver(self, name: NSWindow.didEndLiveResizeNotification, object: resizeWindow)
-            self.resizeWindow = nil
+        if let observedWindow {
+            NotificationCenter.default.removeObserver(self, name: NSWindow.didEndLiveResizeNotification, object: observedWindow)
+            NotificationCenter.default.removeObserver(self, name: NSWindow.willEnterFullScreenNotification, object: observedWindow)
+            NotificationCenter.default.removeObserver(self, name: NSWindow.didEnterFullScreenNotification, object: observedWindow)
+            NotificationCenter.default.removeObserver(self, name: NSWindow.didExitFullScreenNotification, object: observedWindow)
+            self.observedWindow = nil
         }
         guard let window else { return }
         WindowChrome.configure(window)
-        WindowChrome.placeTrafficLights(on: window, sidebarVisible: sidebarVisible, animated: false)
+        WindowChrome.setPerformanceMode(performanceMode, on: window)
+        if window.styleMask.contains(.fullScreen) {
+            WindowChrome.resetTrafficLights(on: window)
+        } else {
+            scheduleTrafficLightPlacement(animated: false)
+        }
         // The probe's previous window keeps its own observer; moving windows register fresh.
         NotificationCenter.default.addObserver(
             self, selector: #selector(windowDidEndLiveResize), name: NSWindow.didEndLiveResizeNotification, object: window
         )
-        resizeWindow = window
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(windowWillEnterFullScreen), name: NSWindow.willEnterFullScreenNotification, object: window
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(windowDidEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: window
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(windowDidExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: window
+        )
+        observedWindow = window
         // AppKit tiles the title bar back to its own height when the window resizes, and with
         // that the buttons level with the chrome are out of its reach again. It says so through
         // the container's frame, and the fit goes back on.
@@ -70,25 +97,64 @@ final class WindowChromeProbeView: NSView {
         NotificationCenter.default.removeObserver(self)
     }
 
+    /// These calls arrive while SwiftUI renders the window, and forcing the title bar's layout
+    /// there is a re-entrant layout AppKit skips; placing the buttons on the next turn lets
+    /// that pass run. Requests in one turn merge, animated only if every one of them was.
+    private func scheduleTrafficLightPlacement(animated: Bool) {
+        pendingPlacementAnimated = trafficLightPlacementPending ? pendingPlacementAnimated && animated : animated
+        guard !trafficLightPlacementPending else { return }
+        trafficLightPlacementPending = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            trafficLightPlacementPending = false
+            guard let window else { return }
+            WindowChrome.placeTrafficLights(
+                on: window,
+                sidebarVisible: sidebarVisible,
+                animated: pendingPlacementAnimated && !window.inLiveResize && !sidebarDragging
+            )
+        }
+    }
+
     /// Runs inside AppKit's own tiling of the title bar; the fit waits for it to finish, so the
     /// container is never resized halfway through a pass that is laying out its subviews.
     /// Cheap per frame during a live resize: a container that already has the wanted
     /// height queues nothing, and the fit itself never lays out or draws synchronously.
     @objc private func titlebarFrameDidChange(_ notification: Notification) {
         guard let container = notification.object as? NSView,
+              let window,
+              !window.styleMask.contains(.fullScreen),
               container.frame.height < WindowChrome.titlebarHeight,
               !titlebarFitPending else { return }
         titlebarFitPending = true
         Task { @MainActor [weak self] in
             guard let self else { return }
             titlebarFitPending = false
-            if let window { WindowChrome.fitTitlebar(of: window) }
+            if let currentWindow = self.window, !currentWindow.styleMask.contains(.fullScreen) {
+                WindowChrome.fitTitlebar(of: currentWindow)
+            }
         }
     }
 
     /// One final unanimated placement once the window settles, so the buttons end up
     /// correct after following the drag without animations.
     @objc private func windowDidEndLiveResize(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, !window.styleMask.contains(.fullScreen) else { return }
+        WindowChrome.placeTrafficLights(on: window, sidebarVisible: sidebarVisible, animated: false)
+        WindowChrome.fitTitlebar(of: window)
+    }
+
+    @objc private func windowWillEnterFullScreen(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        WindowChrome.resetTrafficLights(on: window)
+    }
+
+    @objc private func windowDidEnterFullScreen(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        WindowChrome.resetTrafficLights(on: window)
+    }
+
+    @objc private func windowDidExitFullScreen(_ notification: Notification) {
         guard let window = notification.object as? NSWindow else { return }
         WindowChrome.placeTrafficLights(on: window, sidebarVisible: sidebarVisible, animated: false)
         WindowChrome.fitTitlebar(of: window)
@@ -101,6 +167,8 @@ final class WindowChromeProbeView: NSView {
 enum WindowChrome {
     private static let leadingIdentifier = "tivano.trafficLight.leading"
     private static let topIdentifier = "tivano.trafficLight.top"
+    private static let widthIdentifier = "tivano.trafficLight.width"
+    private static let heightIdentifier = "tivano.trafficLight.height"
     /// Windows `configure` has already set up. Weak, so a closed window drops out on its own.
     private static let configuredWindows = NSHashTable<NSWindow>.weakObjects()
 
@@ -131,6 +199,12 @@ enum WindowChrome {
         window.autorecalculatesKeyViewLoop = true
     }
 
+    /// Keep AppKit's clear, shadowed window; SwiftUI owns the opaque fill and rounded corners.
+    /// Refresh the system shadow when performance mode changes the fill.
+    static func setPerformanceMode(_ performanceMode: Bool, on window: NSWindow) {
+        window.invalidateShadow()
+    }
+
     /// Where the buttons sit with the sidebar hidden: level with the chat's chrome capsules,
     /// which then step aside for them, and inset like the chrome is from the sheet's edge.
     static var collapsedTrafficLightTop: CGFloat {
@@ -159,6 +233,7 @@ enum WindowChrome {
     /// Never lays out synchronously: the fit lands on the frame and AppKit's own pass lays
     /// it out, so a notification fired mid-tiling costs one frame assignment.
     static func fitTitlebar(of window: NSWindow) {
+        guard !window.styleMask.contains(.fullScreen) else { return }
         guard let container = titlebarContainer(of: window), let themeFrame = container.superview else { return }
         var fitted = container.frame
         guard fitted.height < titlebarHeight else { return }
@@ -171,10 +246,34 @@ enum WindowChrome {
         container.frame = fitted
     }
 
+    /// Restores standard window button positioning so AppKit can layout the buttons
+    /// natively in full-screen mode without conflicting Auto Layout constraints.
+    static func resetTrafficLights(on window: NSWindow) {
+        let types: [NSWindow.ButtonType] = [.closeButton, .miniaturizeButton, .zoomButton]
+        for type in types {
+            guard let button = window.standardWindowButton(type) else { continue }
+            if let titlebar = button.superview {
+                let toRemove = titlebar.constraints.filter { constraint in
+                    (constraint.firstItem as? NSView === button || constraint.secondItem as? NSView === button) &&
+                    (constraint.identifier == leadingIdentifier || constraint.identifier == topIdentifier)
+                }
+                NSLayoutConstraint.deactivate(toRemove)
+            }
+            let buttonConstraints = button.constraints.filter { constraint in
+                constraint.identifier == widthIdentifier || constraint.identifier == heightIdentifier
+            }
+            NSLayoutConstraint.deactivate(buttonConstraints)
+            button.translatesAutoresizingMaskIntoConstraints = true
+        }
+        window.standardWindowButton(.closeButton)?.superview?.needsLayout = true
+        window.standardWindowButton(.closeButton)?.superview?.layoutSubtreeIfNeeded()
+    }
+
     /// Pins the native buttons with constraints, since the title bar's own layout pass resets
     /// frames. Beside the sidebar they sit in its top corner; with it hidden they move over
     /// to the chat's chrome row and down to its centre line, with the slide the chrome makes.
     static func placeTrafficLights(on window: NSWindow, sidebarVisible: Bool, animated: Bool) {
+        guard !window.styleMask.contains(.fullScreen) else { return }
         let leading = sidebarVisible ? Chrome.trafficLightLeading : Chrome.sheetInset + Chrome.chromeHorizontalPadding
         let top = sidebarVisible ? Chrome.trafficLightTop : collapsedTrafficLightTop
         guard let titlebar = window.standardWindowButton(.closeButton)?.superview else { return }
@@ -187,15 +286,29 @@ enum WindowChrome {
             let x = leading + CGFloat(index) * Chrome.trafficLightPitch
             if button.translatesAutoresizingMaskIntoConstraints {
                 button.translatesAutoresizingMaskIntoConstraints = false
+                let oldTitlebarConstraints = titlebar.constraints.filter { constraint in
+                    (constraint.firstItem as? NSView === button || constraint.secondItem as? NSView === button) &&
+                    (constraint.identifier == leadingIdentifier || constraint.identifier == topIdentifier)
+                }
+                NSLayoutConstraint.deactivate(oldTitlebarConstraints)
+                let oldButtonConstraints = button.constraints.filter { constraint in
+                    constraint.identifier == widthIdentifier || constraint.identifier == heightIdentifier
+                }
+                NSLayoutConstraint.deactivate(oldButtonConstraints)
+
                 let leadingConstraint = button.leadingAnchor.constraint(equalTo: titlebar.leadingAnchor, constant: x)
                 leadingConstraint.identifier = leadingIdentifier
                 let topConstraint = button.topAnchor.constraint(equalTo: titlebar.topAnchor, constant: top)
                 topConstraint.identifier = topIdentifier
+                let widthConstraint = button.widthAnchor.constraint(equalToConstant: Chrome.trafficLightDiameter)
+                widthConstraint.identifier = widthIdentifier
+                let heightConstraint = button.heightAnchor.constraint(equalToConstant: Chrome.trafficLightDiameter)
+                heightConstraint.identifier = heightIdentifier
                 NSLayoutConstraint.activate([
                     leadingConstraint,
                     topConstraint,
-                    button.widthAnchor.constraint(equalToConstant: Chrome.trafficLightDiameter),
-                    button.heightAnchor.constraint(equalToConstant: Chrome.trafficLightDiameter),
+                    widthConstraint,
+                    heightConstraint,
                 ])
                 changed = true
             } else {
@@ -374,6 +487,7 @@ final class SidebarLayout {
 
 /// The grab strip on the sidebar edge. AppKit gives it a real resize cursor and first-click tracking.
 struct SidebarResizeHandle: View {
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     static let hitWidth: CGFloat = 9
 
     let isActive: Bool
@@ -388,7 +502,7 @@ struct SidebarResizeHandle: View {
                 restLength: 10,
                 shownLength: 22,
                 thickness: 2.5,
-                glowInset: Chrome.trafficLightTop + Chrome.trafficLightDiameter,
+                glowInset: performanceMode ? nil : Chrome.trafficLightTop + Chrome.trafficLightDiameter,
                 refreshesHoverOnLayout: true
             ),
             cursor: .columnResize,

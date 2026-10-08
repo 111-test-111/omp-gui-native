@@ -440,9 +440,10 @@ final class AntigravitySession: ProviderSession {
     /// the reasoning effort slider.
     static func listModels(executable: URL, environment: [String: String]) async throws -> [ModelOption] {
         async let modelsFetch: ShellResult = try Shell.run(executable, ["models"], environment: environment, timeout: 30)
-        async let defaultFetch: ShellResult = try Shell.run(executable, ["-p", "/model", "--output-format", "json"], environment: environment, timeout: 30)
+        // The default model is a print-mode read too, so it is skipped offline like the limits.
+        async let defaultFetch: ShellResult? = NetworkPath.isUsable() ? try? Shell.run(executable, ["-p", "/model", "--output-format", "json"], environment: environment, timeout: 30) : nil
         let models = try? await modelsFetch
-        let current = try? await defaultFetch
+        let current = await defaultFetch
         var currentID: String?
         if let stdout = current?.stdout, let json = JSONValue.parse(stdout) {
             currentID = json["command"]?["data"]?["id"]?.string
@@ -533,7 +534,12 @@ final class AntigravitySession: ProviderSession {
     /// Model quotas (`/usage`: weekly + 5-hour buckets per model group) and
     /// the AI credit balance (`/credits`). Both are zero-token headless
     /// calls, so reading limits never spends quota itself.
+    ///
+    /// Neither runs without a network path. Print mode refreshes the Google token first,
+    /// and when that fails it starts the interactive sign-in, which opens the browser:
+    /// offline, each of the two processes opened a sign-in page of its own.
     static func readPlanLimits(executable: URL, environment: [String: String]) async throws -> PlanLimits? {
+        guard await NetworkPath.isUsable() else { return nil }
         async let usageFetch: ShellResult = try Shell.run(executable, ["-p", "/usage", "--output-format", "json"], environment: environment, timeout: 30)
         async let creditsFetch: ShellResult = try Shell.run(executable, ["-p", "/credits", "--output-format", "json"], environment: environment, timeout: 30)
         let usage = try? await usageFetch

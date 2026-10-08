@@ -45,6 +45,7 @@ final class StreamVeil {
 
     /// The text as last handed over, nil until a veil attaches.
     private var previous: [Character]?
+    private var sourceText: String?
     private var chunks: [Chunk] = []
     private var cadence = cadenceSeed
     private var lastAppend: Date?
@@ -53,6 +54,8 @@ final class StreamVeil {
     /// settled. The first call adopts the text as the baseline without fading it. Idempotent
     /// for unchanged text, so a body may call it on every evaluation.
     func advance(_ text: String, at now: Date) {
+        guard sourceText != text else { return }
+        sourceText = text
         let characters = Array(text)
         guard let previous else {
             self.previous = characters
@@ -116,6 +119,7 @@ final class StreamVeil {
     /// `advance` attaches afresh.
     func reset() {
         previous = nil
+        sourceText = nil
         chunks = []
         lastAppend = nil
         cadence = Self.cadenceSeed
@@ -172,10 +176,9 @@ final class VeilClock {
         deadline = max(deadline ?? date, date)
         guard link == nil, let screen = NSScreen.main else { return }
         let link = screen.displayLink(target: self, selector: #selector(tick))
-        // A veil is a short opacity ramp, not motion: half the display's rate is
-        // indistinguishable here and halves the per-frame `Text` rebuilds for every
-        // paragraph of a reply that is still dissolving.
-        link.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 60, preferred: 30)
+        // A veil is a short opacity ramp, not motion: 18 fps is indistinguishable here
+        // and cuts the per-frame `Text` rebuilds for every paragraph of a reply that is still dissolving.
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 15, maximum: 24, preferred: 18)
         link.add(to: .main, forMode: .common)
         self.link = link
     }
@@ -184,7 +187,7 @@ final class VeilClock {
         // The clock holds its last frame through a scroll, so the veiled paragraphs are
         // not rebuilt for frames the reader never sees; the ramp resumes when the scroll
         // ends.
-        guard !ScrollActivity.shared.isScrolling else { return }
+        guard !ScrollActivity.shared.isScrolling, NSApp.isActive else { return }
         now = .now
         guard let deadline, now >= deadline else { return }
         link?.invalidate()
@@ -200,7 +203,7 @@ final class VeilClock {
 struct VeiledText: View {
     /// Prose comes styled; code comes as the string it is, and is only made attributed
     /// for the frames that veil it, so a finished dump costs a hover nothing new.
-    private enum Source {
+    private enum Source: Equatable {
         case attributed(AttributedString)
         case plain(String)
 
@@ -243,6 +246,7 @@ struct VeiledText: View {
     @Environment(\.markdownVeiled) private var veiled
     @Environment(\.markdownDimmed) private var dimmed
     @State private var veil = StreamVeil()
+    @State private var mapping = VeilMapping()
 
     init(_ attributed: AttributedString) {
         source = .attributed(attributed)
@@ -271,11 +275,29 @@ struct VeiledText: View {
     }
 
     var body: some View {
-        if veil.step(source.characters, active: veiled, at: .now) {
+        let _ = ingest()
+        if veil.isFading(at: .now) {
             fadingText()
         } else {
             settledText()
         }
+    }
+
+    private func ingest() {
+        guard mapping.source != source || mapping.active != veiled else { return }
+        mapping.active = veiled
+        mapping.source = source
+        mapping.styled = source.styled
+        mapping.indices = Array(mapping.styled.characters.indices) + [mapping.styled.endIndex]
+        if veiled { veil.advance(source.characters, at: .now) }
+    }
+
+    @MainActor
+    private final class VeilMapping {
+        var source: Source?
+        var active = false
+        var styled = AttributedString()
+        var indices: [AttributedString.Index] = []
     }
 
     /// This frame of the dissolve, and the clock kept running to the last chunk's settle.
@@ -307,15 +329,14 @@ struct VeiledText: View {
     }
 
     private func text(at now: Date) -> Text {
-        var styled = source.styled
+        var styled = mapping.styled
         let base = dimmed ? Color.primary.opacity(0.7) : Color.primary
-        let characters = styled.characters
-        let count = characters.count
+        let count = max(0, mapping.indices.count - 1)
         for span in veil.spans(at: now) where span.alpha < 1 {
             let range = span.range.clamped(to: 0..<count)
             guard !range.isEmpty else { continue }
-            let lower = characters.index(characters.startIndex, offsetBy: range.lowerBound)
-            let upper = characters.index(lower, offsetBy: range.count)
+            let lower = mapping.indices[range.lowerBound]
+            let upper = mapping.indices[range.upperBound]
             styled[lower..<upper].foregroundColor = base.opacity(span.alpha)
         }
         if let segments {
@@ -326,7 +347,7 @@ struct VeiledText: View {
                 switch segment {
                 case .fixed(let t): out = Text("\(out)\(t)")
                 case .prose:
-                    let end = styled.characters.index(styled.startIndex, offsetBy: proseEnds[prose])
+                    let end = mapping.indices[proseEnds[prose]]
                     out = Text("\(out)\(Text(AttributedString(styled[cursor..<end])))")
                     cursor = end
                     prose += 1
@@ -348,15 +369,28 @@ final class LinkTextVeil {
     /// The widest character range temporary colours were laid over, cleared before each
     /// repaint and once the veil settles.
     private var painted = NSRange(location: 0, length: 0)
+    private var source: String?
+    private var utf16Offsets: [Int] = []
 
     /// Feeds the text view's current text. `active` while the reply streams; afterwards
     /// the chunks in flight finish and the veil forgets the text.
     func update(_ view: NSTextView, active: Bool) {
         let now = Date.now
-        if veil.step(view.string, active: active, at: now) {
+        if source != view.string {
+            source = view.string
+            var offset = 0
+            utf16Offsets = [0]
+            for character in view.string {
+                offset += String(character).utf16.count
+                utf16Offsets.append(offset)
+            }
+            if active { veil.advance(view.string, at: now) }
+        }
+        if veil.isFading(at: now) {
             paint(view, at: now)
             if displayLink == nil {
                 let link = view.displayLink(target: self, selector: #selector(tick))
+                link.preferredFrameRateRange = CAFrameRateRange(minimum: 15, maximum: 24, preferred: 18)
                 link.add(to: .main, forMode: .common)
                 displayLink = link
             }
@@ -377,7 +411,7 @@ final class LinkTextVeil {
         // The clock holds its last frame through a scroll, so the layout-manager repaint
         // does not run for frames the reader never sees; the ramp resumes when the scroll
         // ends.
-        guard !ScrollActivity.shared.isScrolling else { return }
+        guard !ScrollActivity.shared.isScrolling, NSApp.isActive else { return }
         guard let view = tickTarget else {
             displayLink?.invalidate()
             displayLink = nil
@@ -395,7 +429,7 @@ final class LinkTextVeil {
         displayLink?.invalidate()
         displayLink = nil
         clear(view)
-        if !keepText { veil.reset() }
+        if !keepText { veil.reset(); source = nil; utf16Offsets = [] }
     }
 
     private func clear(_ view: NSTextView) {
@@ -409,14 +443,12 @@ final class LinkTextVeil {
     private func paint(_ view: NSTextView, at now: Date) {
         guard let layout = view.layoutManager, let storage = view.textStorage else { return }
         clear(view)
-        let string = view.string
         let accent = Chrome.accentNSColor
         for span in veil.spans(at: now) where span.alpha < 1 {
-            let range = span.range.clamped(to: 0..<string.count)
+            let range = span.range.clamped(to: 0..<max(0, utf16Offsets.count - 1))
             guard !range.isEmpty else { continue }
-            let lower = string.index(string.startIndex, offsetBy: range.lowerBound)
-            let upper = string.index(lower, offsetBy: range.count)
-            let nsRange = NSRange(lower..<upper, in: string)
+            let lower = utf16Offsets[range.lowerBound]
+            let nsRange = NSRange(location: lower, length: utf16Offsets[range.upperBound] - lower)
             // Each run keeps its own colour, only thinner: prose its label colour, a link
             // the accent it is drawn in.
             storage.enumerateAttributes(in: nsRange) { attributes, runRange, _ in

@@ -6,6 +6,53 @@ enum MarkdownSegment: Equatable {
     case block(MarkdownBlock)
 }
 
+@MainActor
+@Observable
+private final class StreamingParseCoordinator {
+    @ObservationIgnored private var result: (text: String, parse: MarkdownParser.Parse)?
+    /// Bumped only when a parse finished off the main thread lands, so the view redraws
+    /// with it even if no more text arrives; the synchronous path writes nothing observed.
+    private var landed = 0
+    @ObservationIgnored private var requested: String?
+    @ObservationIgnored private var pending: String?
+    @ObservationIgnored private var running = false
+
+    func parse(_ text: String) -> (blocks: [MarkdownBlock], stable: Int) {
+        _ = landed
+        if requested != text {
+            requested = text
+            let tailSize = text.utf8.count - (result?.parse.restart ?? 0)
+            if tailSize <= 4096 {
+                pending = nil
+                result = (text, MarkdownParser.parse(text, extending: result))
+            } else {
+                pending = text
+                startNext()
+            }
+        }
+        return (result?.parse.blocks ?? [], result?.parse.stable ?? 0)
+    }
+
+    private func startNext() {
+        guard !running, let text = pending else { return }
+        pending = nil
+        running = true
+        let previous = result
+        Task { [weak self] in
+            let parsed = await Task.detached(priority: .userInitiated) {
+                MarkdownParser.parse(text, extending: previous)
+            }.value
+            guard let self else { return }
+            self.running = false
+            if self.requested == text {
+                self.result = (text, parsed)
+                self.landed &+= 1
+            }
+            self.startNext()
+        }
+    }
+}
+
 struct MarkdownView: View, Equatable {
     let text: String
     static let warmCandidateLimit = 96
@@ -15,6 +62,8 @@ struct MarkdownView: View, Equatable {
     /// through the thread will ask for again.
     var isStreaming = false
     @Environment(\.markdownProseRuns) private var proseRuns
+    @State private var sawStreaming = false
+    @State private var streamingCoordinator = StreamingParseCoordinator()
 
     /// Equal text renders equally, so finished replies are skipped entirely while a
     /// new reply streams or the timeline rebuilds around them.
@@ -64,11 +113,11 @@ struct MarkdownView: View, Equatable {
         // While the text streams, the parse also says how many of its leading blocks are
         // final; those are the ones a flush cannot change, and the views for them are
         // compared by that fact alone (see `MarkdownBlockView.settled`).
-        let parse = isStreaming ? Self.streamingParse(for: text) : (blocks: Self.blocks(for: text), stable: 0)
+        let parse = isStreaming ? streamingCoordinator.parse(text) : (blocks: Self.blocks(for: text), stable: 0)
         let blocks = parse.blocks
         let stable = parse.stable
         let last = blocks.count - 1
-        if !isStreaming && proseRuns {
+        if !isStreaming && !sawStreaming && proseRuns {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(Array(Self.segments(blocks).enumerated()), id: \.offset) { _, segment in
                     switch segment {
@@ -99,12 +148,14 @@ struct MarkdownView: View, Equatable {
             // snapping the moment the next block starts.
             .environment(\.markdownVeiled, isStreaming)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear { if isStreaming { sawStreaming = true } }
+            .onChange(of: isStreaming) { _, streaming in if streaming { sawStreaming = true } }
         }
     }
 
     /// Parsed blocks by source. Rows are rebuilt as they scroll into view, but a finished
     /// message parses to the same blocks, so each distinct text parses once.
-    @MainActor private static var blockCache = RecentCache<String, [MarkdownBlock]>(limit: 800)
+    @MainActor private static var blockCache = RecentCache<String, [MarkdownBlock]>(limit: 800, costLimit: 24 * 1024 * 1024, entryCostLimit: 3 * 1024 * 1024)
     /// The latest parse of each message still streaming, newest last: re-renders between
     /// flushes never parse, and a flush parses only the block the new text extends. A few
     /// slots, so a lead and the heads in its panel streaming together keep theirs.
@@ -143,7 +194,7 @@ struct MarkdownView: View, Equatable {
         } else {
             parsed = MarkdownParser.parse(text)
         }
-        blockCache.insert(parsed, for: text)
+        blockCache.insert(parsed, for: text, cost: text.utf8.count * 3)
         return parsed
     }
 
@@ -210,7 +261,7 @@ struct MarkdownView: View, Equatable {
         try Task.checkCancellation()
         for (text, blocks, inline) in parsed {
             try Task.checkCancellation()
-            if !blockCache.contains(text) { blockCache.insert(blocks, for: text) }
+            if !blockCache.contains(text) { blockCache.insert(blocks, for: text, cost: text.utf8.count * 3) }
             for (source, pretty) in inline {
                 try Task.checkCancellation()
                 RichLink.warm(source, with: pretty)
@@ -524,7 +575,7 @@ extension EnvironmentValues {
 /// (an explicit `[title](url)` or the host and path without a scheme) with the
 /// favicon in front.
 enum RichLink {
-    @MainActor private static var prettyCache = RecentCache<String, AttributedString>(limit: 1200)
+    @MainActor private static var prettyCache = RecentCache<String, AttributedString>(limit: 1200, costLimit: 16 * 1024 * 1024, entryCostLimit: 2 * 1024 * 1024)
     /// The paragraphs still being streamed, newest last, kept apart so their every flush
     /// leaves the cache alone. As many slots as `MarkdownView` keeps parses, so a lead and
     /// the heads streaming beside it never evict each other between flushes.
@@ -547,14 +598,14 @@ enum RichLink {
         } else {
             value = build(source)
         }
-        prettyCache.insert(value, for: source)
+        prettyCache.insert(value, for: source, cost: source.utf8.count * 3)
         return value
     }
 
     /// Stores a run built off the main thread (see `MarkdownView.warm`).
     @MainActor
     static func warm(_ source: String, with pretty: AttributedString) {
-        if !prettyCache.contains(source) { prettyCache.insert(pretty, for: source) }
+        if !prettyCache.contains(source) { prettyCache.insert(pretty, for: source, cost: source.utf8.count * 3) }
     }
 
     nonisolated static func build(_ source: String) -> AttributedString {
@@ -1191,12 +1242,40 @@ private struct CodeBlockCopyButton: View {
     }
 }
 
+@MainActor
+private final class CodeMetrics {
+    private var source = ""
+    private var count = 1
+    private(set) var prefix = ""
+    private var prefixComplete = false
+
+    func update(_ code: String, limit: Int) -> Int {
+        guard source != code else { return count }
+        let append = code.utf8.starts(with: source.utf8)
+        let offset = append ? source.utf8.count : 0
+        if !append { count = 1; prefix = ""; prefixComplete = false }
+        let start = code.utf8.index(code.utf8.startIndex, offsetBy: offset)
+        var prefixBytes: [UInt8] = []
+        for byte in code.utf8[start...] {
+            if byte == 10 { count += 1 }
+            if !prefixComplete {
+                if count > limit { prefixComplete = true }
+                else { prefixBytes.append(byte) }
+            }
+        }
+        prefix += String(decoding: prefixBytes, as: UTF8.self)
+        source = code
+        return count
+    }
+}
+
 struct CodeBlock: View {
     let language: String?
     let code: String
 
     @State private var hover = BlockHover()
     @State private var showsAll = false
+    @State private var metrics = CodeMetrics()
 
     /// Long dumps render collapsed: materializing thousands of lines at once is what
     /// makes expanding feel laggy. The full text is one instant tap away.
@@ -1205,9 +1284,9 @@ struct CodeBlock: View {
     var body: some View {
         // A count of newlines, not a split: hovering re-runs this body, and a big dump split
         // into an array of lines on every hover is what made the copy button feel sticky.
-        let lineCount = 1 + code.utf8.count { $0 == 0x0A }
+        let lineCount = metrics.update(code, limit: Self.collapsedLineLimit)
         let truncated = !showsAll && lineCount > Self.collapsedLineLimit
-        let visible = truncated ? Self.head(of: code, lines: Self.collapsedLineLimit) : code
+        let visible = truncated ? metrics.prefix : code
         // The box alone: the hover handler must not keep this block (and its whole
         // text) alive after it scrolls away.
         let hoverBox = hover
@@ -1247,19 +1326,7 @@ struct CodeBlock: View {
         .onHover { [weak hoverBox] in hoverBox?.isHovering = $0 }
     }
 
-    /// The first `lines` lines of `code`, without splitting the rest.
-    private static func head(of code: String, lines: Int) -> String {
-        var remaining = lines
-        var end = code.utf8.startIndex
-        for index in code.utf8.indices where code.utf8[index] == 0x0A {
-            remaining -= 1
-            if remaining == 0 {
-                end = index
-                break
-            }
-        }
-        return remaining == 0 ? String(code[..<end]) : code
-    }
+
 }
 
 struct TableBlock: View {
@@ -1271,13 +1338,13 @@ struct TableBlock: View {
     private static let collapsedRowLimit = 30
 
     /// Cell runs by source text, so a re-layout joins cached runs instead of re-parsing.
-    @MainActor private static var cellCache = RecentCache<String, AttributedString>(limit: 1200)
+    @MainActor private static var cellCache = RecentCache<String, AttributedString>(limit: 1200, costLimit: 8 * 1024 * 1024, entryCostLimit: 1024 * 1024)
 
     @MainActor
     private static func cell(_ source: String) -> AttributedString {
         if let hit = cellCache.value(for: source) { return hit }
         let value = InlineText.attributed(source)
-        cellCache.insert(value, for: source)
+        cellCache.insert(value, for: source, cost: source.utf8.count * 3)
         return value
     }
 
@@ -1286,7 +1353,7 @@ struct TableBlock: View {
         let head = header.map(Self.cell)
         let cells = visible.map { $0.map(Self.cell) }
         return VStack(alignment: .leading, spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView(.horizontal) {
                 // Cells go through the shared cache even while the table streams: only its
                 // last row changes between flushes, and the rest hit.
                 Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 8) {
@@ -1306,8 +1373,14 @@ struct TableBlock: View {
                     }
                 }
                 .modifier(MarkdownBlockSelection())
+                // Keep the columns at their readable intrinsic widths so the table's
+                // content width remains independent of the surrounding timeline's proposal.
+                .fixedSize(horizontal: true, vertical: true)
                 .padding(12)
             }
+            // The timeline hides its own vertical indicator. That environment value also
+            // reaches nested scroll views, so opt the table's horizontal indicator back in.
+            .scrollIndicators(.visible, axes: .horizontal)
             if !showsAll, rows.count > Self.collapsedRowLimit {
                 Button(String(format: Chrome.localized("Show all %lld rows"), rows.count)) {
                     showsAll.toggle()

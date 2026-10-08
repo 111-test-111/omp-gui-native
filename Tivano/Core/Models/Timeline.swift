@@ -341,8 +341,16 @@ struct ContextUsage: Codable, Hashable, Sendable {
     }
 }
 
+struct ThreadTurnReference: Codable, Equatable, Sendable {
+    var id: UUID
+    var revision: UInt64
+}
+
 struct ThreadDocument: Codable, Equatable, Sendable {
     var threadID: UUID
+    /// Nil identifies the legacy, self-contained document format.
+    var turnIndex: [ThreadTurnReference]? = nil
+    var itemPositions: [String: Double]? = nil
     var items: [TimelineItem] = []
     var turns: [TurnRecord] = []
     var usage: ContextUsage?
@@ -359,6 +367,8 @@ struct ThreadDocument: Codable, Equatable, Sendable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         threadID = try container.decode(UUID.self, forKey: .threadID)
+        turnIndex = try container.decodeIfPresent([ThreadTurnReference].self, forKey: .turnIndex)
+        itemPositions = try container.decodeIfPresent([String: Double].self, forKey: .itemPositions)
         items = container.value(.items, default: [Lenient<TimelineItem>]()).compactMap(\.value)
         turns = container.value(.turns, default: [Lenient<TurnRecord>]()).compactMap(\.value)
         usage = container.value(.usage, default: nil)

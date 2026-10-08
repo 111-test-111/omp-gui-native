@@ -10,12 +10,12 @@ import SwiftUI
 /// names the step it stands for on a card above the bar, as the timeline rail previews
 /// the message under the pointer.
 ///
-/// The staves are one `Canvas`, redrawn on the display's clock while the head works: a new
-/// stave rises over 0.45 s from the moment its entry arrived, and a soft highlight sweeps
-/// the filled staves every 1.8 s. Once the head is done and its last stave is up, the clock
-/// stops and the bar is drawn once. A stave is always one step: past what the width holds,
-/// the oldest steps slide off the left and the bar shows the latest ones, so it always
-/// fits and keeps moving.
+/// The staves live in Core Animation layers: a new stave rises over 0.45 s from the
+/// moment its entry arrived, and a soft highlight crosses the filled staves over 2.6 s
+/// with 3.4 s of rest between passes. Their motion stays on the render server, held
+/// still while the reader scrolls or the bar has no window. A stave is always one step:
+/// past what the width holds, the oldest steps slide off the left and the bar shows the
+/// latest ones, so it always fits and keeps moving.
 struct HydraProgressBar: View {
     let runtime: ThreadRuntime
     let startedAt: Date
@@ -27,11 +27,6 @@ struct HydraProgressBar: View {
     var entries: [TimelineEntry]? = nil
 
     @State private var width: CGFloat = 0
-    /// The head is done and its last stave has risen: nothing left to animate.
-    @State private var isSettled = false
-    /// A stave arrived within the last `rise` seconds and is still growing, the one time
-    /// a bar without the sweep needs the display's clock.
-    @State private var isRising = false
     /// The stave under the pointer, whose step the card names.
     @State private var hoveredIndex: Int?
     /// The last events, staves and counts, so an evaluation where nothing changed
@@ -39,28 +34,29 @@ struct HydraProgressBar: View {
     @State private var cache = StaveCache()
     @Environment(\.isOnGlassPanel) private var isOnGlassPanel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(AppModel.self) private var model
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
-    private static let height: CGFloat = 28
-    private static let staveWidth: CGFloat = 3
-    private static let gap: CGFloat = 3
-    private static let pitch = staveWidth + gap
+    fileprivate static let height: CGFloat = 28
+    fileprivate static let staveWidth: CGFloat = 3
+    fileprivate static let gap: CGFloat = 3
+    fileprivate static let pitch = staveWidth + gap
     /// How long a new stave takes to rise to its height.
-    private static let rise: TimeInterval = 0.45
+    fileprivate static let rise: TimeInterval = 0.45
     /// One pass of the highlight across the filled staves.
-    private static let sweep: TimeInterval = 2.6
+    fileprivate static let sweep: TimeInterval = 2.6
     /// The rest between two passes, so the bar mostly stands still.
-    private static let sweepRest: TimeInterval = 3.4
+    fileprivate static let sweepRest: TimeInterval = 3.4
     private static let cardWidth: CGFloat = 260
-    /// How many bars sweep at once. Every sweeping bar is a canvas redrawn on the clock
-    /// and a render pass on the GPU; with twenty heads out at once those passes alone
-    /// saturated the main thread and the GPU queue and froze the app. The first few
+    /// How many bars sweep at once. Each band adds a render pass on the GPU; keeping
+    /// the budget avoids twenty heads filling the GPU queue at once. The first few
     /// running heads keep the sweep, the rest stand still between staves, and a bar
     /// takes a slot as soon as one frees up.
     static let sweepSlots = 3
 
     /// The last events, staves and counts, keyed by entry identity plus each tool
     /// row's status, since a status flip rewrites the step's verb. A hit skips the
-    /// walk over every entry, so the TimelineView ticks redraw without recomputing.
+    /// walk over every entry when a hover or animation setting changes.
     @MainActor
     private final class StaveCache {
         private struct Key: Hashable {
@@ -122,39 +118,25 @@ struct HydraProgressBar: View {
     var body: some View {
         let capacity = max(1, Int(((width + Self.gap) / Self.pitch).rounded(.down)))
         let resolved = cache.resolve(entries: entries ?? runtime.entries, capacity: capacity)
-        let events = resolved.events
         let staves = resolved.staves
         let counts = resolved.counts
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let isRunning = status == .running
         let elapsed = RelativeTime.duration((isRunning ? Date.now : finishedAt ?? .now).timeIntervalSince(startedAt))
-        let sweeps = isRunning && !reduceMotion && SweepBudget.shared.sweeps(ObjectIdentifier(runtime))
-        // The clock runs only while something moves: a stave rising, or the sweep on the
-        // bars that hold one of its slots. A bar standing still is drawn once per change.
-        let needsClock = !reduceMotion && !isSettled && (sweeps || isRising)
+        let sweeps = isRunning && !reduceMotion && !performanceMode && SweepBudget.shared.sweeps(ObjectIdentifier(runtime))
+        let isScrolling = ScrollActivity.shared.isScrolling
+        let colors = HydraStaveColors(tint: tint, colorScheme: colorScheme)
         VStack(alignment: .leading, spacing: 6) {
-            // The display's clock drives the rise and the sweep at twenty-four frames a
-            // second, enough for a sweep this soft; it keeps going while the reader
-            // scrolls, so a head at work never looks stalled. With reduced motion, or once
-            // the head is done and settled, the canvas is drawn only when the steps change.
-            // Held still while the reader scrolls anywhere (see `ScrollActivity`): a fold
-            // gliding the timeline gets its frames, the staves catch up when it lands.
-            TimelineView(.animation(minimumInterval: 1.0 / 24.0, paused: !needsClock || ScrollActivity.shared.isScrolling)) { context in
-                Canvas { graphics, size in
-                    Self.draw(
-                        staves,
-                        in: &graphics,
-                        size: size,
-                        capacity: capacity,
-                        at: context.date,
-                        rising: !reduceMotion,
-                        sweeping: sweeps,
-                        status: status,
-                        tint: tint,
-                        hovered: hoveredIndex
-                    )
-                }
-            }
+            HydraStaves(
+                staves: staves,
+                capacity: capacity,
+                colors: colors,
+                status: status,
+                hoveredIndex: hoveredIndex,
+                isSweeping: sweeps,
+                reduceMotion: reduceMotion || performanceMode,
+                isScrolling: isScrolling
+            )
             .frame(height: Self.height)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
             // The pointer picks the stave whose slot it is over; the slots past the
@@ -167,7 +149,16 @@ struct HydraProgressBar: View {
                 case .ended: nil
                 }
                 let picked = index.map { $0 < staves.count ? $0 : nil } ?? nil
-                if picked != hoveredIndex { hoveredIndex = picked }
+                if picked != hoveredIndex {
+                    hoveredIndex = picked
+                    if picked != nil {
+                        switch model.settings.timelineHapticStyle {
+                        case .soft: Haptics.perform(.generic)
+                        case .strong: Haptics.perform(.alignment)
+                        case .none: break
+                        }
+                    }
+                }
             }
             .overlay(alignment: .topLeading) {
                 if let hoveredIndex, hoveredIndex < staves.count {
@@ -181,20 +172,6 @@ struct HydraProgressBar: View {
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(maxWidth: .infinity)
             }
-        }
-        // A finished head's last stave still needs its rise before the clock can stop.
-        .task(id: isRunning ? -1 : events.count) {
-            isSettled = false
-            guard !isRunning else { return }
-            guard (try? await Task.sleep(for: .seconds(Self.rise + 0.1))) != nil else { return }
-            isSettled = true
-        }
-        // A new stave keeps the clock for its rise, then lets it go.
-        .task(id: events.count) {
-            guard !events.isEmpty, !reduceMotion else { return }
-            isRising = true
-            guard (try? await Task.sleep(for: .seconds(Self.rise + 0.1))) != nil else { return }
-            isRising = false
         }
         // A running bar asks for a sweep slot; it gives the slot back when it stops or
         // leaves the screen, and the next bar in line takes it.
@@ -245,7 +222,7 @@ struct HydraProgressBar: View {
     // MARK: - Steps
 
     /// One thing the head did, as the bar shows it.
-    private struct Stave {
+    fileprivate struct Stave {
         enum Kind: Hashable {
             /// A read, a search, the web, an MCP tool, a helper: looking, not changing.
             case lookup
@@ -254,6 +231,7 @@ struct HydraProgressBar: View {
             case reply
         }
 
+        let id: ObjectIdentifier
         let kind: Kind
         let arrivedAt: Date
         /// What the stave stands for, for the card under the pointer.
@@ -323,13 +301,13 @@ struct HydraProgressBar: View {
                 }
                 let mcp = ToolPresentation.mcpParts(call)?.entry
                 let symbol = mcp == nil ? ToolPresentation.symbol(for: call.kind) : nil
-                return Stave(kind: kind, arrivedAt: entry.item.date, step: ToolPresentation.label(for: call), mcp: mcp, symbol: symbol)
+                return Stave(id: ObjectIdentifier(entry), kind: kind, arrivedAt: entry.item.date, step: ToolPresentation.label(for: call), mcp: mcp, symbol: symbol)
             case .assistant:
                 guard case .assistant(let message) = entry.item.content else { return nil }
                 // The first line of the reply is all the stave shows, so only the head of the
                 // text is split, not the whole reply on every streamed flush.
                 let words = TextCleanup.singleLine(String(message.text.prefix(600)), limit: 60)
-                return Stave(kind: .reply, arrivedAt: entry.item.date, step: words.isEmpty ? Chrome.localized("Replied") : String(format: Chrome.localized("Replied: %@"), words), mcp: nil, symbol: "bubble.left")
+                return Stave(id: ObjectIdentifier(entry), kind: .reply, arrivedAt: entry.item.date, step: words.isEmpty ? Chrome.localized("Replied") : String(format: Chrome.localized("Replied: %@"), words), mcp: nil, symbol: "bubble.left")
             default:
                 return nil
             }
@@ -342,108 +320,489 @@ struct HydraProgressBar: View {
         events.count > capacity ? Array(events.suffix(capacity)) : events
     }
 
-    // MARK: - Drawing
+}
 
-    private static func color(for kind: Stave.Kind, tint: Color) -> Color {
-        switch kind {
-        case .edit, .reply: tint
-        case .command: tint.opacity(0.7)
-        case .lookup: tint.opacity(0.4)
-        }
+/// Layers hold their colours, so SwiftUI resolves the same fills again when its scheme
+/// or the head's tint changes instead of relying on AppKit's window appearance.
+private struct HydraStaveColors: Equatable {
+    let tint: CGColor
+    let lookup: CGColor
+    let command: CGColor
+    let failed: CGColor
+    let stopped: CGColor
+    let empty: CGColor
+
+    init(tint: Color, colorScheme: ColorScheme) {
+        var environment = EnvironmentValues()
+        environment.colorScheme = colorScheme
+        self.tint = tint.resolve(in: environment).cgColor
+        lookup = tint.opacity(0.4).resolve(in: environment).cgColor
+        command = tint.opacity(0.7).resolve(in: environment).cgColor
+        failed = Chrome.danger.resolve(in: environment).cgColor
+        stopped = Chrome.secondaryText.resolve(in: environment).cgColor
+        empty = Chrome.overlay(0.06).resolve(in: environment).cgColor
+    }
+}
+
+private struct HydraStaves: NSViewRepresentable {
+    let staves: [HydraProgressBar.Stave]
+    let capacity: Int
+    let colors: HydraStaveColors
+    let status: HydraHeadInfo.Status
+    let hoveredIndex: Int?
+    /// A running bar holding one of `SweepBudget`'s slots may sweep.
+    let isSweeping: Bool
+    let reduceMotion: Bool
+    /// The reader is scrolling somewhere: the sweep holds still until it lands.
+    let isScrolling: Bool
+
+    func makeNSView(context: Context) -> HydraStavesLayerView {
+        let view = HydraStavesLayerView()
+        view.configure(
+            staves: staves,
+            capacity: capacity,
+            colors: colors,
+            status: status,
+            hoveredIndex: hoveredIndex,
+            isSweeping: isSweeping,
+            reduceMotion: reduceMotion,
+            isScrolling: isScrolling
+        )
+        return view
     }
 
-    /// One pass over the staves: each filled from the baseline up, the newest still rising,
-    /// faint slots where the bar has yet to fill, and the highlight over what is filled.
-    private static func draw(
-        _ staves: [Stave],
-        in context: inout GraphicsContext,
-        size: CGSize,
-        capacity: Int,
-        at date: Date,
-        rising: Bool,
-        sweeping: Bool,
-        status: HydraHeadInfo.Status,
-        tint: Color,
-        hovered: Int? = nil
-    ) {
-        let bottom = size.height
-        var filled = Path()
-        // One fill per colour, not per stave: every fill resolves its colour through
-        // AppKit's dynamic colour system, and a hundred staves at thirty frames a second
-        // on twenty bars was a large share of the main thread. The staves of a kind go
-        // into one path and are filled together; only the last stave of a head that
-        // failed or was stopped, and the one under the pointer, are filled on their own.
-        var byKind: [Stave.Kind: Path] = [:]
-        var ending: (path: Path, color: Color)?
-        var hoveredPath: Path?
-        for (index, stave) in staves.enumerated() {
-            var factor: CGFloat = 1
-            if rising {
-                let age = date.timeIntervalSince(stave.arrivedAt)
-                if age < rise {
-                    // Eased out, like the smooth curve the rest of the panel moves on.
-                    let t = max(0, age / rise)
-                    factor = 1 - pow(1 - t, 3)
-                }
-            }
-            let height = bottom * stave.height * factor
-            guard height > 0 else { continue }
-            let rect = CGRect(x: CGFloat(index) * pitch, y: bottom - height, width: staveWidth, height: height)
-            let path = Path(roundedRect: rect, cornerRadius: staveWidth / 2)
-            // The last stave is where a head that failed or was stopped ended.
-            let isLast = index == staves.count - 1
-            if isLast, status == .failed {
-                ending = (path, Chrome.danger)
-            } else if isLast, status == .stopped {
-                ending = (path, Chrome.secondaryText)
-            } else {
-                byKind[stave.kind, default: Path()].addPath(path)
-            }
-            // The stave under the pointer lifts towards white, so the card reads as its.
-            if index == hovered { hoveredPath = path }
-            filled.addPath(path)
-        }
-        for kind in [Stave.Kind.lookup, .command, .edit, .reply] {
-            guard let path = byKind[kind] else { continue }
-            context.fill(path, with: .color(color(for: kind, tint: tint)))
-        }
-        if let ending { context.fill(ending.path, with: .color(ending.color)) }
-        if let hoveredPath { context.fill(hoveredPath, with: .color(.white.opacity(0.4))) }
-
-        if staves.count < capacity {
-            let height = bottom * 0.45
-            var slots = Path()
-            for slot in staves.count..<capacity {
-                slots.addRoundedRect(
-                    in: CGRect(x: CGFloat(slot) * pitch, y: bottom - height, width: staveWidth, height: height),
-                    cornerSize: CGSize(width: staveWidth / 2, height: staveWidth / 2)
-                )
-            }
-            context.fill(slots, with: .color(Chrome.overlay(0.06)))
-        }
-
-        guard sweeping, !staves.isEmpty else { return }
-        // A soft band crossing the filled staves, left to right, once every sweep; clipped
-        // to the staves, so the slots and the gaps stay as they are.
-        let filledWidth = CGFloat(staves.count) * pitch - gap
-        let band = max(24, filledWidth / 3)
-        // One pass, then a rest: the band crosses in `sweep` seconds and the bar holds
-        // still for `sweepRest` before the next.
-        let within = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: sweep + sweepRest)
-        guard within < sweep else { return }
-        let phase = CGFloat(within / sweep)
-        let x = -band + phase * (filledWidth + band)
-        var highlight = context
-        highlight.clip(to: filled)
-        highlight.fill(
-            Path(CGRect(x: x, y: 0, width: band, height: bottom)),
-            with: .linearGradient(
-                Gradient(colors: [.white.opacity(0), .white.opacity(0.55), .white.opacity(0)]),
-                startPoint: CGPoint(x: x, y: 0),
-                endPoint: CGPoint(x: x + band, y: 0)
-            )
+    func updateNSView(_ view: HydraStavesLayerView, context: Context) {
+        view.configure(
+            staves: staves,
+            capacity: capacity,
+            colors: colors,
+            status: status,
+            hoveredIndex: hoveredIndex,
+            isSweeping: isSweeping,
+            reduceMotion: reduceMotion,
+            isScrolling: isScrolling
         )
     }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: HydraStavesLayerView, context: Context) -> CGSize? {
+        proposal.replacingUnspecifiedDimensions()
+    }
+}
+
+private final class HydraStavesLayerView: NSView {
+    /// One visible stave: its capsule, the entry it holds and the height it was last drawn at.
+    private final class Slot {
+        let shape = CAShapeLayer()
+        let mask = CAShapeLayer()
+        /// The entry the slot stands for. A different one raises the stave afresh.
+        var key: ObjectIdentifier?
+        var height: CGFloat = 0
+        var fill: CGColor?
+    }
+
+    /// The empty slots past the filled ones.
+    private let slotLayer = CAShapeLayer()
+    /// Everything filled, one `Slot` each.
+    private let stavesLayer = CALayer()
+    /// The stave under the pointer, lifted towards white.
+    private let hoverLayer = CAShapeLayer()
+    /// The sweep's band, clipped to the filled staves by `sweepMask` on `sweepClip`.
+    private let sweepClip = CALayer()
+    private let sweepMask = CALayer()
+    private let sweep = CAGradientLayer()
+
+    private var staveSlots: [Slot] = []
+    private var staves: [HydraProgressBar.Stave] = []
+    private var capacity = 0
+    private var colors: HydraStaveColors?
+    private var status: HydraHeadInfo.Status = .running
+    private var hoveredIndex: Int?
+    private var isSweeping = false
+    private var reduceMotion = false
+    private var isScrolling = false
+    private var filledWidth: CGFloat = 0
+    private var band: CGFloat = 24
+    private var lastContentBounds: CGRect?
+
+    private static let riseKey = "rise"
+    private static let sweepKey = "sweep"
+    /// Never implicitly animated: geometry, paths and colours are set outright, and the
+    /// two things that move belong to the explicit keyframes.
+    private static let stillActions: [String: CAAction] = [
+        "bounds": NSNull(), "position": NSNull(), "anchorPoint": NSNull(), "path": NSNull(),
+        "fillColor": NSNull(), "transform": NSNull(), "opacity": NSNull(), "hidden": NSNull(),
+        "colors": NSNull(), "locations": NSNull(), "startPoint": NSNull(), "endPoint": NSNull(),
+        "frame": NSNull(),
+    ]
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+        layerContentsRedrawPolicy = .never
+        layer?.masksToBounds = false
+
+        slotLayer.fillColor = nil
+        hoverLayer.fillColor = NSColor.white.withAlphaComponent(0.4).cgColor
+        sweepClip.mask = sweepMask
+
+        sweep.type = .axial
+        sweep.startPoint = CGPoint(x: 0, y: 0.5)
+        sweep.endPoint = CGPoint(x: 1, y: 0.5)
+        sweep.colors = [
+            NSColor.white.withAlphaComponent(0).cgColor,
+            NSColor.white.withAlphaComponent(0.55).cgColor,
+            NSColor.white.withAlphaComponent(0).cgColor,
+        ]
+        sweepClip.addSublayer(sweep)
+
+        for sublayer in [slotLayer, stavesLayer, hoverLayer, sweepClip, sweepMask, sweep] as [CALayer] {
+            sublayer.actions = Self.stillActions
+        }
+        layer?.addSublayer(slotLayer)
+        layer?.addSublayer(stavesLayer)
+        layer?.addSublayer(sweepClip)
+
+        let center = NotificationCenter.default
+        center.addObserver(self, selector: #selector(appHiddenDidChange), name: NSApplication.didHideNotification, object: nil)
+        center.addObserver(self, selector: #selector(appHiddenDidChange), name: NSApplication.didUnhideNotification, object: nil)
+        center.addObserver(self, selector: #selector(windowDidChangeOcclusionState(_:)), name: NSWindow.didChangeOcclusionStateNotification, object: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    func configure(
+        staves: [HydraProgressBar.Stave],
+        capacity: Int,
+        colors: HydraStaveColors,
+        status: HydraHeadInfo.Status,
+        hoveredIndex: Int?,
+        isSweeping: Bool,
+        reduceMotion: Bool,
+        isScrolling: Bool
+    ) {
+        let stavesChanged = !matches(staves)
+        let colorsChanged = colors != self.colors
+        let statusChanged = status != self.status
+        let capacityChanged = capacity != self.capacity
+        let hoverChanged = hoveredIndex != self.hoveredIndex
+        let sweepChanged = isSweeping != self.isSweeping || reduceMotion != self.reduceMotion || isScrolling != self.isScrolling
+
+        if stavesChanged { self.staves = staves }
+        self.capacity = capacity
+        self.colors = colors
+        self.status = status
+        self.hoveredIndex = hoveredIndex
+        self.isSweeping = isSweeping
+        self.reduceMotion = reduceMotion
+        self.isScrolling = isScrolling
+
+        // A hover move, a scroll flip or a slot freeing up changes nothing about the
+        // staves: only what they affect is looked at again.
+        if stavesChanged || colorsChanged || statusChanged || capacityChanged {
+            applyContent()
+        } else if hoverChanged {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            applyHoverLayer()
+            CATransaction.commit()
+        }
+        if sweepChanged || stavesChanged || capacityChanged { refreshAnimations() }
+    }
+
+    /// Whether `staves` is the list the layers were last built for, walked in place and
+    /// out at the first stave that differs. A streamed title rewrites a row's step text
+    /// but not a stave's shape, so it is not one of these.
+    private func matches(_ new: [HydraProgressBar.Stave]) -> Bool {
+        guard new.count == staves.count else { return false }
+        for (index, stave) in new.enumerated() {
+            let cached = staves[index]
+            guard stave.id == cached.id, stave.kind == cached.kind, stave.arrivedAt == cached.arrivedAt else { return false }
+        }
+        return true
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        // A detached bar holds its local clock, just as it does during a scroll.
+        if window != nil { applyContent() }
+        refreshAnimations()
+    }
+
+    @objc private func appHiddenDidChange() {
+        refreshAnimations()
+    }
+
+    @objc private func windowDidChangeOcclusionState(_ note: Notification) {
+        // Every window ordered in posts this, popovers and tooltips included: only this
+        // view's own window coming back into view concerns it.
+        guard let window, (note.object as? NSWindow) === window else { return }
+        refreshAnimations()
+    }
+
+    override func layout() {
+        super.layout()
+        guard lastContentBounds != bounds else { return }
+        applyContent()
+        refreshAnimations()
+    }
+
+    /// Everything but the sweep's own state: the staves, the empty slots, the highlight
+    /// and the sweep's geometry, all set with actions off so a re-render moves nothing.
+    private func applyContent() {
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        lastContentBounds = bounds
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        slotLayer.frame = bounds
+        stavesLayer.frame = bounds
+        applyStaveLayers()
+        applyEmptySlots()
+        applyHoverLayer()
+        applySweepGeometry()
+        CATransaction.commit()
+    }
+
+    private func applyStaveLayers() {
+        let height = bounds.height
+        while staveSlots.count < staves.count {
+            let slot = Slot()
+            // The baseline is the anchor, so a rise grows upward from it, and nothing on
+            // the layer is implicitly animated.
+            slot.shape.anchorPoint = CGPoint(x: 0.5, y: 0)
+            slot.shape.actions = Self.stillActions
+            slot.mask.anchorPoint = slot.shape.anchorPoint
+            slot.mask.actions = Self.stillActions
+            slot.mask.fillColor = NSColor.black.cgColor
+            stavesLayer.addSublayer(slot.shape)
+            sweepMask.addSublayer(slot.mask)
+            staveSlots.append(slot)
+        }
+        for (index, slot) in staveSlots.enumerated() {
+            guard index < staves.count else {
+                // Past the filled ones: the layer stays for reuse, drawn empty.
+                slot.key = nil
+                slot.height = 0
+                slot.fill = nil
+                slot.shape.path = nil
+                slot.mask.path = nil
+                slot.shape.removeAnimation(forKey: Self.riseKey)
+                slot.mask.removeAnimation(forKey: Self.riseKey)
+                continue
+            }
+            let stave = staves[index]
+            if slot.key != stave.id {
+                // A different entry in this slot: it arrives from the baseline.
+                slot.key = stave.id
+                slot.height = 0
+                slot.shape.removeAnimation(forKey: Self.riseKey)
+                slot.mask.removeAnimation(forKey: Self.riseKey)
+                slot.shape.transform = CATransform3DIdentity
+                slot.mask.transform = CATransform3DIdentity
+            }
+            let staveHeight = height * stave.height
+            if slot.height != staveHeight {
+                slot.height = staveHeight
+                slot.shape.bounds = CGRect(x: 0, y: 0, width: HydraProgressBar.staveWidth, height: staveHeight)
+                slot.shape.path = CGPath(
+                    roundedRect: CGRect(x: 0, y: 0, width: HydraProgressBar.staveWidth, height: staveHeight),
+                    cornerWidth: HydraProgressBar.staveWidth / 2,
+                    cornerHeight: HydraProgressBar.staveWidth / 2,
+                    transform: nil
+                )
+                slot.mask.bounds = slot.shape.bounds
+                slot.mask.path = slot.shape.path
+            }
+            // The layer's y runs upward from the bar's baseline, as the canvas drew from
+            // the bottom of its frame.
+            slot.shape.position = CGPoint(
+                x: CGFloat(index) * HydraProgressBar.pitch + HydraProgressBar.staveWidth / 2,
+                y: 0
+            )
+            slot.mask.position = slot.shape.position
+            let fill = fillColor(for: stave, at: index)
+            if slot.fill != fill {
+                slot.fill = fill
+                slot.shape.fillColor = fill
+            }
+        }
+    }
+
+    /// The faint slots where the bar has yet to fill, all in one path.
+    private func applyEmptySlots() {
+        let height = bounds.height * 0.45
+        guard staves.count < capacity else {
+            slotLayer.path = nil
+            return
+        }
+        let path = CGMutablePath()
+        for slot in staves.count..<capacity {
+            path.addRoundedRect(
+                in: CGRect(x: CGFloat(slot) * HydraProgressBar.pitch, y: 0, width: HydraProgressBar.staveWidth, height: height),
+                cornerWidth: HydraProgressBar.staveWidth / 2,
+                cornerHeight: HydraProgressBar.staveWidth / 2
+            )
+        }
+        slotLayer.path = path
+        slotLayer.fillColor = colors?.empty
+    }
+
+    private func applyHoverLayer() {
+        guard let index = hoveredIndex, staves.indices.contains(index) else {
+            hoverLayer.path = nil
+            hoverLayer.removeFromSuperlayer()
+            return
+        }
+        let shape = staveSlots[index].shape
+        if hoverLayer.superlayer !== shape {
+            hoverLayer.removeFromSuperlayer()
+            shape.addSublayer(hoverLayer)
+        }
+        hoverLayer.frame = shape.bounds
+        hoverLayer.path = shape.path
+    }
+
+    private func applySweepGeometry() {
+        let height = bounds.height
+        let filled = staves.isEmpty ? 0 : CGFloat(staves.count) * HydraProgressBar.pitch - HydraProgressBar.gap
+        let newBand = max(24, filled / 3)
+        // The band's travel is baked into its animation, so a change to the width it
+        // crosses has to put the animation back with the new values.
+        if filled != filledWidth || newBand != band {
+            sweep.removeAnimation(forKey: Self.sweepKey)
+        }
+        filledWidth = filled
+        band = newBand
+        sweepClip.frame = CGRect(x: 0, y: 0, width: filled, height: height)
+        sweepMask.frame = sweepClip.bounds
+        sweep.bounds = CGRect(x: 0, y: 0, width: band, height: height)
+        // Off the left edge when it is not running: masked away, and where the keyframe
+        // starts from.
+        sweep.position = CGPoint(x: -band / 2, y: height / 2)
+    }
+
+    /// A stave's colour: the kind's share of the head's tint, except the last stave of a
+    /// head that failed or was stopped, which wears the status colour instead.
+    private func fillColor(for stave: HydraProgressBar.Stave, at index: Int) -> CGColor {
+        guard let colors else { return NSColor.clear.cgColor }
+        if index == staves.count - 1 {
+            if status == .failed { return colors.failed }
+            if status == .stopped { return colors.stopped }
+        }
+        switch stave.kind {
+        case .lookup: return colors.lookup
+        case .command: return colors.command
+        case .edit, .reply: return colors.tint
+        }
+    }
+
+    /// The launch of a stave's rise, from the moment its entry arrived. Put on once per
+    /// arrival: a re-render, a theme change or the sweep's state changing never replays it.
+    /// The parent layer's local clock holds an unfinished rise through a scroll or detach.
+    private func refreshRise(on slot: Slot, for stave: HydraProgressBar.Stave) {
+        guard !reduceMotion else {
+            slot.shape.removeAnimation(forKey: Self.riseKey)
+            slot.mask.removeAnimation(forKey: Self.riseKey)
+            return
+        }
+        guard slot.shape.animation(forKey: Self.riseKey) == nil else { return }
+        let age = Date.now.timeIntervalSince(stave.arrivedAt)
+        guard age < HydraProgressBar.rise, age >= 0 else {
+            slot.shape.removeAnimation(forKey: Self.riseKey)
+            slot.mask.removeAnimation(forKey: Self.riseKey)
+            return
+        }
+        let animation = CABasicAnimation(keyPath: "transform.scale.y")
+        animation.fromValue = 0
+        animation.toValue = 1
+        animation.timingFunction = CAMediaTimingFunction(controlPoints: 1.0 / 3.0, 1, 2.0 / 3.0, 1)
+        animation.duration = HydraProgressBar.rise
+        animation.beginTime = slot.shape.convertTime(CACurrentMediaTime(), from: nil) - age
+        slot.shape.add(animation, forKey: Self.riseKey)
+        animation.beginTime = slot.mask.convertTime(CACurrentMediaTime(), from: nil) - age
+        slot.mask.add(animation, forKey: Self.riseKey)
+    }
+
+    /// The sweep on or off, frozen or running. The animation is put on with one fixed
+    /// phase when it starts, then its parent holds that phase through scrolling and
+    /// time away from the window.
+    private func refreshAnimations() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+        let paused = isScrolling || !isVisibleInWindow
+        setPaused(paused, on: stavesLayer)
+        setPaused(paused, on: sweepClip)
+        if !paused || reduceMotion {
+            for (index, slot) in staveSlots.enumerated() where index < staves.count {
+                refreshRise(on: slot, for: staves[index])
+            }
+        }
+        guard isSweeping, !reduceMotion, !staves.isEmpty else {
+            sweep.removeAnimation(forKey: Self.sweepKey)
+            sweepClip.isHidden = true
+            return
+        }
+        sweepClip.isHidden = false
+        if !paused, sweep.animation(forKey: Self.sweepKey) == nil {
+            installSweep()
+        }
+    }
+
+    private func setPaused(_ paused: Bool, on layer: CALayer) {
+        guard paused != (layer.speed == 0) else { return }
+        if paused {
+            let time = layer.convertTime(CACurrentMediaTime(), from: nil)
+            layer.speed = 0
+            layer.timeOffset = time
+        } else {
+            // Keep the local clock's place so a scroll never consumes the rest of a rise.
+            let time = layer.timeOffset
+            layer.speed = 1
+            layer.timeOffset = 0
+            layer.beginTime = 0
+            layer.beginTime = layer.convertTime(CACurrentMediaTime(), from: nil) - time
+        }
+    }
+
+    private var isVisibleInWindow: Bool {
+        guard !NSApp.isHidden, let window, window.isVisible, !window.isMiniaturized,
+              window.occlusionState.contains(.visible) else { return false }
+        return true
+    }
+
+    /// One pass of the band in `sweep` seconds, then a `sweepRest` rest past the right
+    /// edge, repeating. Both ends lie outside the filled staves, so the mask hides the
+    /// band at rest. The model position stays off the left edge.
+    private func installSweep() {
+        guard filledWidth > 0 else { return }
+        let start = -band / 2
+        let end = filledWidth + band / 2
+        let animation = CAKeyframeAnimation(keyPath: "position.x")
+        animation.values = [start, end, end]
+        animation.keyTimes = [
+            0,
+            NSNumber(value: HydraProgressBar.sweep / (HydraProgressBar.sweep + HydraProgressBar.sweepRest)),
+            1,
+        ]
+        animation.duration = HydraProgressBar.sweep + HydraProgressBar.sweepRest
+        animation.repeatCount = .infinity
+        animation.calculationMode = .linear
+        animation.isRemovedOnCompletion = false
+        let within = Date.now.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: animation.duration)
+        animation.beginTime = sweep.convertTime(CACurrentMediaTime(), from: nil) - within
+        sweep.position = CGPoint(x: start, y: sweep.position.y)
+        sweep.add(animation, forKey: Self.sweepKey)
+    }
+
 }
 
 /// A head's panel with "Show what heads are doing" off: what it was sent to do, centred on
@@ -480,61 +839,31 @@ struct HydraHeadProgress: View {
     }
 }
 
-/// The head's task. While the head works the text breathes, and a slightly darker band
-/// drifts across it from left to right, so a bar with nothing on it yet still reads as a
-/// head at work. Done, or with reduced motion, it is plain text.
+/// The head's task. While the head works the text breathes, so a bar with nothing on
+/// it yet still reads as a head at work. Done, or with reduced motion, it is plain text.
 struct HydraWorkingTitle: View {
     let text: String
     let isRunning: Bool
     var alignment: TextAlignment = .center
+    @Environment(\.chatColumnIsShown) private var chatColumnIsShown
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
-    /// One pass of the band across the text.
-    private static let sweep: TimeInterval = 3.2
-    /// The rest between two passes of the band.
-    private static let sweepRest: TimeInterval = 3.0
     /// One breath, in and out.
     private static let breath: TimeInterval = 3.2
-    /// Half the band's width, as a share of the text's width.
-    private static let reach = 0.3
 
     var body: some View {
-        let animates = isRunning && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        // The text itself never changes per frame, only the band over it, so it is
-        // built once and the closure below just restyles it.
-        let title = Text(verbatim: text).font(.system(.body, weight: .medium))
-        // Twenty frames a second is plenty for a band this wide; it rests while the reader
-        // scrolls anywhere (see `ScrollActivity`), so a fold's glide has the frames.
-        TimelineView(.animation(minimumInterval: 1.0 / 20.0, paused: !animates || ScrollActivity.shared.isScrolling)) { context in
+        let animates = chatColumnIsShown && isRunning && FrontMonitor.shared.isVisible && !performanceMode && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let title = Text(verbatim: text)
+            .font(.system(.body, weight: .medium))
+            .foregroundStyle(Chrome.primaryText)
+        TimelineView(.animation(minimumInterval: 1.0 / 12.0, paused: !animates || ScrollActivity.shared.isScrolling)) { context in
             let now = context.date.timeIntervalSinceReferenceDate
-            // The band's centre travels from just left of the text to just right of it, so
-            // it enters and leaves rather than snapping; then it rests off the right edge,
-            // where the text is one colour.
-            let phase = min(now.truncatingRemainder(dividingBy: Self.sweep + Self.sweepRest) / Self.sweep, 1)
-            let centre = animates ? -Self.reach + phase * (1 + 2 * Self.reach) : 0.5
-            let dip = animates ? 0.6 : 1.0
             let breath = animates ? 0.5 + 0.5 * sin(now / Self.breath * 2 * .pi) : 1.0
             title
-                .foregroundStyle(
-                    LinearGradient(
-                        stops: [
-                            .init(color: Chrome.primaryText, location: 0),
-                            .init(color: Chrome.primaryText, location: Self.clamped(centre - Self.reach)),
-                            .init(color: Chrome.primaryText.opacity(dip), location: Self.clamped(centre)),
-                            .init(color: Chrome.primaryText, location: Self.clamped(centre + Self.reach)),
-                            .init(color: Chrome.primaryText, location: 1),
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .opacity(0.86 + 0.14 * breath)
+                .opacity(0.72 + 0.28 * breath)
         }
         .lineLimit(2)
         .multilineTextAlignment(alignment)
-    }
-
-    private static func clamped(_ location: Double) -> CGFloat {
-        CGFloat(min(1, max(0, location)))
     }
 }
 
@@ -544,10 +873,11 @@ struct HydraElapsedTime: View {
     let startedAt: Date
     let finishedAt: Date?
     let isRunning: Bool
+    @Environment(\.chatColumnIsShown) private var chatColumnIsShown
 
     var body: some View {
         Group {
-            if isRunning {
+            if isRunning && chatColumnIsShown && FrontMonitor.shared.isVisible {
                 TimelineView(.periodic(from: startedAt, by: 1)) { context in
                     Text(verbatim: RelativeTime.duration(context.date.timeIntervalSince(startedAt)))
                 }
@@ -567,13 +897,31 @@ struct HydraElapsedTime: View {
 private struct ProgressCardSurface: ViewModifier {
     let isOnGlassPanel: Bool
     let isDark: Bool
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: Chrome.cardCornerRadius, style: .continuous)
         if isOnGlassPanel {
             content.background(shape.fill(Chrome.panelControlFill(isDark: isDark)))
+        } else if performanceMode {
+            content
+                .background(shape.fill(Color(nsColor: .controlBackgroundColor)))
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
         } else {
-            content.glassEffect(.regular, in: shape)
+            content
+                .glassEffect(.regular, in: shape)
+                .background {
+                    shape
+                        .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+                        .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+                }
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
         }
     }
 }

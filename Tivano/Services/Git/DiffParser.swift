@@ -15,6 +15,11 @@ struct DiffFile: Identifiable, Hashable, Sendable {
     var hunks: [DiffHunk]
     var reportedAdditions: Int?
     var reportedDeletions: Int?
+    var revision: Int = 0
+    var deferredPatch: String? = nil
+    var deferredLineCount: Int = 0
+
+    var isDeferred: Bool { deferredPatch != nil }
 
     var id: String { path }
     var additions: Int { reportedAdditions ?? hunks.reduce(0) { $0 + $1.lines.count(where: { $0.kind == .addition }) } }
@@ -49,35 +54,88 @@ struct DiffLine: Identifiable, Hashable, Sendable {
 
 enum DiffParser {
     /// Parses `git diff` output into files, hunks and numbered lines.
-    static func parse(_ patch: String) -> [DiffFile] {
+    static func parse(_ patch: String, limitsSize: Bool = true) -> [DiffFile] {
         var files: [DiffFile] = []
         var current: DiffFile?
         var hunk: DiffHunk?
         var oldLine = 0
         var newLine = 0
         var lineID = 0
+        var content = Hasher()
+        var fileStart = patch.startIndex
+        var inHunk = false
+        var deferred = false
+        var hunkBytes = 0
+        var hunkLines = 0
+        var additions = 0
+        var deletions = 0
 
         func closeHunk() {
             if let finished = hunk { current?.hunks.append(finished) }
             hunk = nil
         }
 
-        func closeFile() {
+        func closeFile(at end: String.Index) {
             closeHunk()
-            if let finished = current { files.append(finished) }
+            if var finished = current {
+                finished.revision = content.finalize()
+                if deferred {
+                    finished.hunks = []
+                    let rawPatch = String(patch[fileStart..<end])
+                    finished.deferredPatch = rawPatch
+                    var rawContent = Hasher()
+                    rawContent.combine(rawPatch)
+                    finished.revision = rawContent.finalize()
+                    finished.deferredLineCount = hunkLines
+                    finished.reportedAdditions = additions
+                    finished.reportedDeletions = deletions
+                }
+                files.append(finished)
+            }
+            content = Hasher()
             current = nil
+            inHunk = false
+            deferred = false
+            hunkBytes = 0
+            hunkLines = 0
+            additions = 0
+            deletions = 0
         }
 
-        for rawLine in patch.split(separator: "\n", omittingEmptySubsequences: false) {
+        var cursor = patch.startIndex
+        while cursor < patch.endIndex {
+            if Task.isCancelled { return [] }
+            let start = cursor
+            let end = patch[start...].firstIndex(of: "\n") ?? patch.endIndex
+            cursor = end < patch.endIndex ? patch.index(after: end) : end
+            let rawLine = patch[start..<end]
             let line = String(rawLine)
             if line.hasPrefix("diff --git ") {
-                closeFile()
+                closeFile(at: start)
+                fileStart = start
+                content.combine(line)
                 current = DiffFile(path: headerPath(line), change: .modified, isBinary: false, hunks: [])
                 continue
             }
             guard current != nil else { continue }
+            content.combine(line)
 
-            if hunk == nil || line.hasPrefix("@@") {
+            let isHunkHeader = line.hasPrefix("@@")
+            if inHunk || isHunkHeader {
+                hunkBytes += rawLine.utf8.count + (end < patch.endIndex ? 1 : 0)
+                if !isHunkHeader {
+                    hunkLines += 1
+                    if line.hasPrefix("+") { additions += 1 }
+                    if line.hasPrefix("-") { deletions += 1 }
+                }
+                if limitsSize, !deferred, hunkBytes > 1_048_576 || hunkLines > 20_000 {
+                    deferred = true
+                    hunk = nil
+                    current?.hunks.removeAll()
+                }
+            }
+
+            if !inHunk || isHunkHeader {
                 if line.hasPrefix("new file mode") {
                     current?.change = .added
                 } else if line.hasPrefix("deleted file mode") {
@@ -98,6 +156,8 @@ enum DiffParser {
                         current?.path = stripPrefix(String(line.dropFirst(4)))
                     }
                 } else if line.hasPrefix("@@") {
+                    inHunk = true
+                    guard !deferred else { continue }
                     closeHunk()
                     let numbers = hunkStarts(line)
                     oldLine = numbers.old
@@ -108,6 +168,7 @@ enum DiffParser {
                 continue
             }
 
+            guard !deferred else { continue }
             lineID += 1
             if line.hasPrefix("+") {
                 hunk?.lines.append(DiffLine(id: lineID, kind: .addition, text: String(line.dropFirst()), newNumber: newLine))
@@ -124,7 +185,7 @@ enum DiffParser {
                 newLine += 1
             }
         }
-        closeFile()
+        closeFile(at: patch.endIndex)
         return files
     }
 

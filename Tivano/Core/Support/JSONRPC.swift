@@ -61,6 +61,7 @@ final class JSONRPCConnection {
         readTask = Task { [weak self] in
             for await message in messages {
                 guard let self else { return }
+                if self.process.failureReason != nil { break }
                 self.handle(message)
             }
             self?.didClose()
@@ -76,6 +77,10 @@ final class JSONRPCConnection {
         return try await withTaskCancellationHandler {
             try Task.checkCancellation()
             return try await withCheckedThrowingContinuation { continuation in
+                guard !Task.isCancelled else {
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
                 pending[id] = continuation
                 write(["id": id.json, "method": .string(method), "params": params])
             }
@@ -90,24 +95,35 @@ final class JSONRPCConnection {
         write(["method": .string(method), "params": params])
     }
 
-    func respond(to id: RPCID, result: JSONValue) {
-        write(["id": id.json, "result": result])
+    func respond(to id: RPCID, result: JSONValue, completion: (@MainActor (Bool) -> Void)? = nil) {
+        write(["id": id.json, "result": result], completion: completion)
     }
 
-    func respond(to id: RPCID, errorCode code: Int, message: String) {
-        write(["id": id.json, "error": ["code": .int(code), "message": .string(message)]])
+    func respond(to id: RPCID, errorCode code: Int, message: String, completion: (@MainActor (Bool) -> Void)? = nil) {
+        write(["id": id.json, "error": ["code": .int(code), "message": .string(message)]], completion: completion)
     }
 
     func close() {
         process.terminate()
+        didClose()
     }
 
-    private func write(_ message: [String: JSONValue]) {
-        guard !isClosed else { return }
+    func closeAndWait(timeout: TimeInterval) async {
+        close()
+        await process.terminateAndWait(timeout: timeout)
+    }
+
+    private func write(_ message: [String: JSONValue], completion: (@MainActor (Bool) -> Void)? = nil) {
+        guard !isClosed else { completion?(false); return }
         var message = message
         if message["params"] == .null { message.removeValue(forKey: "params") }
         if sendsVersion { message["jsonrpc"] = "2.0" }
-        process.send(.object(message))
+        process.send(.object(message)) { [weak self] succeeded in
+            Task { @MainActor [weak self] in
+                if !succeeded { self?.didClose() }
+                completion?(succeeded)
+            }
+        }
     }
 
     private func handle(_ message: JSONValue) {
@@ -141,7 +157,7 @@ final class JSONRPCConnection {
     private func didClose() {
         guard !isClosed else { return }
         isClosed = true
-        let tail = process.errorTail.trimmed
+        let tail = process.failureReason ?? process.errorTail.trimmed
         let failure = RPCError(code: -32000, message: tail.isEmpty ? "The agent process exited." : tail)
         let waiting = Array(pending.values)
         pending.removeAll()

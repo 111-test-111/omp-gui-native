@@ -29,7 +29,7 @@ enum TimelineMinimap {
         case .group(.single(let entry), _, _):
             guard case .user(let message) = entry.item.content else { return nil }
             return userEntry(id: entry.id, message: message)
-        case .group(.work, _, _), .group(.heads, _, _), .working, .merging, .headsWorking:
+        case .group(.work, _, _), .group(.heads, _, _), .working, .merging, .headsWorking, .backgroundTasks:
             return nil
         }
     }
@@ -184,6 +184,9 @@ struct TimelineMinimapRail: View, Equatable {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(WindowLiveResize.self) private var liveResize
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     /// Tick under the pointer, nil once the pointer leaves the rail.
     @State private var hoveredID: String?
@@ -194,7 +197,7 @@ struct TimelineMinimapRail: View, Equatable {
     private var baseOpacity: Double { isExpanded ? 0.4 : 0.25 }
     private var hoverAnimation: Animation? {
         // Held mid-resize: a hover curve restarted every frame lagged the whole rail.
-        if liveResize.isActive || reduceMotion { return nil }
+        if liveResize.isActive || reduceMotion || performanceMode { return nil }
         return .smooth(duration: 0.22)
     }
 
@@ -214,7 +217,16 @@ struct TimelineMinimapRail: View, Equatable {
                         case .active(let location):
                             // Hovering alone previews the tick under the pointer; only a press jumps.
                             let id = metrics.entryID(at: location.y, entries: entries)
-                            if hoveredID != id { hoveredID = id }
+                            if hoveredID != id {
+                                hoveredID = id
+                                if id != nil {
+                                    switch model.settings.timelineHapticStyle {
+                                    case .soft: Haptics.perform(.generic)
+                                    case .strong: Haptics.perform(.alignment)
+                                    case .none: break
+                                    }
+                                }
+                            }
                         case .ended:
                             hoveredID = nil
                         }
@@ -321,7 +333,7 @@ struct TimelineMinimapRail: View, Equatable {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .frame(width: Self.cardWidth, alignment: .leading)
-            .glassEffect(.regular, in: .rect(cornerRadius: Chrome.cardCornerRadius, style: .continuous))
+            .modifier(MinimapCardSurface(isDark: colorScheme == .dark))
             Spacer(minLength: 0)
         }
         .padding(.leading, 34)
@@ -431,5 +443,35 @@ private struct RailHitArea: Shape {
 
     func path(in _: CGRect) -> Path {
         Path(rect)
+    }
+}
+
+/// The rail's hover card surface: glass on, a flat panel fill in performance mode.
+private struct MinimapCardSurface: ViewModifier {
+    let isDark: Bool
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Chrome.cardCornerRadius, style: .continuous)
+        if !performanceMode {
+            content
+                .glassEffect(.regular, in: shape)
+                .background {
+                    shape
+                        .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+                        .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+                }
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
+        } else {
+            content
+                .background(shape.fill(Color(nsColor: .controlBackgroundColor)))
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
+        }
     }
 }

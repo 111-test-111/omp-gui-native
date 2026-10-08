@@ -12,10 +12,12 @@ struct RecentCache<Key: Hashable, Value> {
     private var previousCost = 0
     private let limit: Int
     private let costLimit: Int
+    private let entryCostLimit: Int
 
-    init(limit: Int, costLimit: Int = .max) {
+    init(limit: Int, costLimit: Int = .max, entryCostLimit: Int = .max) {
         self.limit = max(1, limit)
         self.costLimit = max(0, costLimit)
+        self.entryCostLimit = max(0, entryCostLimit)
         current.reserveCapacity(self.limit)
     }
 
@@ -43,13 +45,17 @@ struct RecentCache<Key: Hashable, Value> {
     mutating func insert(_ value: Value, for key: Key, cost: Int = 1) {
         removeValue(for: key)
         let cost = max(0, cost)
-        guard cost <= costLimit else { return }
+        guard cost <= min(costLimit, entryCostLimit) else { return }
         if current.count >= limit || currentCost > costLimit - cost {
             previous = current
             previousCost = currentCost
             current = [:]
             current.reserveCapacity(limit)
             currentCost = 0
+        }
+        if previousCost > costLimit - currentCost - cost {
+            previous.removeAll(keepingCapacity: true)
+            previousCost = 0
         }
         current[key] = Entry(value: value, cost: cost)
         currentCost += cost

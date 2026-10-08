@@ -40,7 +40,7 @@ enum TurnDiff {
             let path = reportedPath(edit.path)
             guard !authoritative.contains(path), snapshot == nil || path.hasPrefix("/") else { continue }
             var file = DiffParser.parseHunks(edit.diff ?? "", path: path)
-            if file.hunks.isEmpty {
+            if file.hunks.isEmpty && !file.isDeferred {
                 file.reportedAdditions = edit.additions
                 file.reportedDeletions = edit.deletions
             }
@@ -50,13 +50,29 @@ enum TurnDiff {
     }
 
     private static func append(_ file: DiffFile, to files: inout [String: DiffFile]) {
+        var file = file
+        var revision = Hasher()
+        revision.combine(file.deferredPatch)
+        revision.combine(file.hunks)
+        revision.combine(file.isBinary)
+        revision.combine(file.reportedAdditions)
+        revision.combine(file.reportedDeletions)
+        file.revision = revision.finalize()
         guard var existing = files[file.path] else { files[file.path] = file; return }
+        if existing.isDeferred || file.isDeferred {
+            files[file.path] = file
+            return
+        }
         let additions = existing.additions + file.additions
         let deletions = existing.deletions + file.deletions
         for var hunk in file.hunks {
             hunk.id = (existing.hunks.last?.id ?? 0) + 1
             existing.hunks.append(hunk)
         }
+        var content = Hasher()
+        content.combine(existing.revision)
+        content.combine(file.revision)
+        existing.revision = content.finalize()
         existing.reportedAdditions = additions
         existing.reportedDeletions = deletions
         existing.isBinary = existing.isBinary || file.isBinary

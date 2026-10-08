@@ -126,7 +126,9 @@ struct ChatView: View {
                     .overlay(alignment: .top) {
                         JumpToLatestButton(scrollState: scrollState)
                     }
-                    .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { composerAreaHeight = $0 }
+                    .onGeometryChange(for: CGFloat.self, of: { $0.size.height.rounded() }) {
+                        if composerAreaHeight != $0 { composerAreaHeight = $0 }
+                    }
                     .onChange(of: composerAreaHeight) { oldValue, newValue in
                         // The area growing (the queued follow-ups tab expanding, a
                         // follow-up being queued, an approval card arriving) shrinks the
@@ -1106,6 +1108,7 @@ struct JumpToLatestButton: View {
 /// The sticky glass controls across the top of the conversation.
 private struct ChatChromeRow: View {
     @Environment(AppModel.self) private var model
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     let runtime: ThreadRuntime
     let scrollChrome: ChromeScrollModel
     let title: String
@@ -1120,56 +1123,12 @@ private struct ChatChromeRow: View {
         // One glass pass for the whole row. The row floats over the conversation, so its
         // capsules sample fresh content on every scrolled frame; drawn separately, each was
         // a pass of its own. The spacing is well under the gaps, so nothing morphs together.
-        GlassEffectContainer(spacing: 2) {
-            HStack(alignment: .center, spacing: 10) {
-                // With the sidebar away, its list is one press away: the button arrives with the
-                // window buttons and leaves with them. Not when the list floats as the only
-                // sidebar (see `AppSettings.sidebarOnlyFloats`): there is nothing to open.
-                if !sidebarVisible, !(model.settings.sidebarFloats && model.settings.sidebarOnlyFloats) {
-                    ThreadsButton()
-                        .transition(.softAppear)
-                }
-                ChromeCircleButton(symbol: "square.and.pencil", help: Chrome.localized("New thread") + ShortcutStore.hint(for: .newThread)) {
-                    model.newThread(in: project)
-                }
-                if let thread = model.thread(runtime.threadID) {
-                    // The team mark, once Hydra is on in Settings: always active in every
-                    // chat until switched off there. A head leads no team of its own.
-                    if model.settings.hydraEnabled, !thread.isHelper {
-                        HydraButton(thread: thread, runtime: runtime)
-                            .transition(.softAppear)
-                    }
-                    PermissionMenu(thread: thread)
-                }
-                if git.isRepository {
-                    BranchMenu(runtime: runtime, directory: directory, git: git)
-                }
-                ChatChromeTitle(runtime: runtime, title: title)
-                    // The thread's title cuts on a switch; it must never crossfade.
-                    // Animated, the old and new titles ghost over each other
-                    // mid-flight. Scroll progress still drives it per frame.
-                    .animation(nil, value: title)
-                HStack(spacing: 8) {
-                    ChromeCapsule {
-                        OpenInMenu(directory: directory)
-                        if let project {
-                            ChromeDivider()
-                            ScriptsMenu(project: project, runtime: runtime)
-                        }
-                        if git.isRepository {
-                            ChromeDivider()
-                            GitActionsMenu(runtime: runtime, directory: directory, git: git)
-                        }
-                    }
-                    ChromeCapsule {
-                        ChromeIconButton(symbol: "terminal", isActive: runtime.isTerminalVisible, help: Chrome.localized("Terminal") + ShortcutStore.hint(for: .toggleTerminal)) {
-                            runtime.isTerminalVisible.toggle()
-                        }
-                        ChromeDivider()
-                        ChromeIconButton(symbol: "plusminus", isActive: runtime.isDiffVisible, help: Chrome.localized("Changes") + ShortcutStore.hint(for: .toggleChanges)) {
-                            runtime.toggleDiff()
-                        }
-                    }
+        Group {
+            if performanceMode {
+                chromeRowContent(sidebarVisible: sidebarVisible)
+            } else {
+                GlassEffectContainer(spacing: 2) {
+                    chromeRowContent(sidebarVisible: sidebarVisible)
                 }
             }
         }
@@ -1178,6 +1137,61 @@ private struct ChatChromeRow: View {
         .padding(.horizontal, Chrome.chromeHorizontalPadding)
         .padding(.top, Chrome.chromeTopPadding)
         .animation(Chrome.panelSlide, value: sidebarVisible)
+    }
+
+    @ViewBuilder
+    private func chromeRowContent(sidebarVisible: Bool) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            // With the sidebar away, its list is one press away: the button arrives with the
+            // window buttons and leaves with them. Not when the list floats as the only
+            // sidebar (see `AppSettings.sidebarOnlyFloats`): there is nothing to open.
+            if !sidebarVisible, !(model.settings.sidebarFloats && model.settings.sidebarOnlyFloats) {
+                ThreadsButton()
+                    .transition(.softAppear)
+            }
+            ChromeCircleButton(symbol: "square.and.pencil", help: Chrome.localized("New thread") + ShortcutStore.hint(for: .newThread)) {
+                model.newThread(in: project)
+            }
+            if let thread = model.thread(runtime.threadID) {
+                // The team mark, once Hydra is on in Settings: always active in every
+                // chat until switched off there. A head leads no team of its own.
+                if model.settings.hydraEnabled, !thread.isHelper {
+                    HydraButton(thread: thread, runtime: runtime)
+                        .transition(.softAppear)
+                }
+                PermissionMenu(thread: thread)
+            }
+            if git.isRepository {
+                BranchMenu(runtime: runtime, directory: directory, git: git)
+            }
+            ChatChromeTitle(runtime: runtime, title: title)
+                // The thread's title cuts on a switch; it must never crossfade.
+                // Animated, the old and new titles ghost over each other
+                // mid-flight. Scroll progress still drives it per frame.
+                .animation(nil, value: title)
+            HStack(spacing: 8) {
+                ChromeCapsule {
+                    OpenInMenu(directory: directory)
+                    if let project {
+                        ChromeDivider()
+                        ScriptsMenu(project: project, runtime: runtime)
+                    }
+                    if git.isRepository {
+                        ChromeDivider()
+                        GitActionsMenu(runtime: runtime, directory: directory, git: git)
+                    }
+                }
+                ChromeCapsule {
+                    ChromeIconButton(symbol: "terminal", isActive: runtime.isTerminalVisible, help: Chrome.localized("Terminal") + ShortcutStore.hint(for: .toggleTerminal)) {
+                        runtime.isTerminalVisible.toggle()
+                    }
+                    ChromeDivider()
+                    ChromeIconButton(symbol: "plusminus", isActive: runtime.isDiffVisible, help: Chrome.localized("Changes") + ShortcutStore.hint(for: .toggleChanges)) {
+                        runtime.toggleDiff()
+                    }
+                }
+            }
+        }
     }
 }
 

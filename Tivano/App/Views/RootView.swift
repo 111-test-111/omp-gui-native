@@ -62,7 +62,7 @@ struct RootView: View {
             .padding(.top, Chrome.trafficLightTop + Chrome.trafficLightDiameter)
         }
         .background { WindowBackdrop(opacity: model.settings.backdropOpacity, wallpaper: WallpaperStore.shared.image) }
-        .background { WindowChromeConfigurator(sidebarVisible: sidebar.holdsTrafficLights, sidebarDragging: sidebar.isDragging) }
+        .background { WindowChromeConfigurator(sidebarVisible: sidebar.holdsTrafficLights, sidebarDragging: sidebar.isDragging, performanceMode: model.settings.performanceMode) }
         // Clipped after the backdrop is painted, so the glass and its edge stop at the window's own curve.
         .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .ignoresSafeArea()
@@ -154,7 +154,11 @@ struct DetailView: View {
                 }
         } else {
             Group {
-                if model.projects.isEmpty {
+                // The library decodes off the main thread at launch: until it lands, an empty
+                // project list says nothing, and the welcome screen would flash.
+                if !model.isLibraryLoaded {
+                    Color.clear
+                } else if model.projects.isEmpty {
                     WelcomeView()
                 } else {
                     NoThreadView()
@@ -314,14 +318,29 @@ struct WelcomeView: View {
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 VStack(spacing: 10) {
-                    Button {
-                        model.chooseProjectFolder()
-                    } label: {
-                        Label("Add a project", systemImage: "folder.badge.plus")
+                    HStack(spacing: 10) {
+                        Button {
+                            model.chooseProjectFolder()
+                        } label: {
+                            Label("Add a project", systemImage: "folder.badge.plus")
+                                .padding(.horizontal, 6)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .controlSize(.extraLarge)
+                        Button {
+                            GitHubClonePanel.shared.present(model: model)
+                        } label: {
+                            Label {
+                                Text("Clone from GitHub")
+                            } icon: {
+                                Image("mcp-github").resizable().scaledToFit()
+                                    .frame(width: 16, height: 16)
+                            }
                             .padding(.horizontal, 6)
+                        }
+                        .buttonStyle(.glass)
+                        .controlSize(.extraLarge)
                     }
-                    .buttonStyle(.glassProminent)
-                    .controlSize(.extraLarge)
                     Text("Or drop a folder anywhere in this window.")
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)

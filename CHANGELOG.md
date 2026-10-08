@@ -7,7 +7,59 @@ All notable changes to Droppy Code are documented here, newest first. The format
 ## [Unreleased]
 
 ### Refinements
+- Load the library after launch, preserve unreadable chat files for recovery, and release excess idle runtimes.
+- Compute timeline viewport frames on demand and debounce active-block resolution.
+- Dev packages are built with `-O` and whole-module optimization, for performance testing.
+
+## [1.7.4] - 2026-10-07
+
+### Bug fixes
+- When Claude picks the work back up by itself after a background command it started finishes, the chat shows as working: the sidebar spinner and the working indicator run, a note says why the turn started, Stop works, and the turn ends like any other. Before, that turn ran with no sign of it.
+
+### Refinements
+- While a command Claude left running in the background is still going after a turn ends, the sidebar row shows a spinner and the timeline says "Waiting on a background task" until it finishes.
+
+## [1.7.3] - 2026-10-07
+
+### Bug fixes
+- With the activity list set to Project name, every thread shows its project's folder line: threads in a project with a picked icon wore the icon instead and sat on a shorter row.
+- Performance mode keeps the window's rounded corners and shadow and paints a solid background in your theme, so the Settings window no longer blends into the main window or shows a seam beside its sidebar.
+
+### Refinements
+- When everything a Hydra chat changed is already on main, its note says so ("Already on main: nothing to merge") instead of the unclear "no files left to merge".
+
+## [1.7.2] - 2026-10-07
+
+### Bug fixes
+- Droppy Code no longer freezes when Hydra sends out several heads while files in the project are changing: a head waiting on the working-tree snapshot another head had started could spin on the main thread forever.
+
+## [1.7.1] - 2026-10-07
+
+### New features
+- Connect GitHub in Settings › Source control, by signing in with GitHub in your browser, through the GitHub CLI login you already have, or with a personal access token, then clone any of your repositories from the sidebar's Add project menu, the welcome screen, the command palette or File › Clone from GitHub. The repository opens as a project with a new thread, and agents can push and open pull requests with the connected account.
+- Hydra can archive a finished Codex head's session from Codex's own history so delegated work stops crowding it, with the head's Droppy transcript kept and a follow-up restoring the same session. Off by default, in Settings › Hydra.
+- A forwarded chat's first screen names the chat it continues, says whether the carried context was shortened, and offers a way back to the original.
+
+### Bug fixes
+- Edits made by one chat no longer show up on another chat's command rows or go out in its merge when several chats work in the same checkout.
+- A running turn's card keeps its size when you open its steps: they appear as plain rows under the card instead of growing it.
+- Antigravity's usage and default-model reads are skipped while the Mac is offline, so agy no longer opens a sign-in page.
+- A working folder with non-ASCII characters in its path no longer crashes the file watcher, launching no longer creates an empty chat, Hydra heads stay out of the standalone chat lists, wide Markdown tables scroll sideways, and the window controls sit where they belong in full screen.
+
+### Refinements
 - The app icon, the Droppy logo in Settings and the website's icons wear Droppy's new ultramarine blue.
+- Performance mode drops blurs, shadows and continuous animations for less idle GPU work, and holds its own setting during capture runs.
+- Hovering the timeline minimap or a progress bar gives a soft, strong or no haptic tick, set in Settings.
+- Threads and helpers sit indented under their project folder in the sidebar.
+- Model settings build far fewer rows with large catalogues, the hang watchdog also catches livelocks, and the MCP cards lay out eagerly.
+- Hydra's progress bars animate in Core Animation layers, so a working head's bar costs the app next to nothing and holds still while you scroll.
+
+### Thanks
+- Nikita Tsyganov (@nik1tsyganov): livelocks in the hang watchdog (!408); eager MCP cards (!410); no chat on launch (!413); Hydra heads out of chat lists (!414); scrollable Markdown tables (!415); Codex head history archiving (!416).
+- Jason Kneen (@jasonkneen): lighter model settings (!405).
+- minier liu (@miniers): capture-aware performance mode (!411); the non-ASCII path crash (!412).
+- Dinanath Dash (@DinanathDash): timeline hover haptics (!418); window controls in full screen (!420); sidebar indentation (!422).
+- Meric (@realmeric1): Antigravity reads skipped offline (!423).
 
 ## [1.7.0] - 2026-09-25
 

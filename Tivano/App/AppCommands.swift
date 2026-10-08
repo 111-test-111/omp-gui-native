@@ -32,6 +32,7 @@ struct AppCommands: Commands {
             Divider()
             Button("Add project…") { model.chooseProjectFolder() }
                 .keyboardShortcut(shortcuts.keyboardShortcut(for: .addProject))
+            Button("Clone from GitHub…") { GitHubClonePanel.shared.present(model: model) }
         }
 
         CommandGroup(after: .sidebar) {

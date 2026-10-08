@@ -85,6 +85,22 @@ enum SidebarMode: String, CaseIterable, Identifiable {
 
 /// How the activity list shows which project a thread belongs to: the project's own mark
 /// in front of the thread's name on one line, or the project's name under it.
+enum TimelineHapticStyle: String, CaseIterable, Identifiable {
+    case soft
+    case strong
+    case none
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .soft: "Soft"
+        case .strong: "Strong"
+        case .none: "None"
+        }
+    }
+}
+
 enum ActivityThreadStyle: String, CaseIterable, Identifiable {
     /// The project's emoji or SF Symbol before the thread's name: one line per thread.
     case icon
@@ -144,6 +160,7 @@ final class AppSettings {
         static let chronologicalTimeline = "chronologicalTimeline"
         static let antiSlopEnabled = "antiSlopEnabled"
         static let showsWorkingCard = "showsWorkingCard"
+        static let timelineHapticStyle = "timelineHapticStyle"
         static let appZoom = "appZoom"
         static let sidebarActivityView = "sidebarActivityView"
         static let activityThreadStyle = "activityThreadStyle"
@@ -151,6 +168,8 @@ final class AppSettings {
         static let appTheme = "appTheme"
         static let backdropOpacity = "backdropOpacity"
         static let appearance = "appearance"
+        static let performanceMode = "performanceMode"
+        static let performanceModeKey = performanceMode
         static let binaryPaths = "providerBinaryPaths"
         static let disabledProviders = "disabledProviders"
         static let models = "lastModels"
@@ -180,6 +199,7 @@ final class AppSettings {
         static let hydraReviewHeads = "hydraReviewHeads"
         static let hydraAutoClearFinished = "hydraAutoClearFinished"
         static let hydraAutoHidesIdleHeads = "hydraAutoHidesIdleHeads"
+        static let hydraArchivesCodexHeads = "hydraArchivesCodexHeads"
         static let hydraShowsHeadDetails = "hydraShowsHeadDetails"
         static let hydraAutoPopsHeads = "hydraAutoPopsHeads"
         static let hydraTempersHeadEffort = "hydraTempersHeadEffort"
@@ -265,6 +285,11 @@ final class AppSettings {
         didSet { defaults.set(showsWorkingCard, forKey: Key.showsWorkingCard) }
     }
 
+    /// The style of haptic feedback played when hovering over timeline ticks and progress bars.
+    var timelineHapticStyle: TimelineHapticStyle {
+        didSet { defaults.set(timelineHapticStyle.rawValue, forKey: Key.timelineHapticStyle) }
+    }
+
     /// The app-wide zoom in percent: the whole window scales, the way a browser's zoom
     /// does, rather than the conversation's type alone.
     var appZoom: Int {
@@ -327,6 +352,11 @@ final class AppSettings {
                 UserDefaults.standard.set(["zh-Hans"], forKey: "AppleLanguages")
             }
         }
+    }
+
+    /// Disables window transparency, blurs, glows and background effects for lowest GPU usage.
+    var performanceMode: Bool {
+        didSet { defaults.set(performanceMode, forKey: Key.performanceMode) }
     }
 
     var textGeneration: TextGenerationChoice {
@@ -638,6 +668,11 @@ final class AppSettings {
         didSet { defaults.set(hydraAutoHidesIdleHeads, forKey: Key.hydraAutoHidesIdleHeads) }
     }
 
+    /// Provider-side history, independent of Tivano's sidebar. Never sweeps old heads.
+    var hydraArchivesCodexHeads: Bool {
+        didSet { defaults.set(hydraArchivesCodexHeads, forKey: Key.hydraArchivesCodexHeads) }
+    }
+
     /// A head's panel shows its whole conversation instead of the progress bar. Off unless
     /// asked: the bar says how far it is and how long it took, the steps are the sidebar's
     /// to show.
@@ -750,11 +785,13 @@ final class AppSettings {
         chronologicalTimeline = defaults.object(forKey: Key.chronologicalTimeline) as? Bool ?? false
         antiSlopEnabled = defaults.object(forKey: Key.antiSlopEnabled) as? Bool ?? true
         showsWorkingCard = defaults.object(forKey: Key.showsWorkingCard) as? Bool ?? true
+        timelineHapticStyle = TimelineHapticStyle(rawValue: defaults.string(forKey: Key.timelineHapticStyle) ?? "") ?? .soft
         appZoom = AppZoom.normalized(defaults.object(forKey: Key.appZoom) as? Int ?? 100)
         sidebarActivityView = defaults.bool(forKey: Key.sidebarActivityView)
         activityThreadStyle = ActivityThreadStyle(rawValue: defaults.string(forKey: Key.activityThreadStyle) ?? "") ?? .icon
         settledCollapsed = defaults.object(forKey: Key.settledCollapsed) as? Bool ?? true
         backdropOpacity = defaults.object(forKey: Key.backdropOpacity) as? Double ?? Self.defaultBackdropOpacity
+        performanceMode = defaults.bool(forKey: Key.performanceMode)
         // The old System/Light/Dark choice maps straight onto the same themes.
         let initialTheme = AppTheme(rawValue: defaults.string(forKey: Key.appTheme) ?? "")
             ?? AppTheme(rawValue: defaults.string(forKey: Key.appearance) ?? "")
@@ -800,6 +837,7 @@ final class AppSettings {
         hydraReviewHeads = defaults.object(forKey: Key.hydraReviewHeads) as? Bool ?? false
         hydraAutoClearFinished = defaults.object(forKey: Key.hydraAutoClearFinished) as? Bool ?? false
         hydraAutoHidesIdleHeads = defaults.object(forKey: Key.hydraAutoHidesIdleHeads) as? Bool ?? false
+        hydraArchivesCodexHeads = defaults.object(forKey: Key.hydraArchivesCodexHeads) as? Bool ?? false
         hydraShowsHeadDetails = defaults.object(forKey: Key.hydraShowsHeadDetails) as? Bool ?? false
         hydraAutoPopsHeads = defaults.object(forKey: Key.hydraAutoPopsHeads) as? Bool ?? false
         hydraTempersHeadEffort = defaults.object(forKey: Key.hydraTempersHeadEffort) as? Bool ?? true

@@ -43,6 +43,7 @@ final class ClaudeSession: ProviderSession {
     /// Heads by their task id, for progress and completion, and their task ids by head, for stopping.
     private var agentsByTask: [String: String] = [:]
     private var tasksByAgent: [String: String] = [:]
+    private var backgroundTasks: [(id: String, description: String)] = []
     private var turnActive = false
     private var interruptRequested = false
     private var isStopping = false
@@ -252,42 +253,70 @@ final class ClaudeSession: ProviderSession {
     }
 
     func resolveApproval(_ requestID: String, optionID: String) {
-        guard let pending = pendingTools.removeValue(forKey: requestID) else { return }
-        if optionID == "allow" || optionID == "always" {
-            var response: [String: JSONValue] = ["behavior": "allow", "updatedInput": pending.input]
+        resolveApproval(requestID, optionID: optionID, delivered: { _ in })
+    }
+
+    func resolveApproval(_ requestID: String, optionID: String, delivered: @escaping @MainActor (Bool) -> Void) {
+        guard !hasClosed, !isStopping, let pending = pendingTools[requestID] else { delivered(false); return }
+        let allowed = optionID == "allow" || optionID == "always"
+        let response: JSONValue
+        if allowed {
+            var payload: [String: JSONValue] = ["behavior": "allow", "updatedInput": pending.input]
             if optionID == "always", let suggestions = pending.suggestions?.array {
-                response["updatedPermissions"] = .array(suggestions.map(Self.sessionScoped))
+                payload["updatedPermissions"] = .array(suggestions.map(Self.sessionScoped))
             }
-            sendToolResponse(requestID, .object(response))
-            if pending.name == "ExitPlanMode" {
-                onEvent?(.modeChanged(.build))
-                let mode = Self.modeName(runtimeMode, .build)
-                permissionMode = mode
-                Task { _ = try? await self.control(["subtype": "set_permission_mode", "mode": .string(mode)]) }
-            }
+            response = .object(payload)
         } else {
             let message = pending.name == "ExitPlanMode"
                 ? "The user wants to keep planning. Wait for their feedback before changing anything."
                 : "The user declined this action."
-            sendToolResponse(requestID, ["behavior": "deny", "message": .string(message)])
+            response = ["behavior": "deny", "message": .string(message)]
         }
-        onEvent?(.requestResolved(id: requestID))
+        sendToolResponse(requestID, response) { [weak self] succeeded in
+            if succeeded, let self {
+                if self.pendingTools.removeValue(forKey: requestID) != nil {
+                    self.onEvent?(.requestResolved(id: requestID))
+                }
+                if allowed, pending.name == "ExitPlanMode", !self.hasClosed, !self.isStopping {
+                    self.onEvent?(.modeChanged(.build))
+                    let mode = Self.modeName(self.runtimeMode, .build)
+                    self.permissionMode = mode
+                    Task { _ = try? await self.control(["subtype": "set_permission_mode", "mode": .string(mode)]) }
+                }
+            }
+            delivered(succeeded)
+        }
     }
 
     func answerQuestion(_ requestID: String, answers: [String: [String]]) {
-        guard let pending = pendingTools.removeValue(forKey: requestID) else { return }
+        answerQuestion(requestID, answers: answers, delivered: { _ in })
+    }
+
+    func answerQuestion(_ requestID: String, answers: [String: [String]], delivered: @escaping @MainActor (Bool) -> Void) {
+        guard !hasClosed, !isStopping, let pending = pendingTools[requestID] else { delivered(false); return }
         var input = pending.input.object ?? [:]
         var mapped: [String: JSONValue] = [:]
         for (question, values) in answers {
             mapped[question] = .string(values.joined(separator: ", "))
         }
         input["answers"] = .object(mapped)
-        sendToolResponse(requestID, ["behavior": "allow", "updatedInput": .object(input)])
-        onEvent?(.requestResolved(id: requestID))
+        sendToolResponse(requestID, ["behavior": "allow", "updatedInput": .object(input)]) { [weak self] succeeded in
+            if succeeded, let self, self.pendingTools.removeValue(forKey: requestID) != nil {
+                self.onEvent?(.requestResolved(id: requestID))
+            }
+            delivered(succeeded)
+        }
+    }
+
+    func stopAndWait(timeout: TimeInterval) async {
+        let process = process
+        stop()
+        await process?.terminateAndWait(timeout: timeout)
     }
 
     func stop() {
         isStopping = true
+        clearBackgroundTasks()
         process?.terminate()
     }
 
@@ -303,7 +332,7 @@ final class ClaudeSession: ProviderSession {
         if hasClosed { throw ProviderError.failed(launchError ?? "Claude exited.") }
         controlCounter += 1
         let requestID = "tivano-\(controlCounter)"
-        return try await pendingControl.register(requestID) {
+        return try await pendingControl.register(requestID, timeout: .seconds(request["subtype"]?.string == "interrupt" ? 10 : 30)) {
             process.send(["type": "control_request", "request_id": .string(requestID), "request": request])
         }
     }
@@ -320,17 +349,30 @@ final class ClaudeSession: ProviderSession {
         ])
     }
 
-    private func sendToolResponse(_ requestID: String, _ response: JSONValue) {
-        process?.send([
+    private func sendToolResponse(_ requestID: String, _ response: JSONValue, completion: (@MainActor (Bool) -> Void)? = nil) {
+        guard !hasClosed, !isStopping, let process else { completion?(false); return }
+        process.send([
             "type": "control_response",
             "response": ["subtype": "success", "request_id": .string(requestID), "response": response],
-        ])
+        ]) { [weak self] succeeded in
+            Task { @MainActor [weak self] in
+                if !succeeded { self?.didClose() }
+                completion?(succeeded)
+            }
+        }
     }
 
     private func handle(_ message: JSONValue) {
         // A head's message names the tool call that spawned it; the lead's carries null.
         let parent = message["parent_tool_use_id"]?.string
-        switch message["type"]?.string {
+        let type = message["type"]?.string
+        if parent == nil, type == "stream_event" || type == "assistant", isStarted, !turnActive {
+            // Claude Code answers a finished background task's notification with a turn of its own, without a send from the app.
+            turnActive = true
+            interruptRequested = false
+            onEvent?(.turnStarted(providerTurnID: nil))
+        }
+        switch type {
         case "control_response":
             let response = message["response"] ?? .null
             guard let requestID = response["request_id"]?.string else { return }
@@ -409,7 +451,13 @@ final class ClaudeSession: ProviderSession {
                 toolCalls: usage?["tool_uses"]?.int
             ))
         case "task_notification":
-            guard let taskID = message["task_id"]?.string, let agentID = agentsByTask[taskID] else { return }
+            guard let taskID = message["task_id"]?.string else { return }
+            if backgroundTasks.contains(where: { $0.id == taskID }) {
+                backgroundTasks.removeAll { $0.id == taskID }
+                onEvent?(.backgroundTasks(backgroundTasks.map(\.description)))
+                return
+            }
+            guard let agentID = agentsByTask[taskID] else { return }
             let status: TurnStatus = switch message["status"]?.string {
             case "failed": .failed
             case "stopped": .interrupted
@@ -427,7 +475,11 @@ final class ClaudeSession: ProviderSession {
     private func handleTaskStarted(_ message: JSONValue) {
         guard let taskID = message["task_id"]?.string, message["skip_transcript"]?.bool != true else { return }
         let isAgent = message["subagent_type"]?.string != nil || message["task_type"]?.string == "local_agent"
-        guard isAgent else { return }
+        guard isAgent else {
+            backgroundTasks.append((taskID, message["description"]?.string ?? "a background command"))
+            onEvent?(.backgroundTasks(backgroundTasks.map(\.description)))
+            return
+        }
         let toolUseID = message["tool_use_id"]?.string
         let agentID = toolUseID ?? taskID
         agentsByTask[taskID] = agentID
@@ -675,15 +727,21 @@ final class ClaudeSession: ProviderSession {
         }
     }
 
+    private func clearBackgroundTasks() {
+        guard !backgroundTasks.isEmpty else { return }
+        backgroundTasks.removeAll()
+        onEvent?(.backgroundTasks([]))
+    }
+
     private func didClose() {
+        guard !hasClosed else { return }
+        clearBackgroundTasks()
         hasClosed = true
         let tail = process?.errorTail ?? ""
         // The result's own error names the failure better than the stderr tail can.
         let reason = launchError ?? TextCleanup.lastLines(tail)
         launchError = reason
         pendingControl.failAll(ProviderError.failed(reason ?? "Claude exited."))
-        for requestID in pendingTools.keys { onEvent?(.requestResolved(id: requestID)) }
-        pendingTools.removeAll()
         turnActive = false
         // A launch that failed is reported by `start()` throwing; only a session that
         // ran says it exited.
