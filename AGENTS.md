@@ -62,9 +62,10 @@
 - Keep the local main-only pre-push guard; do not bypass it. Do not promote to
   `main` unless explicitly requested. When GitHub integration is separately
   authorized, use `gh` and squash; never push straight to `main`.
-- Do not rewrite existing history (`rebase -i`, `filter-branch`,
-  `filter-repo`, force-push to `main`) to "fix" the inherited commits; squash
-  applies to new merges only.
+- Do not rewrite existing history or force-push unless the owner explicitly
+  authorizes a specific history migration. Squash applies to ordinary task
+  integrations. The public-history migration was explicitly authorized on
+  2026-10-08; that authorization does not apply to future rewrites.
 
 ## Releasing (credit every contributor)
 
