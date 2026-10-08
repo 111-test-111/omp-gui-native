@@ -17,22 +17,34 @@ is now a no-op compatibility entry point; the old `rsync --delete` behavior and
 `TIVANO_DEV_SYNC` have been retired. Changing/deleting a session or credential in
 one edition affects the other. The owner has accepted that risk.
 
-## One writer
+## Concurrent editions
 
-Before loading settings/library, the app holds an advisory file lease at
-`~/Library/Application Support/.tivano-library.lock` until process exit. A second
-edition stops with an explanation rather than loading a stale in-memory copy
-and overwriting whole JSON files. Normal OS process exit releases the lease;
-a leftover lock file is harmless and should not be deleted to bypass the guard.
+Compatible Tivano and Tivano Dev builds can run together. Both hold a shared
+startup lease at `~/Library/Application Support/.tivano-library.lock`; an older
+build that requires an exclusive lease still blocks them. Update both editions
+before using this feature.
 
-Capture runs retain their isolated store and do not claim the real-library lease.
-The older Droppy/Cody app does not know this lock, so startup also refuses while
-that older bundle is running. Quit it explicitly before switching to Tivano.
-Packaging/installing the new apps does not quit or modify the running older app.
+Different conversations can be edited concurrently. A conversation and its
+helper threads share one exclusive editing lease. The other edition displays
+that conversation read-only and refreshes saved changes. Use **Release editing**
+in the owning edition, or switch to another conversation after finishing work
+and clearing drafts/terminals, then **Edit here** in the other edition.
+
+Library and MCP metadata use short locked read/merge/write transactions.
+Independent edits are merged, unknown fields retained, and conflicting edits
+are refused rather than overwriting another edition's data. Thread heads and
+turn files are read and written under a separate short document lock. MCP
+provider launch configs and token accounting caches are isolated by process or
+edition. Automatic orphan-attachment and abandoned-Hydra-copy cleanup is paused
+because another edition may still use those files.
+
+Normal OS process exit releases leases. Never delete lock files to bypass them.
+Capture runs retain their isolated store. Startup still refuses while an older
+Droppy/Cody app is running. Packaging never quits an app.
 
 ## First-launch migration
 
-Both editions run the same migration after acquiring the lease. If no Tivano
+Both editions run the same migration under a separate exclusive migration lease. If no Tivano
 store exists, the real upstream `Droppy Code` store is preferred over Cody or an
 old isolated `Tivano Dev` store:
 
@@ -51,8 +63,7 @@ can be carried into the shared service on access without exporting them to files
 macOS may ask for authorization once. Forgetting a shared credential also removes
 its matching legacy copies, preventing silent re-import.
 
-The library file format still belongs to the running app version. A writer lock
-protects against concurrent saves, not against an incompatible Dev schema or
-old Release discarding fields it does not understand. Take an offline backup
+The library file format still belongs to the running app version. Editing leases and JSON transactions
+protect concurrent saves; they do not make incompatible schemas interchangeable. Take an offline backup
 before such tests. Don't launch the old Droppy app after migration: it can still
 write through its compatibility alias without honoring the new lock.

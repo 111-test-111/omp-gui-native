@@ -45,7 +45,7 @@ struct DiffInspector: View {
                     Spacer(minLength: 8)
                     if !files.isEmpty {
                         Text(verbatim: summary.files.count == 1 ? Chrome.localized("1 file") : String(format: Chrome.localized("%lld files"), summary.files.count))
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                         DiffStatLabel(
                             additions: summary.additions,
@@ -197,13 +197,13 @@ private struct DiffFileCard: View, Equatable {
             Button(action: toggle) {
                 HStack(spacing: 8) {
                     Image(systemName: "chevron.right")
-                        .font(.caption2.weight(.semibold))
+                        .font(.ui(.caption2).weight(.semibold))
                         .foregroundStyle(Chrome.secondaryText)
                         .rotationEffect(.degrees(isCollapsed ? 0 : 90))
                     Image(systemName: symbol)
                         .foregroundStyle(color)
                     Text("\(Text(file.directory).foregroundStyle(Chrome.secondaryText))\(file.name)")
-                        .font(.callout)
+                        .font(.ui(.callout))
                         .lineLimit(1)
                         .truncationMode(.head)
                     Spacer(minLength: 8)
@@ -221,7 +221,7 @@ private struct DiffFileCard: View, Equatable {
                         .id("\(selectionKey)|\(file.id)|\(file.revision)")
                 } else if file.isBinary || file.hunks.isEmpty {
                     Text(verbatim: Chrome.localized(file.isBinary ? "Binary file" : "Diff details unavailable"))
-                        .font(.caption)
+                        .font(.ui(.caption))
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.horizontal, 12)
                         .padding(.bottom, 10)
@@ -273,14 +273,14 @@ private struct DeferredDiffLinesView: View {
                     Text("Loading diff…")
                         .foregroundStyle(Chrome.secondaryText)
                 }
-                .font(.caption)
+                .font(.ui(.caption))
                 .padding(10)
             } else {
                 Button("Large diff, \(file.deferredLineCount) lines. Show it") {
                     requested = true
                 }
                 .buttonStyle(.plain)
-                .font(.caption)
+                .font(.ui(.caption))
                 .foregroundStyle(Chrome.secondaryText)
                 .padding(.horizontal, 12)
                 .padding(.bottom, 10)
@@ -440,7 +440,7 @@ struct DiffLinesView: View, Equatable {
                 ProgressView().controlSize(.small)
                 Text("Loading remaining lines…").foregroundStyle(Chrome.secondaryText)
             }
-            .font(.caption)
+            .font(.ui(.caption))
             .padding(10)
         }
         if !showsAll, totalLines > Self.collapsedLineLimit {
@@ -448,7 +448,7 @@ struct DiffLinesView: View, Equatable {
                 showsAll.toggle()
             } label: {
                 Text("Show all \(totalLines) lines")
-                    .font(.caption)
+                    .font(.ui(.caption))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
@@ -476,7 +476,7 @@ struct DiffLinesView: View, Equatable {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .font(.system(size: 11.5, design: .monospaced))
+        .font(.code(size: 11.5))
         .textSelection(.enabled)
         .task(id: preparationKey) {
             let key = preparationKey
@@ -559,8 +559,8 @@ private struct DiffLineRow: View {
     }
 
     /// Room for a four-digit line number in the monospaced font, and for the +/- mark.
-    private static let numberColumnWidth: CGFloat = 30
-    private static let markerColumnWidth: CGFloat = 14
+    private static var numberColumnWidth: CGFloat { 30 * TypeScale.shared.code(11.5) / 11.5 }
+    private static var markerColumnWidth: CGFloat { 14 * TypeScale.shared.code(11.5) / 11.5 }
 
     /// Positional corners for a row inside its tinted block: only the block's
     /// top and bottom rows get corners, everything between is straight.

@@ -49,7 +49,7 @@ struct DiffStatLabel: View {
             Text("+\(additions)").foregroundStyle(Chrome.success)
             Text("−\(deletions)").foregroundStyle(Chrome.danger)
         }
-        .font(.caption.monospacedDigit())
+        .font(.ui(.caption).monospacedDigit())
     }
 }
 
@@ -68,7 +68,7 @@ struct ChipButtonStyle: ButtonStyle {
 
         var body: some View {
             configuration.label
-                .font(.callout)
+                .font(.ui(.callout))
                 .lineLimit(1)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)

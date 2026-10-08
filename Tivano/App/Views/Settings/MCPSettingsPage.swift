@@ -58,7 +58,7 @@ struct MCPSettingsPage: View {
                 .animation(.spring(duration: 0.35), value: celebrating)
             }
             Text("Connected servers reach every provider when a thread starts: the CLIs at launch, the API models through Tivano itself.")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         }
         .onChange(of: model.mcp.states) { previous, current in
@@ -89,12 +89,12 @@ private struct MCPLeadCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "checkmark.shield.fill")
-                .font(.system(.title))
+                .font(.ui(.title))
                 .foregroundStyle(Chrome.accent)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 4) {
                     Text("Connected servers lead")
-                        .font(.system(.body, weight: .semibold))
+                        .font(.ui(.body, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     // The three facts live behind the `i`: stacked in the card they took
                     // more room than the point they made.
@@ -108,7 +108,7 @@ private struct MCPLeadCard: View {
                     }
                 }
                 Text("Connect a server here and every thread can use it. Anything set up in a terminal or another app stays just as it is.")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -128,7 +128,7 @@ private struct MCPLeadCard: View {
                 .frame(width: 14)
             Text(verbatim: Chrome.localized(text))
         }
-        .font(.system(.callout))
+        .font(.ui(.callout))
         .foregroundStyle(Chrome.primaryText.opacity(0.9))
     }
 }
@@ -155,10 +155,10 @@ private struct MCPConnectedRow: View {
                 .frame(width: 26, alignment: .center)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: entry.name)
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: String(format: Chrome.localized("%lld tools · %@"), toolCount, connection?.serverVersion ?? entry.vendor))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             Spacer(minLength: 12)
@@ -170,7 +170,7 @@ private struct MCPConnectedRow: View {
                 showMenu.toggle()
             } label: {
                 Image(systemName: "ellipsis.circle")
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(width: 22, height: 22)
                     .contentShape(.rect)
@@ -212,11 +212,11 @@ private struct MCPConnectedRow: View {
                 ForEach(tools) { tool in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(verbatim: tool.name)
-                            .font(.system(.subheadline, design: .monospaced))
+                            .font(.ui(.subheadline, design: .monospaced))
                             .foregroundStyle(Chrome.primaryText)
                         if let summary = tool.summary, !summary.isEmpty {
                             Text(verbatim: summary)
-                                .font(.system(.subheadline))
+                                .font(.ui(.subheadline))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .lineLimit(2)
                         }
@@ -255,12 +255,12 @@ private struct MCPServerCard: View {
                 // Every card keeps the same shape: two lines held for the summary whether
                 // it needs them or not, one line of tools, so the grid reads as a grid.
                 Text(verbatim: Chrome.localized(entry.summary))
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(2, reservesSpace: true)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: entry.sampleTools.isEmpty ? " " : entry.sampleTools.joined(separator: " · "))
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.ui(size: 10.5, design: .monospaced))
                     .foregroundStyle(Chrome.secondaryText.opacity(0.8))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -268,13 +268,13 @@ private struct MCPServerCard: View {
                     .padding(.trailing, 24)
                 if case .failed(let message) = state {
                     Text(verbatim: message)
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.danger)
                         .lineLimit(3)
                 }
                 if case .needsSetup(let guide) = state {
                     Text(verbatim: Chrome.localized(guide.title))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.warning)
                         .lineLimit(2)
                 }
@@ -307,10 +307,10 @@ private struct MCPServerCard: View {
             MCPIcon(entry: entry, size: 26)
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: entry.name)
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: entry.vendor)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             Spacer(minLength: 8)
@@ -332,7 +332,7 @@ private struct MCPServerCard: View {
             HStack(spacing: 6) {
                 WorkingSpinner(cellSize: 3)
                 Text(verbatim: Chrome.localized(entry.isOAuth ? "Waiting" : "Connecting"))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize()
             }
@@ -364,7 +364,7 @@ private struct MCPServerCard: View {
                 .foregroundStyle(Chrome.success)
                 .scaleEffect(successPopped ? 1 : 0.5)
             Text(verbatim: String(format: Chrome.localized("Connected · %lld tools"), toolCount))
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.primaryText)
         }
         .frame(maxWidth: .infinity, minHeight: 120, alignment: .center)
@@ -395,7 +395,7 @@ private struct MCPCustomSection: View {
                 ChromeCard {
                     if visible.isEmpty {
                         Text("Servers of your own: a command that runs on this Mac, or a remote address, with the variables they need.")
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 16)
@@ -420,11 +420,11 @@ private struct MCPCustomSection: View {
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "plus.circle")
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.accent)
                     .frame(width: 26, alignment: .center)
                 Text("Add server")
-                    .font(.system(.body, weight: .medium))
+                    .font(.ui(.body, weight: .medium))
                     .foregroundStyle(Chrome.primaryText)
                 Spacer(minLength: 12)
             }
@@ -466,7 +466,7 @@ private struct MCPCustomRow: View {
                 .frame(width: 26, alignment: .center)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: server.name)
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 statusLine
             }
@@ -484,16 +484,16 @@ private struct MCPCustomRow: View {
         switch state {
         case .connected:
             Text(verbatim: String(format: Chrome.localized("%lld tools · %@"), toolCount, connection?.serverVersion ?? entry.vendor))
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         case .failed(let message):
             Text(verbatim: message)
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.danger)
                 .lineLimit(3)
         default:
             Text(verbatim: server.summary)
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         }
     }
@@ -509,7 +509,7 @@ private struct MCPCustomRow: View {
             HStack(spacing: 6) {
                 WorkingSpinner(cellSize: 3)
                 Text("Connecting")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize()
             }
@@ -544,7 +544,7 @@ private struct MCPCustomRow: View {
             showMenu.toggle()
         } label: {
             Image(systemName: "ellipsis.circle")
-                .font(.system(.body))
+                .font(.ui(.body))
                 .foregroundStyle(Chrome.secondaryText)
                 .frame(width: 22, height: 22)
                 .contentShape(.rect)
@@ -690,7 +690,7 @@ private struct MCPCustomEditor: View {
         VStack(alignment: .leading, spacing: 10) {
             if let error {
                 Text(verbatim: error)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.danger)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
@@ -708,10 +708,10 @@ private struct MCPCustomEditor: View {
             MCPIcon(entry: draft.catalogEntry(), size: 26)
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: server?.name ?? Chrome.localized("New server"))
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.ui(size: 14, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: String(format: Chrome.localized("Custom · %@"), kind == .stdio ? "stdio" : "http"))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             Spacer(minLength: 8)
@@ -719,7 +719,7 @@ private struct MCPCustomEditor: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(.subheadline, weight: .semibold))
+                    .font(.ui(.subheadline, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(width: 24, height: 24)
                     .contentShape(.rect)
@@ -735,7 +735,7 @@ private struct MCPCustomEditor: View {
                 .textFieldStyle(.plain)
                 .focused($isNameFocused)
                 .focusEffectDisabled()
-                .font(.system(.title3, weight: .semibold))
+                .font(.ui(.title3, weight: .semibold))
                 .foregroundStyle(Chrome.primaryText)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
@@ -747,7 +747,7 @@ private struct MCPCustomEditor: View {
     private func field<Control: View>(_ label: String, @ViewBuilder control: () -> Control) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(verbatim: Chrome.localized(label))
-                .font(.system(.subheadline, weight: .semibold))
+                .font(.ui(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
             control()
         }
@@ -757,7 +757,7 @@ private struct MCPCustomEditor: View {
         TextField(prompt, text: text)
             .textFieldStyle(.plain)
             .focusEffectDisabled()
-            .font(.system(.callout, design: .monospaced))
+            .font(.ui(.callout, design: .monospaced))
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
             .mcpFieldSurface()
@@ -768,7 +768,7 @@ private struct MCPCustomEditor: View {
         SecureField(prompt, text: text)
             .textFieldStyle(.plain)
             .focusEffectDisabled()
-            .font(.system(.callout, design: .monospaced))
+            .font(.ui(.callout, design: .monospaced))
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
             .mcpFieldSurface()
@@ -779,14 +779,14 @@ private struct MCPCustomEditor: View {
             // The editor carries an inset of its own, so it needs less padding than the
             // single-line fields to put its text on the same edge.
             TextEditor(text: $argsText)
-                .font(.system(.callout, design: .monospaced))
+                .font(.ui(.callout, design: .monospaced))
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 4)
                 .frame(height: 66)
                 .mcpFieldSurface()
             Text("One argument per line; empty lines are dropped.")
-                .font(.system(size: 10.5))
+                .font(.ui(size: 10.5))
                 .foregroundStyle(Chrome.secondaryText)
         }
     }
@@ -805,7 +805,7 @@ private struct MCPCustomEditor: View {
                         variable.isSecret.toggle()
                     } label: {
                         Image(systemName: variable.isSecret ? "lock.fill" : "lock.open")
-                            .font(.system(.callout, weight: .medium))
+                            .font(.ui(.callout, weight: .medium))
                             .foregroundStyle(variable.isSecret ? Chrome.accent : Chrome.secondaryText)
                             .frame(width: 24, height: 24)
                             .contentShape(.rect)
@@ -816,7 +816,7 @@ private struct MCPCustomEditor: View {
                         variables.removeAll { $0.id == variable.id }
                     } label: {
                         Image(systemName: "minus.circle")
-                            .font(.system(.callout, weight: .medium))
+                            .font(.ui(.callout, weight: .medium))
                             .foregroundStyle(Chrome.secondaryText)
                             .frame(width: 24, height: 24)
                             .contentShape(.rect)
@@ -829,12 +829,12 @@ private struct MCPCustomEditor: View {
                 variables.append(VariableDraft())
             } label: {
                 Label { Text(verbatim: Chrome.localized(addLabel)) } icon: { Image(systemName: "plus") }
-                    .font(.system(.callout, weight: .medium))
+                    .font(.ui(.callout, weight: .medium))
                     .foregroundStyle(Chrome.accent)
             }
             .buttonStyle(.plain)
             Text("Locked values are kept in the Keychain.")
-                .font(.system(size: 10.5))
+                .font(.ui(size: 10.5))
                 .foregroundStyle(Chrome.secondaryText)
         }
     }
@@ -926,7 +926,7 @@ private struct MCPHoverInfoButton<Content: View>: View {
             isPresented.toggle()
         } label: {
             Image(systemName: "info.circle")
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText.opacity(isOverButton || isPresented ? 1 : 0.55))
                 .frame(width: 22, height: 22)
                 .contentShape(.rect)
@@ -976,15 +976,15 @@ private struct MCPInfoPopover: View {
                 MCPIcon(entry: entry, size: 28)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: entry.name)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.ui(size: 14, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     Text(verbatim: "\(entry.vendor) · \(Chrome.localized(entry.category.title))")
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
             }
             Text(verbatim: Chrome.localized(entry.summary))
-                .font(.system(.callout))
+                .font(.ui(.callout))
                 .foregroundStyle(Chrome.primaryText.opacity(0.9))
                 .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 8) {
@@ -994,7 +994,7 @@ private struct MCPInfoPopover: View {
             if !entry.sampleTools.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Tools")
-                        .font(.system(.subheadline, weight: .semibold))
+                        .font(.ui(.subheadline, weight: .semibold))
                         .foregroundStyle(Chrome.secondaryText)
                     FlowChips(entry.sampleTools)
                 }
@@ -1003,7 +1003,7 @@ private struct MCPInfoPopover: View {
                 Button(String(format: Chrome.localized("Change the %@…"), Chrome.localizedLowercased(optional.label))) {
                     MCPKeyPanel.shared.present(entry: entry, model: model)
                 }
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.accent)
                 .buttonStyle(.plain)
             }
@@ -1012,9 +1012,9 @@ private struct MCPInfoPopover: View {
                     HStack(spacing: 5) {
                         Text("Read the docs")
                         Image(systemName: "arrow.up.right")
-                            .font(.system(.caption2, weight: .bold))
+                            .font(.ui(.caption2, weight: .bold))
                     }
-                    .font(.system(.callout, weight: .medium))
+                    .font(.ui(.callout, weight: .medium))
                     .foregroundStyle(Chrome.accent)
                 }
             }
@@ -1026,11 +1026,11 @@ private struct MCPInfoPopover: View {
     private func detail(_ label: String, _ value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(verbatim: Chrome.localized(label))
-                .font(.system(.subheadline, weight: .semibold))
+                .font(.ui(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .frame(width: 58, alignment: .leading)
             Text(verbatim: value)
-                .font(.system(size: 11.5))
+                .font(.ui(size: 11.5))
                 .foregroundStyle(Chrome.primaryText.opacity(0.9))
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -1074,7 +1074,7 @@ private struct FlowChips: View {
         FlowLayout(spacing: 6) {
             ForEach(items, id: \.self) { item in
                 Text(verbatim: item)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.ui(size: 10.5, design: .monospaced))
                     .foregroundStyle(Chrome.primaryText.opacity(0.85))
                     .padding(.horizontal, 7)
                     .padding(.vertical, 3)

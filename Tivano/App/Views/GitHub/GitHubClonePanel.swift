@@ -57,9 +57,9 @@ struct GitHubClonePanelView: View {
             HStack(alignment: .top, spacing: 8) {
                 Image("mcp-github").resizable().scaledToFit().frame(width: 18, height: 18)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Clone from GitHub").font(.system(size: 14, weight: .semibold))
+                    Text("Clone from GitHub").font(.ui(size: 14, weight: .semibold))
                     Text("Pick a repository. It is cloned into your folder and opens as a project.")
-                        .font(.subheadline).foregroundStyle(Chrome.secondaryText)
+                        .font(.ui(.subheadline)).foregroundStyle(Chrome.secondaryText)
                 }
                 Spacer(minLength: 0)
                 Button(action: onClose) {
@@ -69,8 +69,9 @@ struct GitHubClonePanelView: View {
             }
             TextField("Search your repositories or paste a URL", text: $search)
                 .textFieldStyle(.plain)
+                .focusEffectDisabled()
                 .padding(8)
-                .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 8))
+                .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .focused($searchFocused)
             // The panel sizes itself once when it opens, so this region keeps one height
             // whether it shows the list, the sign-in steps or an error.
@@ -98,18 +99,18 @@ struct GitHubClonePanelView: View {
                 } else {
                     GitHubConnectView()
                     Text("You can also paste a public repository URL above.")
-                        .font(.subheadline).foregroundStyle(Chrome.secondaryText)
+                        .font(.ui(.subheadline)).foregroundStyle(Chrome.secondaryText)
                     if let name = pastedFullName { repositoryRow(fullName: name, title: String(format: Chrome.localized("Clone %@"), name)) }
                     Spacer(minLength: 0)
                 }
                 if let cloneError {
-                    Text(verbatim: cloneError).font(.caption).foregroundStyle(.red).lineLimit(3)
+                    Text(verbatim: cloneError).font(.ui(.caption)).foregroundStyle(Chrome.danger).lineLimit(3)
                 }
             }
             .frame(height: 320, alignment: .topLeading)
             footer
         }
-        .font(.callout)
+        .font(.ui(.callout))
         .padding(18)
         .frame(width: 460)
         .background { WindowDragArea() }
@@ -130,23 +131,23 @@ struct GitHubClonePanelView: View {
     private func repositoryRow(fullName: String, title: String, repository: GitHubRepository? = nil) -> some View {
         HStack(spacing: 8) {
             if repository?.isPrivate == true {
-                Image(systemName: "lock.fill").font(.caption).foregroundStyle(Chrome.secondaryText)
+                Image(systemName: "lock.fill").font(.ui(.caption)).foregroundStyle(Chrome.secondaryText)
             }
             VStack(alignment: .leading, spacing: 3) {
                 Text(verbatim: title).lineLimit(1)
                 if let description = repository?.description, !description.isEmpty {
-                    Text(verbatim: description).font(.subheadline).foregroundStyle(Chrome.secondaryText).lineLimit(1)
+                    Text(verbatim: description).font(.ui(.subheadline)).foregroundStyle(Chrome.secondaryText).lineLimit(1)
                 }
             }
             Spacer(minLength: 6)
             if let date = repository?.pushedAt {
                 Text(date, format: .relative(presentation: .numeric, unitsStyle: .abbreviated))
-                    .font(.caption).foregroundStyle(Chrome.secondaryText)
+                    .font(.ui(.caption)).foregroundStyle(Chrome.secondaryText)
             }
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(selectedFullName == fullName ? Chrome.accent.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+        .background(selectedFullName == fullName ? Chrome.accent.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture(count: 2) { selectedFullName = fullName; clone(fullName) }
         .onTapGesture { selectedFullName = fullName }
@@ -157,9 +158,9 @@ struct GitHubClonePanelView: View {
     private var footer: some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Clone into").font(.subheadline)
+                Text("Clone into").font(.ui(.subheadline))
                 Text(verbatim: (connection.cloneDirectory.path as NSString).abbreviatingWithTildeInPath)
-                    .font(.caption).foregroundStyle(Chrome.secondaryText).lineLimit(1).truncationMode(.middle)
+                    .font(.ui(.caption)).foregroundStyle(Chrome.secondaryText).lineLimit(1).truncationMode(.middle)
             }
             Button("Change…") { GitHubClonePanel.chooseCloneDirectory() }.buttonStyle(.glass)
             Spacer(minLength: 0)

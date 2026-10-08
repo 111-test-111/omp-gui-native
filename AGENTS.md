@@ -41,7 +41,7 @@
 
 - Every owner-requested local build/package must produce the requested package **and** update `/Applications/Tivano.app` and/or `/Applications/Tivano Dev.app`; do not leave the new build only in DerivedData. Use `scripts/package_local.sh --release|--dev|--both`.
 - The owner accepts sharing the real library between editions. Both use `~/Library/Application Support/Tivano`, `~/.tivano` and Keychain service `Tivano`; preferences and macOS privacy grants remain per bundle ID. No one-way mirror or `rsync --delete` is permitted on the shared store.
-- Only one edition may write the library at a time. Keep the startup writer lease, isolated capture storage, migration backup and legacy path aliases. Never migrate while the older Droppy app is running.
+- Compatible editions may run together. Keep the shared startup lease (which excludes older exclusive-only builds), per-conversation-family editing leases, cross-process JSON transactions, isolated capture storage, migration backup and legacy path aliases. Never migrate while the older Droppy app is running.
 - Release uses `config/release.xcconfig`; Dev uses `config/dev.xcconfig`. Both start at `0.0.1`, with Dev displaying `dev-0.0.1`. Keep Apple's bundle version numeric; Dev's prefix is presentation metadata.
 - Maintain edition versions independently. Never advance/synchronize Release just because Dev is packaged. On an explicit request to catch Release up, use `scripts/set_version.py release catch-up-dev`, then build the agreed code revision and package Release. A version change alone is not a code promotion.
 - The DEV badge is a derived icon; never modify the approved v1 original or the release icon.

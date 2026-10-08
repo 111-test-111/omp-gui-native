@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 
 struct ComposerArea: View {
+    @Environment(AppModel.self) private var model
     @Environment(\.chatColumnIsShown) private var isColumnShown
     let runtime: ThreadRuntime
     /// The folder the thread works in, for the `@` file index. Read once by the chat and
@@ -31,6 +32,12 @@ struct ComposerArea: View {
 
     private var areaContent: some View {
         VStack(spacing: 12) {
+            SharedThreadAccessBar(
+                isReadOnly: runtime.isReadOnly,
+                canRelease: !runtime.isRunning && !runtime.isReverting && !runtime.isHydraMerging,
+                edit: { model.takeThreadEditing(runtime.threadID) },
+                release: { model.releaseThreadEditing(runtime.threadID) }
+            )
             ForEach(runtime.approvals) { request in
                 ApprovalCard(request: request, runtime: runtime)
             }
@@ -39,6 +46,7 @@ struct ComposerArea: View {
                     .zIndex(0)
                 ComposerView(runtime: runtime, workingDirectory: workingDirectory, compactModelChip: compactModelChip, takesFocusOnAppear: takesFocusOnAppear)
                     .zIndex(1)
+                    .disabled(runtime.isReadOnly)
             }
             .background {
                 AttachmentAnchorCapture { diffPopover.setFallbackAnchor($0) }
@@ -556,10 +564,10 @@ private struct ComposerTextColumn: View {
 
     @State private var textHeight: CGFloat = 20
 
-    private static let minComposerHeight: CGFloat = 20
+    private static var minComposerHeight: CGFloat { TypeScale.shared.content(20) }
     private static let maxComposerLines = 5
     private static var maxComposerHeight: CGFloat {
-        let font = NSFont.systemFont(ofSize: 14)
+        let font = NSFont.systemFont(ofSize: TypeScale.shared.content(14))
         let line = ceil(font.ascender - font.descender + font.leading)
         // Matches ComposerTextView's textContainerInset.height * 2.
         return line * CGFloat(maxComposerLines) + 4
@@ -580,7 +588,7 @@ private struct ComposerTextColumn: View {
             DraftAttachments(runtime: runtime)
             if let attachmentNotice {
                 Text(verbatim: attachmentNotice)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.warning)
                     .lineLimit(1)
                     .padding(.bottom, 6)
@@ -748,7 +756,7 @@ private struct ContextMeter: View {
                     // from, so it is always here.
                     HStack {
                         Text("Usage")
-                            .font(.system(.callout, weight: .semibold))
+                            .font(.ui(.callout, weight: .semibold))
                             .foregroundStyle(Chrome.secondaryText)
                         Spacer(minLength: 8)
                         ChromeCircleButton(symbol: "arrow.up.right", help: "Open as a floating panel beside the chat") {
@@ -888,10 +896,10 @@ private struct DraftChips: View {
                     if let command {
                         HStack(spacing: 5) {
                             Image(systemName: command.isBuiltIn ? "command" : "sparkles")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                                 .foregroundStyle(Chrome.secondaryText)
                             Text(verbatim: "/" + command.name)
-                                .font(.system(.subheadline, weight: .medium))
+                                .font(.ui(.subheadline, weight: .medium))
                                 .foregroundStyle(Chrome.primaryText.opacity(0.9))
                             Button {
                                 withAnimation(Chrome.panelSlide) {
@@ -899,7 +907,7 @@ private struct DraftChips: View {
                                 }
                             } label: {
                                 Image(systemName: "xmark")
-                                    .font(.system(.caption2, weight: .bold))
+                                    .font(.ui(.caption2, weight: .bold))
                                     .foregroundStyle(Chrome.secondaryText)
                             }
                             .buttonStyle(.plain)
@@ -914,10 +922,10 @@ private struct DraftChips: View {
                     ForEach(quotes) { quote in
                         HStack(spacing: 5) {
                             Image(systemName: "text.quote")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                                 .foregroundStyle(Chrome.secondaryText)
                             Text(verbatim: quote.excerpt)
-                                .font(.system(.subheadline))
+                                .font(.ui(.subheadline))
                                 .foregroundStyle(Chrome.primaryText.opacity(0.9))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -928,7 +936,7 @@ private struct DraftChips: View {
                                 }
                             } label: {
                                 Image(systemName: "xmark")
-                                    .font(.system(.caption2, weight: .bold))
+                                    .font(.ui(.caption2, weight: .bold))
                                     .foregroundStyle(Chrome.secondaryText)
                             }
                             .buttonStyle(.plain)
@@ -1076,15 +1084,15 @@ private struct SuggestionPopoverRow: View {
         Button(action: pick) {
             HStack(spacing: 8) {
                 Image(systemName: item.symbol)
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .frame(width: 16)
                 Text(verbatim: item.title)
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer(minLength: 16)
                 Text(verbatim: item.detail)
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
             }

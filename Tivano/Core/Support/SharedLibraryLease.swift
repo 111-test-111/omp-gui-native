@@ -1,16 +1,25 @@
 import Foundation
 import Darwin
 
-/// Held for the lifetime of a process: whole-document stores must have one writer.
-final class SharedLibraryLease {
+/// OS-owned advisory lease. Never unlink lock files: that would create a second inode.
+/// Shared lifetime leases exclude older exclusive-only editions; edits use exclusive leases.
+final class SharedLibraryLease: Sendable {
+    enum Mode { case shared, exclusive }
     private let descriptor: Int32
 
-    init(at url: URL) throws {
+    init(at url: URL, mode: Mode = .exclusive, wait: Bool = false) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let fd = open(url.path, O_CREAT | O_RDWR | O_CLOEXEC, mode_t(0o600))
         guard fd >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
-        guard flock(fd, LOCK_EX | LOCK_NB) == 0 else {
+        let operation = (mode == .shared ? LOCK_SH : LOCK_EX) | LOCK_NB
+        let deadline = ContinuousClock.now.advanced(by: .seconds(3))
+        while flock(fd, operation) != 0 {
             let code = errno
+            if code == EINTR { continue }
+            if wait, code == EWOULDBLOCK, ContinuousClock.now < deadline {
+                usleep(10_000)
+                continue
+            }
             close(fd)
             throw POSIXError(POSIXErrorCode(rawValue: code) ?? .EIO)
         }

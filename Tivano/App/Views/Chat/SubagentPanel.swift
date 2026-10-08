@@ -388,7 +388,7 @@ private struct SubagentWorkingBox: View {
                 HStack(spacing: 6) {
                     MiniSpinner()
                     Text(verbatim: isSending && !isRunning ? Chrome.localized("Sending…") : String(format: Chrome.localized("%@ working"), name))
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                         .contentTransition(.opacity)

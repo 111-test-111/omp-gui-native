@@ -8,7 +8,8 @@ import SwiftUI
 /// using `InlineText`'s `Text` path, so only link paragraphs pay for this.
 struct LinkParagraphView: NSViewRepresentable {
     let source: String
-    var pointSize: CGFloat = 13
+    var pointSize: CGFloat = TypeScale.shared.content(13)
+    var codePointSize: CGFloat = TypeScale.shared.code(12)
     var dimmed: Bool = false
     /// Whether the text is still arriving, so its parses bypass the shared caches.
     var streaming: Bool = false
@@ -41,18 +42,20 @@ struct LinkParagraphView: NSViewRepresentable {
         let coordinator = context.coordinator
         let veiled = context.environment.markdownVeiled
         if coordinator.lastSource != source || coordinator.lastPointSize != pointSize
+            || coordinator.lastCodePointSize != codePointSize
             || coordinator.lastDimmed != dimmed || coordinator.lastStreaming != streaming
             || coordinator.lastRevision != revision || coordinator.lastVeiled != veiled
             || coordinator.lastMentions != mentions.map(\.name) || coordinator.lastTargets != targets {
             coordinator.lastSource = source
             coordinator.lastPointSize = pointSize
+            coordinator.lastCodePointSize = codePointSize
             coordinator.lastDimmed = dimmed
             coordinator.lastStreaming = streaming
             coordinator.lastRevision = revision
             coordinator.lastVeiled = veiled
             coordinator.lastMentions = mentions.map(\.name)
             coordinator.lastTargets = targets
-            view.render(Self.attributed(source: source, pointSize: pointSize, dimmed: dimmed, streaming: streaming, mentions: mentions, targets: targets))
+            view.render(Self.attributed(source: source, pointSize: pointSize, codePointSize: codePointSize, dimmed: dimmed, streaming: streaming, mentions: mentions, targets: targets))
             // After the text is in place: the veil reads what the storage holds now.
             view.streamVeil.update(view, active: veiled)
         }
@@ -80,6 +83,7 @@ struct LinkParagraphView: NSViewRepresentable {
         // The last inputs built into a string, so repeat updates with nothing new skip it.
         var lastSource: String?
         var lastPointSize: CGFloat = 0
+        var lastCodePointSize: CGFloat = 0
         var lastDimmed = false
         var lastStreaming = false
         var lastRevision: Int = 0
@@ -105,17 +109,19 @@ struct LinkParagraphView: NSViewRepresentable {
     /// colors and favicon attachments.
     /// The four faces per point size, looked up once: the italic conversion goes through
     /// the font manager, and a streaming link paragraph rebuilds its string every flush.
-    @MainActor private static var fonts: [CGFloat: (base: NSFont, bold: NSFont, italic: NSFont, mono: NSFont)] = [:]
+    private struct FontKey: Hashable { let prose: CGFloat; let code: CGFloat }
+    @MainActor private static var fonts: [FontKey: (base: NSFont, bold: NSFont, italic: NSFont, mono: NSFont)] = [:]
 
     @MainActor
-    static func attributed(source: String, pointSize: CGFloat, dimmed: Bool, streaming: Bool = false, mentions: [HydraPersona] = [], targets: [String: HydraMentionTarget] = [:]) -> NSAttributedString {
+    static func attributed(source: String, pointSize: CGFloat, codePointSize: CGFloat = TypeScale.shared.code(12), dimmed: Bool, streaming: Bool = false, mentions: [HydraPersona] = [], targets: [String: HydraMentionTarget] = [:]) -> NSAttributedString {
         let pretty = RichLink.prettyAttributed(source, streaming: streaming)
-        let (base, bold, italic, mono) = fonts[pointSize] ?? {
+        let key = FontKey(prose: pointSize, code: codePointSize)
+        let (base, bold, italic, mono) = fonts[key] ?? {
             let base = NSFont.systemFont(ofSize: pointSize)
             let set = (base, NSFont.boldSystemFont(ofSize: pointSize),
                        NSFontManager.shared.convert(base, toHaveTrait: .italicFontMask),
-                       NSFont.monospacedSystemFont(ofSize: max(9, pointSize - 1), weight: .regular))
-            fonts[pointSize] = set
+                       NSFont.monospacedSystemFont(ofSize: codePointSize, weight: .regular))
+            fonts[key] = set
             return set
         }()
         let textColor = dimmed ? NSColor.labelColor.withAlphaComponent(0.7) : NSColor.labelColor

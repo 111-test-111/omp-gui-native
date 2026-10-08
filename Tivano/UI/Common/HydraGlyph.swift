@@ -238,6 +238,6 @@ struct HydraNameText: View {
     var weight: Font.Weight = .medium
     var color: Color = Chrome.primaryText.opacity(0.92)
     var body: some View {
-        HydraNameStyle.text(persona, base: color).font(.system(size: size, weight: weight))
+        HydraNameStyle.text(persona, base: color).font(.ui(size: size, weight: weight))
     }
 }

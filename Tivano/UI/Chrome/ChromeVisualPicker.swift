@@ -76,7 +76,7 @@ struct ChromeVisualTile<Content: View>: View {
     /// The option's name under its tile: the symbol alone does not say what the choice is.
     private var caption: some View {
         Text(verbatim: Chrome.localized(title))
-            .font(.system(.subheadline))
+            .font(.ui(.subheadline))
             .foregroundStyle(isSelected ? Chrome.primaryText : Chrome.secondaryText)
             .multilineTextAlignment(.center)
             .lineLimit(2)
@@ -85,7 +85,7 @@ struct ChromeVisualTile<Content: View>: View {
 
     private var stage: some View {
         content()
-            .font(.system(.title2, weight: .medium))
+            .font(.ui(.title2, weight: .medium))
             .foregroundStyle(isSelected ? Chrome.accent : Chrome.secondaryText)
             .frame(width: width, height: ChromeVisualTileMetrics.height)
             .background(

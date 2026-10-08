@@ -100,7 +100,7 @@ struct ChatView: View {
                 scrollState: scrollState,
                 projectName: project?.name,
                 workingDirectory: workingDirectory,
-                supportsRewind: thread?.provider.supportsRewind ?? false,
+                supportsRewind: !runtime.isReadOnly && (thread?.provider.supportsRewind ?? false),
                 columnHeight: columnHeight,
                 // A panel docked on the left takes the rail's edge; the rail goes with it. So
                 // does a pane too narrow for both: the column reads at up to 820 points and the
@@ -275,7 +275,7 @@ struct ChatView: View {
                 for id in autoDrags.keys where !ids.contains(id) { autoDrags[id] = nil }
             }
 
-            if runtime.isTerminalVisible {
+            if runtime.isTerminalVisible && !runtime.isReadOnly {
                 TerminalPanel(runtime: runtime, directory: directory)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
@@ -1215,7 +1215,7 @@ private struct ChatChromeTitle: View {
             isPresented.toggle()
         } label: {
             Text(verbatim: title.isEmpty ? Chrome.localized("New thread") : title)
-                .font(.system(.title3, weight: .semibold))
+                .font(.ui(.title3, weight: .semibold))
                 .foregroundStyle(title.isEmpty ? Chrome.secondaryText : Chrome.primaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -1557,11 +1557,11 @@ private struct CommitSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Commit changes")
-                .font(.system(.title2, weight: .semibold))
+                .font(.ui(.title2, weight: .semibold))
             if !summary.isEmpty {
                 ScrollView {
                     Text(summary)
-                        .font(.system(.subheadline, design: .monospaced))
+                        .font(.ui(.subheadline, design: .monospaced))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(maxHeight: 110)
@@ -1570,7 +1570,7 @@ private struct CommitSheet: View {
             }
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $message)
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .scrollContentBackground(.hidden)
                     .padding(8)
                 if message.isEmpty {
@@ -1673,9 +1673,9 @@ private struct ScriptsEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Project scripts")
-                .font(.system(.title2, weight: .semibold))
+                .font(.ui(.title2, weight: .semibold))
             Text("Scripts run in a terminal at the project root. Tivano also picks up scripts from tivano.json.")
-                .font(.system(.callout))
+                .font(.ui(.callout))
                 .foregroundStyle(Chrome.secondaryText)
             ScrollView {
                 VStack(spacing: 10) {
@@ -1694,7 +1694,7 @@ private struct ScriptsEditor: View {
                                 }
                                 TextField("Command", text: $script.command)
                                     .textFieldStyle(.roundedBorder)
-                                    .font(.system(.callout, design: .monospaced))
+                                    .font(.ui(.callout, design: .monospaced))
                                     // A script with no command used to be dropped on save
                                     // without a word; the row says what it is missing.
                                     .overlay {

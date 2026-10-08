@@ -25,6 +25,7 @@ final class TerminalSession: Identifiable {
         self.bridge = bridge
         view.processDelegate = bridge
 
+        guard ThreadAccess.shared.owns(threadID) else { isRunning = false; return }
         let shell = LoginEnvironment.userShell()
         var environment = LoginEnvironment.current
         environment["TERM"] = "xterm-256color"

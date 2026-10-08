@@ -11,13 +11,13 @@ struct ApprovalCard: View {
                 Image(systemName: request.symbol)
                     .foregroundStyle(Chrome.warning)
                 Text(verbatim: Chrome.localized(request.headline))
-                    .font(.headline)
+                    .font(.ui(.headline))
                 Spacer()
             }
             switch request.kind {
             case .command:
                 Text(request.title)
-                    .font(.system(.callout, design: .monospaced))
+                    .font(.ui(.callout, design: .monospaced))
                     .textSelection(.enabled)
                     .lineLimit(8)
                     .padding(10)
@@ -25,22 +25,22 @@ struct ApprovalCard: View {
                     .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 10, style: .continuous))
             case .plan:
                 Text("Approve the plan above to let the agent start building.")
-                    .font(.callout)
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
             default:
                 Text(request.title)
-                    .font(.callout)
+                    .font(.ui(.callout))
                     .textSelection(.enabled)
             }
             if let detail = request.detail, !detail.isEmpty {
                 Text(detail)
-                    .font(.caption)
+                    .font(.ui(.caption))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(3)
             }
             if let reason = request.reason, !reason.isEmpty {
                 Text(reason)
-                    .font(.callout)
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
             }
             HStack(spacing: 8) {

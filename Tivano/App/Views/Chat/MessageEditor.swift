@@ -46,11 +46,11 @@ struct MessageEditor: View {
         ) {
             fileChanges
             Text("Sending replaces this message and everything after it.")
-                .font(.callout)
+                .font(.chat(.callout))
                 .foregroundStyle(Chrome.secondaryText)
             if let error {
                 Label(error, systemImage: "exclamationmark.triangle")
-                    .font(.callout)
+                    .font(.chat(.callout))
                     .foregroundStyle(Chrome.danger)
             }
         } actions: {
@@ -114,7 +114,7 @@ struct MessageEditor: View {
                 fileList(preview.files)
             }
         }
-        .font(.callout)
+        .font(.chat(.callout))
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Chrome.overlay(0.05), in: .rect(cornerRadius: 12, style: .continuous))
@@ -140,7 +140,7 @@ struct MessageEditor: View {
                         DiffStatLabel(additions: file.additions, deletions: file.deletions)
                     }
                 }
-                .font(.caption)
+                .font(.chat(.caption))
                 // Off, or kept: the row stays as a reminder of what is not going back.
                 .opacity(restoresFiles && !file.isKept ? 1 : 0.45)
                 .help(file.isKept ? file.path + "\n" + Chrome.localized("Changed again since this thread last touched it, so it is left alone.") : file.path)

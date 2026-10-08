@@ -54,7 +54,7 @@ private struct ChromeSegment: View {
     var body: some View {
         Button(action: select) {
             label
-                .font(.system(.callout, weight: isSelected ? .semibold : .medium))
+                .font(.ui(.callout, weight: isSelected ? .semibold : .medium))
                 .foregroundStyle(isSelected ? Chrome.primaryText : Chrome.secondaryText)
                 .lineLimit(1)
                 .padding(.horizontal, 9)

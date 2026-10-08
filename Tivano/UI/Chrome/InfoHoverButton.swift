@@ -14,7 +14,7 @@ struct InfoHoverButton<Content: View>: View {
 
     var body: some View {
         Image(systemName: "info.circle")
-            .font(.system(.callout, weight: .medium))
+            .font(.ui(.callout, weight: .medium))
             .foregroundStyle(Chrome.secondaryText.opacity(isHovering ? 1 : 0.6))
             .frame(width: 20, height: 20)
             .contentShape(.rect)

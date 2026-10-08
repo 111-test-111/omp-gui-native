@@ -38,7 +38,7 @@ struct UsageFloatingPanel: View {
                 }
             } else {
                 Text(verbatim: String(format: Chrome.localized("Nothing to show for %@ yet."), provider.displayName))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.top, HydraPanel.stripHeight)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -89,7 +89,7 @@ struct UsageFloatingPanel: View {
                     ProviderIcon(provider: headsProvider, size: 12)
                 }
                 Text("Usage")
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.ui(size: 12.5, weight: .medium))
                     .foregroundStyle(Chrome.primaryText.opacity(0.92))
             }
             .padding(.horizontal, Chrome.capsuleHorizontalPadding)

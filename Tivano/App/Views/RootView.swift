@@ -314,7 +314,7 @@ struct WelcomeView: View {
                     Text("Tivano")
                         .font(.system(size: 34, weight: .semibold))
                     Text("A calm, native home for your coding agents.")
-                        .font(.system(.title3))
+                        .font(.ui(.title3))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 VStack(spacing: 10) {
@@ -342,7 +342,7 @@ struct WelcomeView: View {
                         .controlSize(.extraLarge)
                     }
                     Text("Or drop a folder anywhere in this window.")
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 ChromeSection(title: "Activity list") {
@@ -393,9 +393,9 @@ private struct ProviderStatusRow: View {
                 .frame(width: 22)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: provider.displayName)
-                    .font(.system(.body))
+                    .font(.ui(.body))
                 Text(verbatim: status.isChecking ? Chrome.localized("Checking…") : status.summary)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             Spacer()
@@ -449,7 +449,7 @@ struct NoThreadView: View {
                 .font(.system(size: 46, weight: .light))
                 .foregroundStyle(Chrome.secondaryText)
             Text("Pick a thread or start a new one")
-                .font(.system(.title2, weight: .medium))
+                .font(.ui(.title2, weight: .medium))
             Button {
                 model.newThread()
             } label: {
@@ -460,7 +460,7 @@ struct NoThreadView: View {
             // The chord as the store has it now, so a remap never leaves a stale key here.
             if let chord = ShortcutStore.label(for: .newThread) {
                 Text(verbatim: chord)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
         }
