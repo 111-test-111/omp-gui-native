@@ -32,12 +32,6 @@ struct ComposerArea: View {
 
     private var areaContent: some View {
         VStack(spacing: 12) {
-            SharedThreadAccessBar(
-                isReadOnly: runtime.isReadOnly,
-                canRelease: !runtime.isRunning && !runtime.isReverting && !runtime.isHydraMerging,
-                edit: { model.takeThreadEditing(runtime.threadID) },
-                release: { model.releaseThreadEditing(runtime.threadID) }
-            )
             ForEach(runtime.approvals) { request in
                 ApprovalCard(request: request, runtime: runtime)
             }
@@ -46,7 +40,6 @@ struct ComposerArea: View {
                     .zIndex(0)
                 ComposerView(runtime: runtime, workingDirectory: workingDirectory, compactModelChip: compactModelChip, takesFocusOnAppear: takesFocusOnAppear)
                     .zIndex(1)
-                    .disabled(runtime.isReadOnly)
             }
             .background {
                 AttachmentAnchorCapture { diffPopover.setFallbackAnchor($0) }

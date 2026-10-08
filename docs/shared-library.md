@@ -24,11 +24,11 @@ startup lease at `~/Library/Application Support/.tivano-library.lock`; an older
 build that requires an exclusive lease still blocks them. Update both editions
 before using this feature.
 
-Different conversations can be edited concurrently. A conversation and its
-helper threads share one exclusive editing lease. The other edition displays
-that conversation read-only and refreshes saved changes. Use **Release editing**
-in the owning edition, or switch to another conversation after finishing work
-and clearing drafts/terminals, then **Edit here** in the other edition.
+Both editions have the same conversation read/write behavior. There are no
+conversation editing leases, read-only access modes or editing-transfer controls.
+The owner controls concurrent use manually and avoids editing the same conversation
+in both editions. Dev is typically used to inspect styles and production data;
+this is a usage convention, not a restriction in code.
 
 Library and MCP metadata use short locked read/merge/write transactions.
 Independent edits are merged, unknown fields retained, and conflicting edits
@@ -63,7 +63,7 @@ can be carried into the shared service on access without exporting them to files
 macOS may ask for authorization once. Forgetting a shared credential also removes
 its matching legacy copies, preventing silent re-import.
 
-The library file format still belongs to the running app version. Editing leases and JSON transactions
-protect concurrent saves; they do not make incompatible schemas interchangeable. Take an offline backup
+The library file format still belongs to the running app version. JSON transactions
+protect metadata saves; they do not prevent concurrent conversation edits or make incompatible schemas interchangeable. Take an offline backup
 before such tests. Don't launch the old Droppy app after migration: it can still
 write through its compatibility alias without honoring the new lock.

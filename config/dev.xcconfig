@@ -1,4 +1,4 @@
 // Development edition; version independent of release.xcconfig.
 // The app displays dev-$(MARKETING_VERSION); Apple's bundle version stays numeric.
-MARKETING_VERSION = 0.1.2
-CURRENT_PROJECT_VERSION = 5
+MARKETING_VERSION = 0.1.4
+CURRENT_PROJECT_VERSION = 7
