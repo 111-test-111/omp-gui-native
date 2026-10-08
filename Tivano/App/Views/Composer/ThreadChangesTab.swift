@@ -27,7 +27,7 @@ struct ThreadChangesTab: View {
                 Text(verbatim: "\u{2212}\(stats.deletions)")
                     .foregroundStyle(Chrome.danger)
             }
-            .font(.system(.callout, weight: .medium).monospacedDigit())
+            .font(.ui(.callout, weight: .medium).monospacedDigit())
             .padding(.horizontal, 12)
             .padding(.top, 7)
             .padding(.bottom, 7 + Self.overlap)

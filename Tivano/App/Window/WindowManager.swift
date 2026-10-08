@@ -170,9 +170,7 @@ struct HostedEnvironment: ViewModifier {
         content
             .environment(model)
             .environment(liveResize)
-            // The zoom in Settings scales the whole app: every window root and every chat
-            // column carries it, so the sidebar, settings and composer move together.
-            .modifier(AppZoomModifier(percent: model.settings.appZoom))
+            .font(.ui(.body))
             .buttonBorderShape(.capsule)
             .modifier(ThemeTint(theme: model.settings.theme))
     }

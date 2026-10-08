@@ -40,7 +40,7 @@ struct FloatingSidebarPanel: View {
             .overlay(alignment: .top) {
                 HStack(alignment: .top, spacing: 8) {
                     Text("Threads")
-                        .font(.system(size: 12.5, weight: .medium))
+                        .font(.ui(size: 12.5, weight: .medium))
                         .foregroundStyle(Chrome.primaryText.opacity(0.92))
                         .padding(.horizontal, Chrome.capsuleHorizontalPadding)
                         .frame(height: Chrome.capsuleContentHeight)

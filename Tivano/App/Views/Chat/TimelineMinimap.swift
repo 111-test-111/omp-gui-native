@@ -315,14 +315,14 @@ struct TimelineMinimapRail: View, Equatable {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(entry.title)
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .contentTransition(.opacity)
                 if !entry.snippet.isEmpty {
                     Text(entry.snippet)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(3)
                         .truncationMode(.tail)

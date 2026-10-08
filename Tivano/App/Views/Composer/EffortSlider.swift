@@ -289,7 +289,7 @@ struct ModelList: View {
             HStack(spacing: 6) {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
-                        .font(.system(.subheadline, weight: .semibold))
+                        .font(.ui(.subheadline, weight: .semibold))
                         .frame(width: 20, height: 20)
                         .contentShape(.rect)
                 }
@@ -297,7 +297,7 @@ struct ModelList: View {
                 .foregroundStyle(Chrome.secondaryText)
                 .help("Back")
                 Text("Select model")
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.secondaryText)
                 Spacer()
             }
@@ -339,7 +339,7 @@ struct ModelList: View {
                     }
                     if entries.isEmpty {
                         Text("Loading models…")
-                            .font(.system(.body))
+                            .font(.ui(.body))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(10)
                     }
@@ -388,17 +388,17 @@ private struct HydraPairListRow: View {
                     .frame(width: 18)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: title)
-                        .font(.system(size: 14))
+                        .font(.ui(size: 14))
                         .foregroundStyle(Chrome.primaryText)
                         .lineLimit(1)
                     Text(verbatim: Chrome.localized(detail))
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                 }
                 Spacer(minLength: 12)
                 Image(systemName: "checkmark")
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                     .opacity(isSelected ? 1 : 0)
             }
@@ -440,22 +440,22 @@ private struct ModelListRow: View {
                 }
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: entry.option.shortName)
-                        .font(.system(size: 14))
+                        .font(.ui(size: 14))
                         .foregroundStyle(Chrome.primaryText)
                     if let detail {
                         Text(verbatim: detail)
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                     }
                 }
                 Spacer(minLength: 12)
                 if entry.option.supportsFast {
                     Image(systemName: "bolt")
-                        .font(.system(.footnote))
+                        .font(.ui(.footnote))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Image(systemName: "checkmark")
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                     .opacity(isSelected ? 1 : 0)
             }
@@ -570,11 +570,11 @@ struct EffortSliderCard: View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(verbatim: title)
-                                .font(.system(.title2, weight: .medium))
+                                .font(.ui(.title2, weight: .medium))
                                 .contentTransition(.numericText())
                             if onTitleTap != nil {
                                 Image(systemName: "chevron.right")
-                                    .font(.system(.callout, weight: .semibold))
+                                    .font(.ui(.callout, weight: .semibold))
                                     .foregroundStyle(Chrome.secondaryText)
                             }
                         }
@@ -607,7 +607,7 @@ struct EffortSliderCard: View {
                             ProviderIcon(provider: provider, size: 12)
                         }
                         Text(verbatim: pair?.title ?? modelName)
-                            .font(.system(.body))
+                            .font(.ui(.body))
                             .foregroundStyle(Chrome.primaryText.opacity(0.7))
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -619,7 +619,7 @@ struct EffortSliderCard: View {
 
             if efforts.isEmpty {
                 Text("This model has one reasoning level.")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(height: EffortSlider.thumbSize)
             } else {
@@ -641,7 +641,7 @@ struct EffortSliderCard: View {
             // Whose effort this is, so a pair's slider is never taken for the heads'.
             if let pair, !efforts.isEmpty {
                 Text(verbatim: pair.caption)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -665,7 +665,7 @@ private struct FastModeButton: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { isOn.toggle() }
         } label: {
             Image(systemName: isOn ? "bolt.fill" : "bolt")
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
                 .foregroundStyle(isOn ? Color.yellow : Chrome.secondaryText)
                 .symbolEffect(.bounce, value: isOn)
                 .frame(width: 30, height: 30)
@@ -692,7 +692,7 @@ private struct RoundIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(.body, weight: .medium))
+                .font(.ui(.body, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText)
                 .frame(width: 30, height: 30)
                 .background { Circle().fill(isHovering ? Chrome.overlay(0.1) : Color.clear) }

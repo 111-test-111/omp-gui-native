@@ -188,13 +188,13 @@ private struct DownloadRow: View {
             HStack(spacing: 10) {
                 preview
                 Text(verbatim: item.name)
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer(minLength: 16)
                 if let size = item.size {
                     Text(verbatim: size)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                 }

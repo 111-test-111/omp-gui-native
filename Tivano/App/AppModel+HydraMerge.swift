@@ -53,7 +53,7 @@ extension AppModel {
             .sorted { $0.id.uuidString < $1.id.uuidString }
         // Load every competitor before choosing the first winner. A cold runtime
         // must not keep a completed job looking unfinished until the next sweep.
-        for lead in leads {
+        for lead in leads where !ThreadAccess.shared.isOwnedElsewhere(lead.id) {
             await runtime(for: lead.id).ensureLoaded()
         }
         for lead in leads {
@@ -77,6 +77,8 @@ extension AppModel {
     /// Lands a lead's finished work, when the setting says so. Runs once per finished job;
     /// what happened lands in the lead's timeline as a note from Hydra.
     func autoMergeHydraWork(of leadID: UUID) async {
+        guard beginSharedThreadJob(leadID) else { return }
+        defer { endSharedThreadJob(leadID) }
         guard settings.hydraAutoMerge, let waiting = thread(leadID), hydraIsOn(waiting),
               let queued = existingRuntime(for: leadID), !queued.isHydraMerging, !queued.isHydraMergeQueued,
               queued.isReadyForHydraMerge else { return }
@@ -238,6 +240,14 @@ extension AppModel {
 
         let git = Git(checkout)
         guard await git.isRepository(), await git.hasCommits() else { return .failed }
+        // Linked worktrees share refs. Serialize automatic merges across editions
+        // using the common git directory, not a per-process queue or checkout path.
+        guard let common = try? await git.output(["rev-parse", "--path-format=absolute", "--git-common-dir"]),
+              let repoLease = try? SharedLibraryLease(at: SharedResourceLock.url(in: Storage.root, resource: URL(fileURLWithPath: common.trimmed).resolvingSymlinksInPath().path)) else {
+            scheduleHydraMergeRetry(of: leadID)
+            return .deferred
+        }
+        defer { withExtendedLifetime(repoLease) {} }
         guard await git.remoteURL() != nil else {
             return fail("Hydra did not merge: no remote.", "The team's work is in the checkout; there is no origin to push it to.")
         }

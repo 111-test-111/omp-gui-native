@@ -85,6 +85,10 @@ enum Storage {
         turnsURL(threadID).appendingPathComponent("\(turnID.uuidString).json")
     }
 
+    nonisolated static func documentLockURL(_ id: UUID) -> URL {
+        root.appendingPathComponent("document-locks/\(id.uuidString).lock")
+    }
+
     nonisolated static func readDocument(_ id: UUID) -> (document: ThreadDocument, cost: Int)? {
         readDocument(id, recentOnly: false)
     }
@@ -95,6 +99,8 @@ enum Storage {
 
     private nonisolated static func readDocument(_ id: UUID, recentOnly: Bool) -> (document: ThreadDocument, cost: Int)? {
         DiskWriter.shared.readSynchronously {
+            guard let lease = try? SharedLibraryLease(at: documentLockURL(id), mode: .shared, wait: true) else { return nil }
+            defer { withExtendedLifetime(lease) {} }
             guard let data = try? Data(contentsOf: threadURL(id)),
                   var document = try? JSONDecoder.storage.decode(ThreadDocument.self, from: data) else { return nil }
             var cost = data.count
@@ -114,7 +120,10 @@ enum Storage {
     }
 
     nonisolated static func readTurns(_ id: UUID, references: [ThreadTurnReference]) -> (document: ThreadDocument, cost: Int)? {
-        DiskWriter.shared.readSynchronously { readTurnsUnlocked(id, references: references) }
+        DiskWriter.shared.readSynchronously {
+            guard let lease = try? SharedLibraryLease(at: documentLockURL(id), mode: .shared, wait: true) else { return nil }
+            return withExtendedLifetime(lease) { readTurnsUnlocked(id, references: references) }
+        }
     }
 
     /// Puts a thread's files that would not read somewhere a save can never reach: moved
@@ -123,6 +132,9 @@ enum Storage {
     /// Returns the folder, or nil when there was nothing to keep or it could not be made.
     nonisolated static func setAside(_ id: UUID, moving: Bool) -> URL? {
         DiskWriter.shared.readSynchronously {
+            guard ThreadAccess.shared.owns(id),
+                  let lease = try? SharedLibraryLease(at: documentLockURL(id), wait: true) else { return nil }
+            defer { withExtendedLifetime(lease) {} }
             let manager = FileManager.default
             let sources = [threadURL(id), turnsURL(id)].filter { manager.fileExists(atPath: $0.path) }
             guard !sources.isEmpty else { return nil }
@@ -498,9 +510,17 @@ final class DiskWriter: Sendable {
     }
 
     private func writeThread(_ snapshot: ThreadSave) -> Bool {
+        ThreadAccess.shared.withWritePermission(for: snapshot.head.threadID) {
+            writeOwnedThread(snapshot)
+        } ?? false
+    }
+
+    private func writeOwnedThread(_ snapshot: ThreadSave) -> Bool {
         let head = snapshot.head
         let url = Storage.threadURL(head.threadID)
         do {
+            let lease = try SharedLibraryLease(at: Storage.documentLockURL(head.threadID), wait: true)
+            defer { withExtendedLifetime(lease) {} }
             let directory = Storage.turnsURL(head.threadID)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let index = head.turnIndex ?? []
@@ -542,12 +562,14 @@ final class DiskWriter: Sendable {
         }
     }
 
-    func writeSynchronously<Value: Encodable & Sendable>(_ value: Value, to url: URL) {
+    @discardableResult
+    func writeSynchronously<Value: Encodable & Sendable>(_ value: Value, to url: URL) -> Bool {
         let completions = pending.withLock { $0.removeValue(forKey: url)?.completions ?? [] }
-        queue.sync {
+        return queue.sync {
             let size = write(value, to: url)
             if let size { sizes.withLock { $0[url] = size } }
             for completion in completions { completion(size != nil) }
+            return size != nil
         }
     }
 
@@ -586,7 +608,14 @@ final class DiskWriter: Sendable {
             urls.flatMap { pending.removeValue(forKey: $0)?.completions ?? [] }
         }
         queue.sync {
-            for url in urls { try? FileManager.default.removeItem(at: url) }
+            for url in urls {
+                if let id = Self.threadID(for: url) {
+                    ThreadAccess.shared.withWritePermission(for: id) {
+                        guard let lease = try? SharedLibraryLease(at: Storage.documentLockURL(id), wait: true) else { return }
+                        withExtendedLifetime(lease) { try? FileManager.default.removeItem(at: url) }
+                    }
+                } else { try? FileManager.default.removeItem(at: url) }
+            }
             for completion in threadCompletions { completion(false) }
             for completion in completions { completion(false) }
         }
@@ -602,7 +631,19 @@ final class DiskWriter: Sendable {
     }
 
     @discardableResult
+    private static func threadID(for url: URL) -> UUID? {
+        guard url.deletingLastPathComponent() == Storage.threadsDirectory else { return nil }
+        return UUID(uuidString: url.deletingPathExtension().lastPathComponent)
+    }
+
     private func write(_ value: any Encodable, to url: URL) -> Int? {
+        if let id = Self.threadID(for: url) {
+            return ThreadAccess.shared.withWritePermission(for: id) { writeOwned(value, to: url) } ?? nil
+        }
+        return writeOwned(value, to: url)
+    }
+
+    private func writeOwned(_ value: any Encodable, to url: URL) -> Int? {
         do {
             let data = try JSONEncoder.storage.encode(value)
             try data.write(to: url, options: .atomic)

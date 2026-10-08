@@ -333,6 +333,7 @@ struct MarkdownBlockView: View, Equatable {
     /// are therefore the same block, and comparing their content -- every byte of every
     /// earlier block of the reply, on every flush -- is work the flush does not need.
     var settled = false
+    @Environment(\.markdownPointSize) private var pointSize
     @Environment(\.markdownDimmed) private var dimmed
     @Environment(\.markdownListDepth) private var listDepth
     @Environment(\.markdownStreaming) private var streaming
@@ -349,79 +350,82 @@ struct MarkdownBlockView: View, Equatable {
     }
 
     var body: some View {
-        switch block {
-        case .heading(let level, let text):
-            InlineText(text)
-                .font(headingFont(level))
-                .padding(.top, level <= 2 ? 6 : 2)
-        case .paragraph(let text):
-            // Every head named anywhere in the paragraph is decorated inline: glyph +
-            // coloured bold name inside one flowing Text, with only the prose veiled.
-            // Only the AppKit paragraph can say what is under the pointer, so a finished
-            // paragraph naming a head takes that path; while streaming the SwiftUI path
-            // keeps its veil and still opens the chat on click.
-            if RichLink.containsLinks(in: text, streaming: streaming) {
-                InlineText(text, hasLinks: true)
-            } else if !streaming, listDepth == 0, mentionsTarget(in: text) {
-                InlineText(text, hasLinks: true)
-            } else if listDepth == 0, let segments = mentionSegments(in: text) {
-                VeiledText(segments: segments)
-                    .modifier(MarkdownBlockSelection())
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
-                InlineText(text, hasLinks: false)
-            }
-        case .code(let language, let code):
-            // The lead's delegation block (info string `hydra`) is a brief for the team, not
-            // code: it reads as a card while it streams and whenever it stays in the reply.
-            if let info = language?.lowercased(), MarkdownView.isDelegationInfo(info), let delegationRenderer = MarkdownDelegationCard.render {
-                // `hydra-leaving`: the card fades where it stands, still taking up its room,
-                // before the block leaves the reply and the text below closes up.
-                delegationRenderer(code, info != "hydra")
-                    .opacity(info == "hydra-leaving" ? 0 : 1)
-                    .scaleEffect(info == "hydra-leaving" ? 0.98 : 1, anchor: .top)
-                    .allowsHitTesting(info != "hydra-leaving")
-            } else {
-                CodeBlock(language: language, code: code)
-            }
-        case .list(let ordered, let start, let items):
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        marker(ordered: ordered, number: start + index, checked: item.checked)
-                        VStack(alignment: .leading, spacing: 6) {
-                            if !item.text.isEmpty { InlineText(item.text, hasLinks: RichLink.containsLinks(in: item.text, streaming: streaming)) }
-                            ForEach(Array(item.children.enumerated()), id: \.offset) { _, child in
-                                MarkdownBlockView(block: child)
-                                    .equatable()
+        Group {
+            switch block {
+            case .heading(let level, let text):
+                InlineText(text)
+                    .font(headingFont(level))
+                    .padding(.top, level <= 2 ? 6 : 2)
+            case .paragraph(let text):
+                // Every head named anywhere in the paragraph is decorated inline: glyph +
+                // coloured bold name inside one flowing Text, with only the prose veiled.
+                // Only the AppKit paragraph can say what is under the pointer, so a finished
+                // paragraph naming a head takes that path; while streaming the SwiftUI path
+                // keeps its veil and still opens the chat on click.
+                if RichLink.containsLinks(in: text, streaming: streaming) {
+                    InlineText(text, hasLinks: true)
+                } else if !streaming, listDepth == 0, mentionsTarget(in: text) {
+                    InlineText(text, hasLinks: true)
+                } else if listDepth == 0, let segments = mentionSegments(in: text) {
+                    VeiledText(segments: segments)
+                        .modifier(MarkdownBlockSelection())
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    InlineText(text, hasLinks: false)
+                }
+            case .code(let language, let code):
+                // The lead's delegation block (info string `hydra`) is a brief for the team, not
+                // code: it reads as a card while it streams and whenever it stays in the reply.
+                if let info = language?.lowercased(), MarkdownView.isDelegationInfo(info), let delegationRenderer = MarkdownDelegationCard.render {
+                    // `hydra-leaving`: the card fades where it stands, still taking up its room,
+                    // before the block leaves the reply and the text below closes up.
+                    delegationRenderer(code, info != "hydra")
+                        .opacity(info == "hydra-leaving" ? 0 : 1)
+                        .scaleEffect(info == "hydra-leaving" ? 0.98 : 1, anchor: .top)
+                        .allowsHitTesting(info != "hydra-leaving")
+                } else {
+                    CodeBlock(language: language, code: code)
+                }
+            case .list(let ordered, let start, let items):
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            marker(ordered: ordered, number: start + index, checked: item.checked)
+                            VStack(alignment: .leading, spacing: 6) {
+                                if !item.text.isEmpty { InlineText(item.text, hasLinks: RichLink.containsLinks(in: item.text, streaming: streaming)) }
+                                ForEach(Array(item.children.enumerated()), id: \.offset) { _, child in
+                                    MarkdownBlockView(block: child)
+                                        .equatable()
+                                }
                             }
+                            // Nested lists read one level deeper, so their dots turn into rings.
+                            .environment(\.markdownListDepth, listDepth + 1)
                         }
-                        // Nested lists read one level deeper, so their dots turn into rings.
-                        .environment(\.markdownListDepth, listDepth + 1)
                     }
                 }
-            }
-        case .quote(let blocks):
-            HStack(alignment: .top, spacing: 10) {
-                Capsule().fill(.quaternary).frame(width: 3)
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(blocks.enumerated()), id: \.offset) { _, child in
-                        MarkdownBlockView(block: child)
-                            .equatable()
+            case .quote(let blocks):
+                HStack(alignment: .top, spacing: 10) {
+                    Capsule().fill(.quaternary).frame(width: 3)
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(blocks.enumerated()), id: \.offset) { _, child in
+                            MarkdownBlockView(block: child)
+                                .equatable()
+                        }
                     }
                 }
+                .foregroundStyle(Chrome.secondaryText)
+                .environment(\.markdownDimmed, true)
+            case .table(let header, let rows):
+                TableBlock(header: header, rows: rows)
+            case .rule:
+                Rectangle()
+                    .fill(.quaternary)
+                    .frame(height: 1)
+                    .padding(.vertical, 4)
             }
-            .foregroundStyle(Chrome.secondaryText)
-            .environment(\.markdownDimmed, true)
-        case .table(let header, let rows):
-            TableBlock(header: header, rows: rows)
-        case .rule:
-            Rectangle()
-                .fill(.quaternary)
-                .frame(height: 1)
-                .padding(.vertical, 4)
         }
+        .font(.system(size: pointSize == 0 ? TypeScale.shared.content(13) : pointSize))
     }
 
     private func headingFont(_ level: Int) -> Font {
@@ -470,7 +474,7 @@ struct MarkdownBlockView: View, Equatable {
         MentionScanner.matches(in: text, candidates: names, name: { $0 }).map(\.range)
     }
     private func mentionSegments(in text: String) -> [VeiledText.Segment]? {
-        let pretty = RichLink.prettyAttributed(text, streaming: streaming)
+        let pretty = InlineText.scaledInlineCode(RichLink.prettyAttributed(text, streaming: streaming), pointSize: TypeScale.shared.code(12))
         let chars = String(pretty.characters)
         guard !hydraMentionPersonas.isEmpty else { return nil }
         let matches = MentionScanner.matches(in: chars, candidates: hydraMentionPersonas, name: \.name)
@@ -850,10 +854,10 @@ enum RichLink {
 }
 
 /// Base point size for link paragraphs. SwiftUI's `.font` environment is
-/// opaque, so the two non-default contexts (thinking text, headings) set
-/// this explicitly; everything else reads the 13 pt chat default.
+/// opaque, so non-default contexts set this explicitly; zero resolves to the current
+/// Content size in the view body, where Observation can track it.
 private struct MarkdownPointSizeKey: EnvironmentKey {
-    static let defaultValue: CGFloat = 13
+    static let defaultValue: CGFloat = 0
 }
 
 /// Whether the paragraph renders in secondary styling (quotes, thinking).
@@ -1142,7 +1146,8 @@ struct InlineText: View {
     var body: some View {
         // faviconRevision read so loaded favicons rebuild the text.
         let _ = faviconRevision
-        let scaled = (pointSize * 2).rounded() / 2
+        let resolvedSize = pointSize == 0 ? TypeScale.shared.content(13) : pointSize
+        let scaled = (resolvedSize * 2).rounded() / 2
         // Local file links have no host, but still need the native link opener.
         let hasLinkText = hasLinks ?? RichLink.containsLinks(in: source, streaming: streaming)
         if hasLinkText {
@@ -1162,7 +1167,7 @@ struct InlineText: View {
             // paragraph (and its styled text) alive after it scrolls away.
             let linkBox = linkView
             let targets = hydraMentionTargets
-            LinkParagraphView(source: source, pointSize: scaled, dimmed: dimmed, streaming: streaming, revision: faviconRevision, mentions: hydraMentionPersonas, targets: hydraMentionTargets, onOpenHead: { url in openURL(url) }, onHost: { [weak linkBox] view in linkBox?.value = view })
+            LinkParagraphView(source: source, pointSize: scaled, codePointSize: TypeScale.shared.code(max(9, scaled - CGFloat(TypeScale.shared.content - TypeScale.stockContent) - 1)), dimmed: dimmed, streaming: streaming, revision: faviconRevision, mentions: hydraMentionPersonas, targets: hydraMentionTargets, onOpenHead: { url in openURL(url) }, onHost: { [weak linkBox] view in linkBox?.value = view })
                 .frame(maxWidth: hugsContent ? nil : .infinity, alignment: .leading)
                 .alignmentGuide(.firstTextBaseline) { _ in ascender }
                 .alignmentGuide(.lastTextBaseline) { $0.height - lineHeight + ascender }
@@ -1178,11 +1183,20 @@ struct InlineText: View {
             // Link-free, so the attributed string renders as one Text; bold, italic and
             // code come through as inline presentation intents. Streamed characters fade
             // in through the veil.
-            VeiledText(RichLink.prettyAttributed(source, streaming: streaming))
+            VeiledText(Self.scaledInlineCode(RichLink.prettyAttributed(source, streaming: streaming), pointSize: TypeScale.shared.code(max(9, scaled - CGFloat(TypeScale.shared.content - TypeScale.stockContent) - 1))))
                 .modifier(MarkdownBlockSelection())
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: hugsContent ? nil : .infinity, alignment: .leading)
         }
+    }
+
+    @MainActor
+    static func scaledInlineCode(_ source: AttributedString, pointSize: CGFloat) -> AttributedString {
+        var result = source
+        for run in source.runs where run.inlinePresentationIntent?.contains(.code) == true {
+            result[run.range].font = .system(size: pointSize, design: .monospaced)
+        }
+        return result
     }
 
     /// The base font's baseline numbers, measured once per point size. Asking AppKit for a
@@ -1304,7 +1318,7 @@ struct CodeBlock: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 // Code streams line by line and veils in like prose.
                 VeiledText(verbatim: visible)
-                    .font(.chat(.callout, design: .monospaced))
+                    .font(.code(.callout))
                     .modifier(MarkdownBlockSelection())
                     .fixedSize(horizontal: true, vertical: true)
                     .padding(.horizontal, 12)

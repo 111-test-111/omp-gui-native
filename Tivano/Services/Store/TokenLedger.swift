@@ -271,7 +271,7 @@ private enum CodexFingerprintStore {
     private static let legacyDefaultsKey = "tivano.tokenActivity.codexFiles"
 
     private static var fileURL: URL {
-        Storage.root.appendingPathComponent("token-activity-codex-v3.json")
+        Storage.root.appendingPathComponent("token-activity-codex-v3-\(AppInfo.isDevelopment ? "dev" : "release").json")
     }
 
     static func load() -> [String: CodexFileFingerprint] {
@@ -279,10 +279,9 @@ private enum CodexFingerprintStore {
         // was resumed in; the v2 file holds each file's own growth, so the
         // old one is not migrated.
         let oldURL = Storage.root.appendingPathComponent("token-activity-codex.json")
-        if FileManager.default.fileExists(atPath: oldURL.path) {
-            try? FileManager.default.removeItem(at: oldURL)
-        }
-        if let data = try? Data(contentsOf: fileURL),
+        // Keep the shared legacy caches as read-only migration sources.
+        _ = oldURL
+        if let data = (try? Data(contentsOf: fileURL)) ?? (try? Data(contentsOf: Storage.root.appendingPathComponent("token-activity-codex-v3.json"))),
            let stored = try? JSONDecoder().decode([String: CodexFileFingerprint].self, from: data) {
             return stored
         }
@@ -298,7 +297,6 @@ private enum CodexFingerprintStore {
                 if migrated.identity.isEmpty { migrated.identity = CodexFileFingerprint.rolloutIdentity(path: path) }
                 rebuilt[path] = migrated
             }
-            try? FileManager.default.removeItem(at: v2URL)
             save(rebuilt)
             return rebuilt
         }
@@ -353,12 +351,12 @@ private struct LiveSpendState: Codable, Sendable {
 
 private enum LiveSpendStateStore {
     private static var fileURL: URL {
-        Storage.root.appendingPathComponent("token-activity-live-v2.json")
+        Storage.root.appendingPathComponent("token-activity-live-v2-\(AppInfo.isDevelopment ? "dev" : "release").json")
     }
 
     static func load(defaults: UserDefaults) -> LiveSpendState {
         var state: LiveSpendState
-        if let data = try? Data(contentsOf: fileURL),
+        if let data = (try? Data(contentsOf: fileURL)) ?? (try? Data(contentsOf: Storage.root.appendingPathComponent("token-activity-live-v2.json"))),
            let stored = try? JSONDecoder().decode(LiveSpendState.self, from: data) {
             state = stored
         } else {

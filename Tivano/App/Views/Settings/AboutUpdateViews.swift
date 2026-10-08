@@ -217,10 +217,10 @@ struct UpdateReleaseSectionCards: View {
                     .scaledToFit()
                     .frame(width: 26, height: 26)
                 Text(verbatim: Chrome.localized(category.cardTitle))
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.ui(size: 12.5, weight: .medium))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: section.map { category.countSummary($0.changeCount) } ?? Chrome.localized("Nothing here"))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             .lineLimit(1)
@@ -266,10 +266,10 @@ private struct UpdateReleaseSectionPopover: View {
                     .frame(width: 24, height: 24)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(verbatim: Chrome.localized(section.category.sectionTitle))
-                        .font(.system(.body, weight: .semibold))
+                        .font(.ui(.body, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     Text(verbatim: version)
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Spacer(minLength: 0)
@@ -278,14 +278,14 @@ private struct UpdateReleaseSectionPopover: View {
                 VStack(alignment: .leading, spacing: 9) {
                     ForEach(Array(section.bullets.enumerated()), id: \.offset) { _, bullet in
                         Text(verbatim: bullet)
-                            .font(.system(.body))
+                            .font(.ui(.body))
                             .foregroundStyle(Chrome.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if let rollup = section.rollup {
                         Text(verbatim: rollup)
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -557,7 +557,7 @@ private struct AboutIdentityPill: View {
                 .frame(width: 20, height: 20)
                 .accessibilityHidden(true)
             Text(verbatim: "v\(AppInfo.version)")
-                .font(.system(.callout, weight: .semibold))
+                .font(.ui(.callout, weight: .semibold))
                 .foregroundStyle(Chrome.primaryText)
                 .lineLimit(1)
         }
@@ -645,14 +645,14 @@ private struct AboutVersionPill: View {
                                 .font(Chrome.inlineIconFont)
                                 .foregroundStyle(Chrome.blue)
                             Text("Update & restart")
-                                .font(.system(.callout, weight: .semibold))
+                                .font(.ui(.callout, weight: .semibold))
                                 .foregroundStyle(Chrome.blue)
                         } else {
                             Image(systemName: standing.symbol)
                                 .font(Chrome.inlineIconFont)
                                 .foregroundStyle(standing.tint)
                             Text(verbatim: Chrome.localized(standing.title))
-                                .font(.system(.callout, weight: .semibold))
+                                .font(.ui(.callout, weight: .semibold))
                                 .foregroundStyle(Chrome.primaryText)
                         }
                     }
@@ -752,7 +752,7 @@ struct AboutSoftwareUpdateSection: View {
                 ChromeCard {
                     ScrollView(.vertical) {
                         MarkdownView(text: update.notes).equatable()
-                            .environment(\.markdownPointSize, 12.5)
+                            .environment(\.markdownPointSize, TypeScale.shared.content(12.5))
                             .padding(16)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -766,9 +766,9 @@ struct AboutSoftwareUpdateSection: View {
                         HStack(spacing: 4) {
                             Text("Release notes")
                             Image(systemName: "arrow.up.right")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                         }
-                        .font(.system(.callout, weight: .medium))
+                        .font(.ui(.callout, weight: .medium))
                         .foregroundStyle(Chrome.accent)
                     }
                     .buttonStyle(.plain)

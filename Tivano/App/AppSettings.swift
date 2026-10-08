@@ -161,7 +161,9 @@ final class AppSettings {
         static let antiSlopEnabled = "antiSlopEnabled"
         static let showsWorkingCard = "showsWorkingCard"
         static let timelineHapticStyle = "timelineHapticStyle"
-        static let appZoom = "appZoom"
+        static let uiFontSize = "uiFontSize"
+        static let contentFontSize = "contentFontSize"
+        static let codeFontSize = "codeFontSize"
         static let sidebarActivityView = "sidebarActivityView"
         static let activityThreadStyle = "activityThreadStyle"
         static let settledCollapsed = "settledSectionCollapsed"
@@ -290,10 +292,53 @@ final class AppSettings {
         didSet { defaults.set(timelineHapticStyle.rawValue, forKey: Key.timelineHapticStyle) }
     }
 
-    /// The app-wide zoom in percent: the whole window scales, the way a browser's zoom
-    /// does, rather than the conversation's type alone.
-    var appZoom: Int {
-        didSet { defaults.set(appZoom, forKey: Key.appZoom) }
+    /// Base sizes in points, shown in Settings as px. Each one shifts its category
+    /// off the stock size; the stock values are today's type.
+    var uiFontSize: Int {
+        didSet {
+            let clamped = TypeScale.clamp(uiFontSize, to: TypeScale.uiRange)
+            if clamped != uiFontSize { uiFontSize = clamped }
+            defaults.set(uiFontSize, forKey: Key.uiFontSize)
+            TypeScale.shared.ui = uiFontSize
+        }
+    }
+
+    var contentFontSize: Int {
+        didSet {
+            let clamped = TypeScale.clamp(contentFontSize, to: TypeScale.contentRange)
+            if clamped != contentFontSize { contentFontSize = clamped }
+            defaults.set(contentFontSize, forKey: Key.contentFontSize)
+            TypeScale.shared.content = contentFontSize
+        }
+    }
+
+    var codeFontSize: Int {
+        didSet {
+            let clamped = TypeScale.clamp(codeFontSize, to: TypeScale.codeRange)
+            if clamped != codeFontSize { codeFontSize = clamped }
+            defaults.set(codeFontSize, forKey: Key.codeFontSize)
+            TypeScale.shared.code = codeFontSize
+        }
+    }
+
+    /// True when Interface, Content and Code are all on their stock sizes.
+    var isDefault: Bool {
+        uiFontSize == TypeScale.stockUI
+            && contentFontSize == TypeScale.stockContent
+            && codeFontSize == TypeScale.stockCode
+    }
+
+    func resetFontSizes() {
+        uiFontSize = TypeScale.stockUI
+        contentFontSize = TypeScale.stockContent
+        codeFontSize = TypeScale.stockCode
+    }
+
+    /// Moves each size by `delta` points and clamps it to that size's own range.
+    func stepFontSizes(by delta: Int) {
+        uiFontSize += delta
+        contentFontSize += delta
+        codeFontSize += delta
     }
 
     /// The floating panels' size once one has been resized by hand; nil leaves them to
@@ -786,7 +831,9 @@ final class AppSettings {
         antiSlopEnabled = defaults.object(forKey: Key.antiSlopEnabled) as? Bool ?? true
         showsWorkingCard = defaults.object(forKey: Key.showsWorkingCard) as? Bool ?? true
         timelineHapticStyle = TimelineHapticStyle(rawValue: defaults.string(forKey: Key.timelineHapticStyle) ?? "") ?? .soft
-        appZoom = AppZoom.normalized(defaults.object(forKey: Key.appZoom) as? Int ?? 100)
+        uiFontSize = Self.clampedFontSize(defaults, key: Key.uiFontSize, stock: TypeScale.stockUI, range: TypeScale.uiRange)
+        contentFontSize = Self.clampedFontSize(defaults, key: Key.contentFontSize, stock: TypeScale.stockContent, range: TypeScale.contentRange)
+        codeFontSize = Self.clampedFontSize(defaults, key: Key.codeFontSize, stock: TypeScale.stockCode, range: TypeScale.codeRange)
         sidebarActivityView = defaults.bool(forKey: Key.sidebarActivityView)
         activityThreadStyle = ActivityThreadStyle(rawValue: defaults.string(forKey: Key.activityThreadStyle) ?? "") ?? .icon
         settledCollapsed = defaults.object(forKey: Key.settledCollapsed) as? Bool ?? true
@@ -857,6 +904,20 @@ final class AppSettings {
         usagePanelDock = defaults.string(forKey: Key.usagePanelDock).flatMap(PanelDockCorner.init(rawValue:)) ?? .bottomLeading
         usagePanelHeight = defaults.object(forKey: Key.usagePanelHeight).flatMap { $0 as? Double }.map { CGFloat($0) }
         hydraPairs = Self.load([Lenient<HydraPair>].self, forKey: Key.hydraPairs)?.compactMap(\.value) ?? []
+        // The window zoom is gone. Drop a stored percent instead of turning it into a font size.
+        defaults.removeObject(forKey: "appZoom")
+        TypeScale.shared.ui = uiFontSize
+        TypeScale.shared.content = contentFontSize
+        TypeScale.shared.code = codeFontSize
+    }
+
+    /// A stored size outside its range is written back clamped. A missing key stays missing
+    /// and comes back as the stock size.
+    private static func clampedFontSize(_ defaults: UserDefaults, key: String, stock: Int, range: ClosedRange<Int>) -> Int {
+        let raw = defaults.object(forKey: key) as? Int ?? stock
+        let clamped = TypeScale.clamp(raw, to: range)
+        if clamped != raw { defaults.set(clamped, forKey: key) }
+        return clamped
     }
 
     // MARK: - Hydra pairs

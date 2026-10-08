@@ -48,9 +48,9 @@ struct PromptEditor<Extra: View, Actions: View>: View {
         let bounds = (text.isEmpty ? " " : text as NSString).boundingRect(
             with: NSSize(width: width, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [.font: NSFont.systemFont(ofSize: 14)]
+            attributes: [.font: NSFont.systemFont(ofSize: TypeScale.shared.content(14))]
         )
-        return ceil(max(18, bounds.height) + 2 * 2)
+        return ceil(max(TypeScale.shared.content(18), bounds.height) + 2 * 2)
     }
 
     private static var editorWidth: CGFloat { 520 }
@@ -58,7 +58,7 @@ struct PromptEditor<Extra: View, Actions: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(verbatim: Chrome.localized(title))
-                .font(.system(.title2, weight: .semibold))
+                .font(.ui(.title2, weight: .semibold))
             ComposerTextView(
                 text: $text,
                 height: $textHeight,

@@ -40,7 +40,7 @@ struct UsagePanel: View {
                         .foregroundStyle(Chrome.secondaryText)
                         .monospacedDigit()
                 }
-                .font(.system(.body))
+                .font(.ui(.body))
                 UsageBar(fraction: fraction, tint: Chrome.accent, label: "Context window")
                     .padding(.top, 10)
             }
@@ -91,7 +91,7 @@ struct UsagePanel: View {
             HStack(spacing: 6) {
                 ProviderIcon(provider: p, size: 13)
                 Text(verbatim: String(format: Chrome.localized("%@ · %@"), Chrome.localized(role), p.displayName))
-                    .font(.system(.callout, weight: .semibold))
+                    .font(.ui(.callout, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
             }
             .padding(.bottom, 8)

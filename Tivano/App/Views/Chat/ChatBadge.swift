@@ -25,20 +25,20 @@ struct ChatBadge<Glyph: View, Detail: View>: View {
                 glyph()
                     .frame(width: 18, height: 18)
                 Text(verbatim: Chrome.localized(title))
-                    .font(.chat(.callout, weight: .medium))
+                    .font(.ui(.callout, weight: .medium))
                     .foregroundStyle(Chrome.primaryText.opacity(0.9))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if let caption {
                     Text(verbatim: Chrome.localized(caption))
-                        .font(.chat(.caption))
+                        .font(.ui(.caption))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
                 if showsChevron {
                     Image(systemName: "chevron.right")
-                        .font(.chat(.caption2, weight: .semibold))
+                        .font(.ui(.caption2, weight: .semibold))
                         .foregroundStyle(Chrome.secondaryText)
                 }
             }

@@ -1,9 +1,9 @@
 import Foundation
 
 enum GitHubAPI {
-    /// The "Droppy Code" OAuth App, device flow enabled and token expiry off (nothing here
+    /// The "Tivano" OAuth App, device flow enabled and token expiry off (nothing here
     /// refreshes tokens). Public by design: device flow needs no client secret.
-    static let clientID = "Ov23li5RP2y9yjVjd3Zr"
+    static let clientID = "Ov23liVrgDWkR5x3gRn3"
     static let scopes = "repo read:org workflow"
 
     static func user(token: String) async throws -> GitHubUser {

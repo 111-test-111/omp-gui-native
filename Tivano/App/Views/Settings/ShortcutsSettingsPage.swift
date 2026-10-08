@@ -26,7 +26,7 @@ private struct ShortcutSectionHeader<Accessory: View>: View {
                 SidebarSymbol(symbol)
             }
             Text(verbatim: Chrome.localized(title))
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .lineLimit(1)
             Spacer(minLength: 8)
@@ -86,7 +86,7 @@ private struct FixedShortcutsCard: View {
                     }
                     ShortcutSettingsRow(title: row.title, detail: row.detail) {
                         Text(verbatim: row.chord)
-                            .font(.system(.body, weight: .semibold))
+                            .font(.ui(.body, weight: .semibold))
                             .foregroundStyle(Chrome.secondaryText)
                             .frame(width: ShortcutRowMetrics.controlWidth, height: ShortcutRowMetrics.controlHeight)
                             .background(
@@ -118,7 +118,7 @@ private struct ShortcutSettingsRow<Accessory: View>: View {
     var body: some View {
         HStack(alignment: .center, spacing: ShortcutRowMetrics.controlSpacing) {
             Text(verbatim: Chrome.localized(title))
-                .font(.callout)
+                .font(.ui(.callout))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -165,7 +165,7 @@ private struct ShortcutRecorder: View {
                     HStack(spacing: 7) {
                         ForEach(Keycap.caps(for: chord)) { cap in
                             Text(verbatim: cap.symbol)
-                                .font(.system(.body, weight: .semibold))
+                                .font(.ui(.body, weight: .semibold))
                                 .lineLimit(1)
                                 .fixedSize()
                         }
@@ -174,7 +174,7 @@ private struct ShortcutRecorder: View {
                     .accessibilityLabel(Text(verbatim: chord.description))
                 } else {
                     Text("Record shortcut")
-                        .font(.system(.callout, weight: .medium))
+                        .font(.ui(.callout, weight: .medium))
                         .lineLimit(1)
                 }
             }
@@ -269,7 +269,7 @@ private struct ShortcutCombinedControlContent: View {
 private struct ShortcutPillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(.subheadline, weight: .semibold))
+            .font(.ui(.subheadline, weight: .semibold))
             .foregroundStyle(Chrome.primaryText)
             .padding(.horizontal, 10)
             .frame(height: 22)
@@ -377,9 +377,9 @@ private struct KeycapView: View {
         if cap.isModifier {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(verbatim: cap.symbol)
-                    .font(.system(.callout, weight: .medium))
+                    .font(.ui(.callout, weight: .medium))
                 Text(verbatim: cap.name ?? "")
-                    .font(.system(.subheadline, weight: .semibold))
+                    .font(.ui(.subheadline, weight: .semibold))
             }
             .foregroundStyle(inkColor)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
@@ -388,7 +388,7 @@ private struct KeycapView: View {
             .offset(y: isPressed ? Self.keyTravel - 0.5 : 0)
         } else {
             Text(verbatim: cap.symbol)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.ui(size: 14, weight: .semibold))
                 .lineLimit(1)
                 .fixedSize()
                 .foregroundStyle(inkColor)
@@ -440,7 +440,7 @@ private struct ShortcutRecordingPopoverContent: View {
             }
             if let message = session.message {
                 Text(verbatim: Chrome.localized(message))
-                    .font(.system(.subheadline, weight: .medium))
+                    .font(.ui(.subheadline, weight: .medium))
                     .foregroundStyle(KeycapTint.rejectedColor)
                     .lineLimit(1)
                     .transition(.opacity)
@@ -450,7 +450,7 @@ private struct ShortcutRecordingPopoverContent: View {
                     ForEach(session.actions) { action in
                         Button(action: action.perform) {
                             Text(verbatim: Chrome.localized(action.title))
-                                .font(.system(.callout, weight: .semibold))
+                                .font(.ui(.callout, weight: .semibold))
                                 .lineLimit(1)
                                 .padding(.horizontal, 12)
                                 .frame(height: 26)

@@ -1,6 +1,6 @@
 import AppKit
 
-/// Capture runs are isolated; real sessions acquire one lease before migration or reads.
+/// Compatible editions coexist; older exclusive-only editions still exclude them.
 @MainActor
 enum LibraryAccess {
     private static var lease: SharedLibraryLease?
@@ -14,10 +14,11 @@ enum LibraryAccess {
         }
         do {
             let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            lease = try SharedLibraryLease(at: support.appendingPathComponent(".tivano-library.lock"))
-            try LegacyMigration.run()
+            lease = try SharedLibraryLease(at: support.appendingPathComponent(".tivano-library.lock"), mode: .shared)
+            let migration = try SharedLibraryLease(at: support.appendingPathComponent(".tivano-migration.lock"), wait: true)
+            try withExtendedLifetime(migration) { try LegacyMigration.run() }
         } catch {
-            stop(String(format: Chrome.localized("The shared library could not be opened. Close the other edition before switching. If both are closed, check the library's permissions and available disk space.\n\n%@"), error.localizedDescription))
+            stop(String(format: Chrome.localized("The shared library could not be opened. A running older Tivano build may still require exclusive access; update both editions before running them together. Otherwise check permissions and available disk space.\n\n%@"), error.localizedDescription))
         }
     }
 

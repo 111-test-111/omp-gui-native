@@ -150,7 +150,7 @@ struct HydraPanel: View {
                             .foregroundStyle(Chrome.secondaryText)
                             .help(model.providers.model(selected.model, for: selected.provider)?.shortName ?? selected.provider.displayName)
                         Text(verbatim: HydraStatusText.short(info))
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                             .lineLimit(1)
                         // How long the head has been at it, or took: its own clock, so the
@@ -238,7 +238,7 @@ private struct HydraHeadsButton: View {
         HStack(spacing: 6) {
             HydraSpokesMark()
             Text(verbatim: "\(heads.count)")
-                .font(.system(size: 12.5, weight: .semibold).monospacedDigit())
+                .font(.ui(size: 12.5, weight: .semibold).monospacedDigit())
             if running > 0 {
                 MiniSpinner()
             }
@@ -331,12 +331,12 @@ private struct HydraHeadRow: View {
                                     .foregroundStyle(Chrome.secondaryText)
                                     .help(model.providers.model(head.model, for: head.provider)?.shortName ?? head.provider.displayName)
                                 Text(verbatim: HydraStatusText.long(info))
-                                    .font(.system(.subheadline))
+                                    .font(.ui(.subheadline))
                                     .foregroundStyle(info.status == .failed ? Chrome.danger : Chrome.secondaryText)
                                     .lineLimit(1)
                             }
                             Text(verbatim: info.task.isEmpty ? Chrome.localized("Waiting for a task") : info.task)
-                                .font(.system(.callout))
+                                .font(.ui(.callout))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -454,18 +454,18 @@ private struct HydraHeadFooter: View {
                 MiniSpinner()
             } else {
                 Image(systemName: info.status == .completed ? "checkmark.circle.fill" : (info.status == .failed ? "xmark.circle.fill" : "stop.circle.fill"))
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(info.status == .completed ? Chrome.success : (info.status == .failed ? Chrome.danger : Chrome.secondaryText))
             }
             Text(verbatim: HydraStatusText.footer(info))
-                .font(.system(.callout))
+                .font(.ui(.callout))
                 .foregroundStyle(Chrome.secondaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
             Spacer(minLength: 8)
             if info.toolCalls > 0 {
                 Text(verbatim: info.toolCalls == 1 ? Chrome.localized("1 step") : String(format: Chrome.localized("%d steps"), info.toolCalls))
-                    .font(.system(.subheadline).monospacedDigit())
+                    .font(.ui(.subheadline).monospacedDigit())
                     .foregroundStyle(Chrome.secondaryText)
             }
         }

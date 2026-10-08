@@ -176,7 +176,7 @@ struct AttachmentPlayBadge: View {
                 .frame(width: 30, height: 30)
             Image(systemName: "play.fill")
                 .foregroundStyle(.white)
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
                 .offset(x: 1)
         }
         .accessibilityHidden(true)
@@ -317,7 +317,7 @@ struct AttachmentLargePreview: View {
             } else if let textPreview {
                 ScrollView {
                     Text(textPreview)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.code(.caption))
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
@@ -331,7 +331,7 @@ struct AttachmentLargePreview: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 32, height: 32)
                     Text(attachment.name)
-                        .font(.callout)
+                        .font(.ui(.callout))
                         .lineLimit(2)
                 }
                 .frame(width: 320, alignment: .leading)
@@ -340,13 +340,13 @@ struct AttachmentLargePreview: View {
 
             HStack(spacing: 8) {
                 Text(attachment.name)
-                    .font(.caption)
+                    .font(.ui(.caption))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 if let size = PreviewImages.fileSize(attachment.path) {
                     Text(size)
-                        .font(.caption)
+                        .font(.ui(.caption))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Spacer(minLength: 12)
@@ -354,12 +354,12 @@ struct AttachmentLargePreview: View {
                     NSWorkspace.shared.activateFileViewerSelecting([attachment.url])
                 }
                 .buttonStyle(.link)
-                .font(.caption)
+                .font(.ui(.caption))
                 Button("Open") {
                     NSWorkspace.shared.open(attachment.url)
                 }
                 .buttonStyle(.link)
-                .font(.caption)
+                .font(.ui(.caption))
             }
         }
         .padding(12)
@@ -414,7 +414,7 @@ struct ToolImagePreview: View {
             .clipShape(.rect(cornerRadius: 10, style: .continuous))
             HStack(spacing: 8) {
                 Text((path as NSString).lastPathComponent)
-                    .font(.caption)
+                    .font(.ui(.caption))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -423,7 +423,7 @@ struct ToolImagePreview: View {
                     NSWorkspace.shared.open(URL(fileURLWithPath: path))
                 }
                 .buttonStyle(.link)
-                .font(.caption)
+                .font(.ui(.caption))
             }
         }
         .task(id: path) {

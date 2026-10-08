@@ -136,7 +136,7 @@ struct ProjectIconPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(verbatim: Chrome.localized("Project icon"))
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.primaryText)
             searchField
             ScrollView {
@@ -158,11 +158,11 @@ struct ProjectIconPicker: View {
             HStack(spacing: 8) {
                 IconTile(isSelected: icon == nil, action: { icon = nil }) {
                     Image(systemName: "folder.fill")
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Text(verbatim: Chrome.localized("Folder"))
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                 Spacer(minLength: 0)
             }
@@ -177,7 +177,7 @@ struct ProjectIconPicker: View {
                 ForEach(group.names, id: \.self) { name in
                     IconTile(isSelected: icon?.symbolName == name, action: { icon = .symbol(name) }) {
                         Image(systemName: name)
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.primaryText.opacity(0.9))
                     }
                 }
@@ -188,11 +188,11 @@ struct ProjectIconPicker: View {
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
             TextField("Search symbols", text: $query)
                 .textFieldStyle(.plain)
-                .font(.system(.callout))
+                .font(.ui(.callout))
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
@@ -208,7 +208,7 @@ struct ProjectIconPicker: View {
                 ForEach(Self.emojis, id: \.self) { emoji in
                     IconTile(isSelected: icon?.emoji == emoji, action: { icon = .emoji(emoji) }) {
                         Text(verbatim: emoji)
-                            .font(.system(.title3))
+                            .font(.ui(.title3))
                     }
                 }
             }
@@ -221,7 +221,7 @@ struct ProjectIconPicker: View {
                 ForEach(names, id: \.self) { name in
                     IconTile(isSelected: icon?.symbolName == name, action: { icon = .symbol(name) }) {
                         Image(systemName: name)
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.primaryText.opacity(0.9))
                     }
                 }
@@ -232,7 +232,7 @@ struct ProjectIconPicker: View {
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(verbatim: Chrome.localized(title))
-                .font(.system(.footnote, weight: .medium))
+                .font(.ui(.footnote, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText)
             content()
         }
