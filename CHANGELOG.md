@@ -11,7 +11,7 @@ All notable changes to Tivano are documented here, newest first. The format foll
 - A new default theme, Breeze, takes the avocado green of the app icon as its accent, with Breeze Light and Breeze Dark variants; anyone who has already picked a theme keeps it.
 - Compatible Release and Dev editions can run together on the same library, with conflict-safe metadata updates.
 - Three font-size settings (Interface, Content, Code; one pixel smaller to three larger) replace Zoom.
-- The app icon is Tivano's v1.2 artwork, masked by the system like any other Mac app icon, and Tivano Dev wears an orange DEV corner badge on the same icon.
+- The app icon is Tivano's v1.4 artwork, masked by the system like any other Mac app icon, and Tivano Dev wears an orange DEV corner badge on the same icon.
 - Load the library after launch, preserve unreadable chat files for recovery, and release excess idle runtimes.
 - Compute timeline viewport frames on demand and debounce active-block resolution.
 - Dev packages are built with `-O` and whole-module optimization, for performance testing.
