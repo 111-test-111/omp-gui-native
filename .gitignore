@@ -1,0 +1,10 @@
+.DS_Store
+build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+build.noindex/
+# An Xcode explicit-modules build once wrote its compiler cache into Tivano.xcodeproj/-Xcc.
+-Xcc/
+
+__pycache__/
