@@ -919,9 +919,6 @@ private struct ProgressCardSurface: ViewModifier {
                         .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
                 }
                 .clipShape(shape)
-                .overlay {
-                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
-                }
         }
     }
 }

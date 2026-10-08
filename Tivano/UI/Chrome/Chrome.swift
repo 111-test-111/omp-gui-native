@@ -24,7 +24,6 @@ enum Chrome {
 
     // MARK: Window
 
-    static let windowCornerRadius: CGFloat = 26
     /// The detail sheet runs to the window's edge: inset, it drew a second, tighter corner
     /// inside the window's own, a clipped double border wherever the sidebar left it bare.
     static let sheetInset: CGFloat = 0
@@ -219,7 +218,7 @@ private struct DetailSheetModifier: ViewModifier {
     }
 }
 
-/// One shaped surface for the whole window: glass or a solid fill, a legibility tint and a hairline.
+/// The window supplies the exterior curve and border; the backdrop follows its container.
 struct WindowBackdrop: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
@@ -236,14 +235,16 @@ struct WindowBackdrop: View {
         return t <= 0.5 ? stock * (t / 0.5) : stock + (1 - stock) * ((t - 0.5) / 0.5)
     }
 
-    private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous)
+    private var shape: ContainerRelativeShape {
+        // SwiftUI supplies a container for sheets. An AppKit-hosted root falls back to
+        // a rectangle, leaving the native window frame to clip its exterior corners.
+        // https://developer.apple.com/documentation/swiftui/containerrelativeshape
+        ContainerRelativeShape()
     }
 
     private var solidBackdrop: some View {
         shape.fill(colorScheme == .dark ? Color.black : Color.white)
             .overlay { shape.fill(Chrome.glassTint.opacity(0.12)) }
-            .overlay { shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1) }
     }
 
     var body: some View {
@@ -286,10 +287,6 @@ struct WindowBackdrop: View {
             .animation(.easeInOut(duration: 0.3), value: wallpaper != nil)
             .overlay {
                 shape.fill(Chrome.glassTint.opacity(0.12))
-            }
-            // The hairline sits on the glass as well as on the solid fill.
-            .overlay {
-                shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1)
             }
         }
     }

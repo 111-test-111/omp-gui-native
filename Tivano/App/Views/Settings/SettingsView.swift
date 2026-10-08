@@ -117,7 +117,6 @@ struct SettingsView: View {
         .onDisappear { scrollTracker.end() }
         .background { WindowBackdrop(opacity: model.settings.backdropOpacity) }
         .background { WindowChromeConfigurator(performanceMode: model.settings.performanceMode) }
-        .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .ignoresSafeArea()
         .frame(width: 780, height: 580)
         .onChange(of: SettingsNavigation.shared.requestedPage, initial: true) { _, requested in
