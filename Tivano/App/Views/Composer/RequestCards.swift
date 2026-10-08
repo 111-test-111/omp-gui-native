@@ -91,9 +91,6 @@ private struct RequestCardSurface: ViewModifier {
                         .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
                 }
                 .clipShape(shape)
-                .overlay {
-                    shape.strokeBorder(Chrome.warning.opacity(0.25), lineWidth: 1)
-                }
         } else {
             content
                 .background(shape.fill(Color(nsColor: .controlBackgroundColor)))

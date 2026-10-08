@@ -55,7 +55,6 @@ struct MCPKeyPanelView: View {
         .background {
             WindowBackdrop(opacity: 0.5)
         }
-        .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .onAppear { focusedField = entry.fields.first?.key }
         .onSubmit { if model.mcp.canConnect(entry) { save() } }
         .onChange(of: model.mcp.state(for: entry.id).isConnected) { _, isConnected in

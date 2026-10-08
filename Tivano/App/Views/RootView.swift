@@ -63,8 +63,6 @@ struct RootView: View {
         }
         .background { WindowBackdrop(opacity: model.settings.backdropOpacity, wallpaper: WallpaperStore.shared.image) }
         .background { WindowChromeConfigurator(sidebarVisible: sidebar.holdsTrafficLights, sidebarDragging: sidebar.isDragging, performanceMode: model.settings.performanceMode) }
-        // Clipped after the backdrop is painted, so the glass and its edge stop at the window's own curve.
-        .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .ignoresSafeArea()
         .coordinateSpace(.named(GenieAnimator.coordinateSpace))
         .overlay { GenieLayer() }

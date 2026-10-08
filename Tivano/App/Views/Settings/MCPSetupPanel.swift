@@ -129,7 +129,6 @@ struct MCPSetupPanelView: View {
         .background {
             WindowBackdrop(opacity: 0.5)
         }
-        .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
             MCPSetupPanel.shared.fit(height: height)
         }

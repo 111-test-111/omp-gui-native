@@ -115,7 +115,6 @@ struct GitHubClonePanelView: View {
         .frame(width: 460)
         .background { WindowDragArea() }
         .background { WindowBackdrop(opacity: 0.5) }
-        .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .onAppear { searchFocused = true }
         .onExitCommand(perform: onClose)
         .task { await connection.loadRepositories() }
