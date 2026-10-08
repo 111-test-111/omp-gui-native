@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Every theme Tivano offers: Windy, Tivano's own avocado theme (the accent of
+/// Every theme Tivano offers: Breeze, Tivano's own avocado theme (the accent of
 /// the app icon, in a variant that follows the Mac and a light and a dark one),
 /// the system look, plus the palettes the big coding agents ship (Catppuccin,
 /// Dracula, Tokyo Night, Nord, Gruvbox, One Dark, Everforest, Kanagawa, Rosé
@@ -14,10 +14,10 @@ import SwiftUI
 /// Glass throughout: a theme tints the glass and recolors the accent and
 /// status hues, never paints opaque surfaces.
 enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
-    // Windy leads, so it also leads each picker section.
-    case windy
-    case windyLight
-    case windyDark
+    // Breeze leads, so it also leads each picker section.
+    case breeze
+    case breezeLight
+    case breezeDark
     case system
     case light
     case dark
@@ -49,9 +49,9 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .windy: "Windy"
-        case .windyLight: "Windy Light"
-        case .windyDark: "Windy Dark"
+        case .breeze: "Breeze"
+        case .breezeLight: "Breeze Light"
+        case .breezeDark: "Breeze Dark"
         case .system: "System"
         case .light: "Light"
         case .dark: "Dark"
@@ -84,9 +84,9 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
     /// Short picker subtitle, e.g. "Dark · Mauve".
     var detail: String {
         switch self {
-        case .windy: "Follows your Mac · Avocado"
-        case .windyLight: "Light · Avocado"
-        case .windyDark: "Dark · Avocado"
+        case .breeze: "Follows your Mac · Avocado"
+        case .breezeLight: "Light · Avocado"
+        case .breezeDark: "Dark · Avocado"
         case .system: "Follows your Mac"
         case .light: "Light · System accent"
         case .dark: "Dark · System accent"
@@ -116,11 +116,11 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// The avocado of the v1.2 app icon, once for the three Windy themes: the icon's own
+    /// The avocado of the v1.2 app icon, once for the three Breeze themes: the icon's own
     /// mid-gradient green on dark grounds (about 5:1 on 1E1E20), a deeper one on light
     /// grounds so link text and fills keep 4.5:1 on white.
-    private static let windyDarkAccent = "6B987E"
-    private static let windyLightAccent = "4A7C60"
+    private static let breezeDarkAccent = "6B987E"
+    private static let breezeLightAccent = "4A7C60"
 
     /// scheme: nil follows the system. accent/success/warning/danger: nil
     /// keeps the system hue; surface always tints the glass.
@@ -129,11 +129,11 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
         success: String?, warning: String?, danger: String?
     ) {
         switch self {
-        // Windy follows the Mac, so its accent is dynamic (see `spec`); the dark hex stands
+        // Breeze follows the Mac, so its accent is dynamic (see `spec`); the dark hex stands
         // in for it here.
-        case .windy: (nil, Self.windyDarkAccent, "1E1E20", nil, nil, nil)
-        case .windyLight: (.light, Self.windyLightAccent, "FFFFFF", nil, nil, nil)
-        case .windyDark: (.dark, Self.windyDarkAccent, "1E1E20", nil, nil, nil)
+        case .breeze: (nil, Self.breezeDarkAccent, "1E1E20", nil, nil, nil)
+        case .breezeLight: (.light, Self.breezeLightAccent, "FFFFFF", nil, nil, nil)
+        case .breezeDark: (.dark, Self.breezeDarkAccent, "1E1E20", nil, nil, nil)
         case .system: (nil, nil, "1E1E20", nil, nil, nil)
         case .light: (.light, nil, "FFFFFF", nil, nil, nil)
         case .dark: (.dark, nil, "1E1E20", nil, nil, nil)
@@ -163,18 +163,18 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// The scheme the theme fixes; nil for the themes that follow the Mac (System, Windy).
+    /// The scheme the theme fixes; nil for the themes that follow the Mac (System, Breeze).
     var scheme: ColorScheme? { palette.scheme }
 
     /// The picker's badge: a circle running from the theme's surface into
     /// its accent, so dark themes read dark and light themes light at a
-    /// glance. System splits into the Mac's light and dark halves; Windy
+    /// glance. System splits into the Mac's light and dark halves; Breeze
     /// does too, with an avocado core to tell the two apart.
     @ViewBuilder
     var swatch: some View {
         let palette = palette
         let rim = Circle().strokeBorder(Color.primary.opacity(0.22), lineWidth: 0.5)
-        if self == .system || self == .windy {
+        if self == .system || self == .breeze {
             Circle()
                 .fill(LinearGradient(
                     stops: [
@@ -184,8 +184,8 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
                     startPoint: .leading, endPoint: .trailing
                 ))
                 .overlay {
-                    if self == .windy {
-                        Circle().fill(Color(hex: Self.windyDarkAccent)).padding(4)
+                    if self == .breeze {
+                        Circle().fill(Color(hex: Self.breezeDarkAccent)).padding(4)
                     }
                 }
                 .overlay(rim)
@@ -224,13 +224,13 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var spec: ThemeSpec {
         let palette = palette
-        // System and Windy follow the Mac: the glass tint flips between dark and white with
-        // it, and Windy's accent between its dark and light avocado.
+        // System and Breeze follow the Mac: the glass tint flips between dark and white with
+        // it, and Breeze's accent between its dark and light avocado.
         let surfaceColor = palette.scheme == nil
             ? Self.dynamicColor(dark: "1E1E20", light: "FFFFFF")
             : Color(hex: palette.surface)
-        let accentColor = self == .windy
-            ? Self.dynamicColor(dark: Self.windyDarkAccent, light: Self.windyLightAccent)
+        let accentColor = self == .breeze
+            ? Self.dynamicColor(dark: Self.breezeDarkAccent, light: Self.breezeLightAccent)
             : palette.accent.map(Color.init(hex:))
         return ThemeSpec(
             scheme: palette.scheme,
@@ -264,7 +264,7 @@ enum ThemeManager {
     /// even when nothing re-renders them.
     static let didChange = Notification.Name("ThemeManager.didChange")
 
-    nonisolated(unsafe) static var current: AppTheme = .windy {
+    nonisolated(unsafe) static var current: AppTheme = .breeze {
         didSet {
             spec = current.spec
             NotificationCenter.default.post(name: didChange, object: nil)
@@ -274,7 +274,7 @@ enum ThemeManager {
     /// The current theme's colors, built once per theme change. `Chrome.accent` and friends
     /// are read in hundreds of view bodies per frame, and building a spec parses hex colors,
     /// so the parse happens here rather than on every read.
-    nonisolated(unsafe) private(set) static var spec: ThemeSpec = AppTheme.windy.spec
+    nonisolated(unsafe) private(set) static var spec: ThemeSpec = AppTheme.breeze.spec
 }
 
 extension Color {

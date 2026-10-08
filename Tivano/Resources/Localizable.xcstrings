@@ -3026,6 +3026,28 @@
         }
       }
     },
+    "Breeze Dark" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breeze 深色"
+          }
+        }
+      }
+    },
+    "Breeze Light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breeze 浅色"
+          }
+        }
+      }
+    },
     "Brewing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12790,28 +12812,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "窗口透明度"
-          }
-        }
-      }
-    },
-    "Windy Dark" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windy 深色"
-          }
-        }
-      }
-    },
-    "Windy Light" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windy 浅色"
           }
         }
       }
