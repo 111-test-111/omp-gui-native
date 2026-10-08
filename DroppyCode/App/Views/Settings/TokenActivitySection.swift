@@ -52,7 +52,7 @@ struct TokenActivitySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(verbatim: "Token activity")
+                Text("Token activity")
                     .font(.system(.title3, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
@@ -73,14 +73,14 @@ struct TokenActivitySection: View {
                             if switchCount == switchIndex { previousGrid = nil }
                         }
                     } label: {
-                        Text(verbatim: option.title)
+                        Text(verbatim: Chrome.localized(option.title))
                             .font(.system(.body, weight: mode == option ? .medium : .regular))
                     }
                     // A capsule chip, like every other small switch in the app: these
                     // were bare words with no hover, no hit target and no button trait.
                     .buttonStyle(.chip(active: mode == option))
-                    .help(Self.modeHelp(option))
-                    .accessibilityLabel(Text(verbatim: option.title))
+                    .help(Text(verbatim: Chrome.localized(Self.modeHelp(option))))
+                    .accessibilityLabel(Text(verbatim: Chrome.localized(option.title)))
                     .accessibilityAddTraits(mode == option ? [.isButton, .isSelected] : .isButton)
                 }
             }
@@ -140,19 +140,19 @@ struct TokenActivitySection: View {
     /// nothing one at a time), so this is where the grid gets a readable value.
     /// Historical overlap stays available in help and VoiceOver without crowding the footer.
     private func legend(total: Int, uncertainTokens: Int) -> some View {
-        let summary = "\(UsagePanel.tokens(total)) tokens"
+        let summary = String(format: Chrome.localized("%@ tokens"), UsagePanel.tokens(total))
         let detail = uncertainTokens > 0
-            ? "\(UsagePanel.tokens(uncertainTokens)) tokens have an unknown source and may overlap imported history."
-            : "Total tokens recorded this year."
+            ? String(format: Chrome.localized("%@ tokens have an unknown source and may overlap imported history."), UsagePanel.tokens(uncertainTokens))
+            : Chrome.localized("Total tokens recorded this year.")
 
         return HStack(spacing: 8) {
             Text(verbatim: summary)
                 .font(.system(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
                 .lineLimit(1)
-                .help(detail)
+                .help(Text(verbatim: detail))
             Spacer(minLength: 12)
-            Text(verbatim: "Less")
+            Text("Less")
                 .font(.system(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
             ForEach(Array(Self.ladder.enumerated()), id: \.offset) { _, step in
@@ -160,13 +160,13 @@ struct TokenActivitySection: View {
                     .fill(step)
                     .frame(width: 10, height: 10)
             }
-            Text(verbatim: "More")
+            Text("More")
                 .font(.system(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Token activity"))
-        .accessibilityValue(Text(uncertainTokens > 0
+        .accessibilityValue(Text(verbatim: uncertainTokens > 0
             ? "\(summary). \(detail)"
             : summary))
     }

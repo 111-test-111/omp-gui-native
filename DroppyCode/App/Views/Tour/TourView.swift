@@ -153,13 +153,13 @@ struct TourView: View {
             VStack(spacing: 0) {
                 Spacer(minLength: 12)
 
-                Text(verbatim: currentPage.title)
+                Text(verbatim: Chrome.localized(currentPage.title))
                     .font(.system(size: 28, weight: .bold))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Chrome.primaryText)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text(verbatim: currentPage.description)
+                Text(verbatim: Chrome.localized(currentPage.description))
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Chrome.secondaryText)
@@ -203,7 +203,7 @@ struct TourView: View {
 
     private var primaryActionButton: some View {
         Button(action: advance) {
-            Text(verbatim: isLastPage ? finishButtonTitle : continueButtonTitle)
+            Text(verbatim: Chrome.localized(isLastPage ? finishButtonTitle : continueButtonTitle))
                 .font(.system(.title3, weight: .semibold))
                 .frame(width: 220, height: 42)
         }

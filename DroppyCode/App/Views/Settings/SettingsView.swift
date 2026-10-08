@@ -409,6 +409,13 @@ private struct GeneralSettingsPage: View {
                 .opacity(settings.threadFinishAction == .settle ? 1 : 0.5)
             }
         }
+        ChromeSection(title: "Languages") {
+            ChromeCard {
+                ChromeRow(title: "App language", detail: "Changes apply after the app restarts.") {
+                    GlassPickerButton(options: AppLanguage.allCases.map { ($0, $0.title) }, selection: $settings.appLanguage)
+                }
+            }
+        }
     }
 }
 
@@ -466,7 +473,7 @@ private struct AppZoomCard: View {
 
     var body: some View {
         ChromeCard {
-            ChromeRow(title: "Zoom", detail: current == 100 ? "The stock size" : "\(current)% of the stock size") {
+            ChromeRow(title: "Zoom", detail: current == 100 ? "The stock size" : String(format: Chrome.localized("%lld%% of the stock size"), current)) {
                 HStack(spacing: 8) {
                     Button {
                         percent = AppZoom.next(percent, increasing: false)
@@ -528,7 +535,7 @@ private struct BackdropOpacitySlider: View {
             Image(systemName: "circle.dotted")
                 .font(.system(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
-                .help("Clear")
+                .help("Transparent")
             Slider(value: $value, in: 0...1)
                 .controlSize(.small)
                 .frame(width: 140)
@@ -652,14 +659,14 @@ private struct ProviderSettingsSection: View {
                             .foregroundStyle(Chrome.primaryText)
                             .frame(width: 22)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: status.isChecking ? "Checking…" : status.summary)
+                            Text(verbatim: Chrome.localized(status.isChecking ? "Checking…" : status.summary))
                                 .font(.system(size: 13))
                             if let version = status.version, !provider.isAPIKeyBased {
-                                Text(verbatim: "Version \(version)")
+                                Text(verbatim: String(format: Chrome.localized("Version %@"), version))
                                     .font(.system(size: 11))
                                     .foregroundStyle(Chrome.secondaryText)
                             } else if provider.isAPIKeyBased, status.apiKeyConfigured, let host = provider.apiHost {
-                                Text(verbatim: "Native API · \(host)")
+                                Text(verbatim: String(format: Chrome.localized("Native API · %@"), host))
                                     .font(.system(size: 11))
                                     .foregroundStyle(Chrome.secondaryText)
                             }
@@ -691,8 +698,8 @@ private struct ProviderSettingsSection: View {
                         ChromeRow(
                             title: provider.isAPIKeyBased ? "API key" : "API key (optional)",
                             detail: provider.isAPIKeyBased
-                                ? "Stored in your Keychain. Get one at \(provider.apiKeySource ?? "the provider dashboard")."
-                                : "Instead of `\(provider.loginCommand)`: a Studio key from \(provider.apiKeySource ?? "the provider dashboard"), stored in your Keychain and handed to the CLI."
+                                ? String(format: Chrome.localized("Stored in your Keychain. Get one at %@."), provider.apiKeySource ?? Chrome.localized("the provider dashboard"))
+                                : String(format: Chrome.localized("Instead of `%@`: a Studio key from %@, stored in your Keychain and handed to the CLI."), provider.loginCommand, provider.apiKeySource ?? Chrome.localized("the provider dashboard"))
                         ) {
                             HStack(spacing: 8) {
                                 Group {
@@ -713,14 +720,14 @@ private struct ProviderSettingsSection: View {
                                 }
                                 .buttonStyle(.plain)
                                 .foregroundStyle(Chrome.secondaryText)
-                                .help(showsAPIKey ? "Hide the API key" : "Show the API key")
+                                .help(Text(verbatim: Chrome.localized(showsAPIKey ? "Hide the API key" : "Show the API key")))
                             }
                         }
                         if provider.isAPIKeyBased, !status.isInstalled {
                             ChromeRowDivider()
-                            ChromeRow(title: "Get a key", detail: "\(provider.displayName) needs an API key. Nothing to install.") {
+                            ChromeRow(title: "Get a key", detail: String(format: Chrome.localized("%@ needs an API key. Nothing to install."), provider.displayName)) {
                                 Link(destination: provider.installURL) {
-                                    Text(verbatim: "Get a \(provider.displayName) key")
+                                    Text(verbatim: String(format: Chrome.localized("Get a %@ key"), provider.displayName))
                                         .frame(height: Chrome.rowButtonLabelHeight)
                                 }
                                 .buttonStyle(.glass)
@@ -737,9 +744,9 @@ private struct ProviderSettingsSection: View {
                         }
                         if !status.isInstalled {
                             ChromeRowDivider()
-                            ChromeRow(title: "Install", detail: "\(provider.displayName) was not found on your PATH.") {
+                            ChromeRow(title: "Install", detail: String(format: Chrome.localized("%@ was not found on your PATH."), provider.displayName)) {
                                 Link(destination: provider.installURL) {
-                                    Text(verbatim: "Get \(provider.displayName)")
+                                    Text(verbatim: String(format: Chrome.localized("Get %@"), provider.displayName))
                                         .frame(height: Chrome.rowButtonLabelHeight)
                                 }
                                 .buttonStyle(.glass)
@@ -750,7 +757,7 @@ private struct ProviderSettingsSection: View {
                                 Button {
                                     Workspace.openTerminal(running: provider.loginCommand)
                                 } label: {
-                                    Text(verbatim: "Login").frame(height: Chrome.rowButtonLabelHeight)
+                                    Text(verbatim: Chrome.localized("Login")).frame(height: Chrome.rowButtonLabelHeight)
                                 }
                                 .buttonStyle(.glass)
                             }
@@ -875,9 +882,9 @@ private struct ArchiveDeleteAllButton: View {
                 PopoverSectionHeader(count == 1 ? "Delete the archived thread?" : "Delete all archived threads?")
                 PopoverNote(count == 1
                     ? "Its history will be removed. Files in your project stay as they are."
-                    : "The histories of all \(count) threads will be removed. Files in your projects stay as they are.")
+                    : String(format: Chrome.localized("The histories of all %lld threads will be removed. Files in your projects stay as they are."), count))
                 PopoverDivider()
-                PopoverItem(count == 1 ? "Delete thread" : "Delete \(count) threads", symbol: "trash", isDestructive: true) {
+                PopoverItem(count == 1 ? "Delete thread" : String(format: Chrome.localized("Delete %lld threads"), count), symbol: "trash", isDestructive: true) {
                     model.deleteArchivedThreads()
                 }
             }
@@ -918,7 +925,7 @@ private struct ArchiveSettingsPage: View {
             }
         }
         .confirmationDialog(
-            pendingDeletion.map { "Delete \"\($0.title)\"?" } ?? "Delete the archived thread?",
+            pendingDeletion.map { String(format: Chrome.localized("Delete \"%@\"?"), $0.title) } ?? Chrome.localized("Delete the archived thread?"),
             isPresented: Binding(
                 get: { pendingDeletion != nil },
                 set: { if !$0 { pendingDeletion = nil } }
@@ -974,7 +981,7 @@ private struct AboutSettingsPage: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Droppy Code")
                         .font(.system(.title3, weight: .semibold))
-                    Text(verbatim: "Version \(AppInfo.version) (\(AppInfo.build))")
+                    Text(verbatim: String(format: Chrome.localized("Version %@ (%@)"), AppInfo.version, AppInfo.build))
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }
@@ -1025,7 +1032,7 @@ private struct LicensesRow: View {
                         VStack(alignment: .leading, spacing: 18) {
                             ForEach(Self.files, id: \.resource) { file in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(verbatim: file.title)
+                                    Text(verbatim: Chrome.localized(file.title))
                                         .font(.system(.body, weight: .semibold))
                                     MarkdownView(text: Self.text(of: file.resource)).equatable()
                                         .environment(\.markdownPointSize, 12)
@@ -1047,12 +1054,12 @@ private struct LicensesRow: View {
     /// the markdown it now renders is parsed from this text each time as it is.
     private static let texts: [String: String] = Dictionary(uniqueKeysWithValues: files.map { file in
         let url = Bundle.main.url(forResource: file.resource, withExtension: file.resource == "LICENSE" ? nil : "md")
-        let text = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? "The \(file.resource) file is missing from this copy of the app."
+        let text = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? String(format: Chrome.localized("The %@ file is missing from this copy of the app."), file.resource)
         return (file.resource, text)
     })
 
     private static func text(of resource: String) -> String {
-        texts[resource] ?? "The \(resource) file is missing from this copy of the app."
+        texts[resource] ?? String(format: Chrome.localized("The %@ file is missing from this copy of the app."), resource)
     }
 }
 
@@ -1172,7 +1179,7 @@ private struct ThemePickerButton: View {
             HStack(spacing: 6) {
                 selection.swatch
                     .frame(width: 14, height: 14)
-                Text(verbatim: selection.displayName)
+                Text(verbatim: Chrome.localized(selection.displayName))
                     .font(.system(size: 12.5, weight: .medium))
                     .lineLimit(1)
                 Image(systemName: "chevron.down")

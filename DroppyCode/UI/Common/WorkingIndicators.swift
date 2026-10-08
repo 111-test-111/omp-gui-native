@@ -340,6 +340,6 @@ enum WorkingWords {
 
     static func word(seed: UInt64, elapsedSeconds: Int64) -> String {
         let step = UInt64(max(0, elapsedSeconds) / rotateSeconds)
-        return words[Int((seed &+ step) % UInt64(words.count))]
+        return Chrome.localized(words[Int((seed &+ step) % UInt64(words.count))])
     }
 }

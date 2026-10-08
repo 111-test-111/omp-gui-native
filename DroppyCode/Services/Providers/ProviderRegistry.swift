@@ -17,11 +17,11 @@ struct ProviderStatus: Equatable, Sendable {
     var isInstalled: Bool { executable != nil || apiKeyConfigured }
 
     var summary: String {
-        guard isInstalled else { return "Not installed" }
+        guard isInstalled else { return AppText.localized("Not installed") }
         switch auth {
-        case .signedIn(let account): return account.map { "Signed in as \($0)" } ?? "Signed in"
-        case .signedOut: return "Not signed in"
-        case .unknown: return version.map { "Installed · \($0)" } ?? "Installed"
+        case .signedIn(let account): return account.map { String(format: AppText.localized("Signed in as %@"), $0) } ?? AppText.localized("Signed in")
+        case .signedOut: return AppText.localized("Not signed in")
+        case .unknown: return version.map { String(format: AppText.localized("Installed · %@"), $0) } ?? AppText.localized("Installed")
         }
     }
 }

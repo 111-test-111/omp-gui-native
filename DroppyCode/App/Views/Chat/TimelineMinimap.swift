@@ -57,9 +57,9 @@ enum TimelineMinimap {
         let title = firstWords(message.text, limit: 8)
         if !title.isEmpty { return title }
         let images = message.attachments.filter(\.isImage).count
-        if images == 1 { return "1 image" }
-        if images > 1 { return "\(images) images" }
-        return message.attachments.first?.name ?? "Message"
+        if images == 1 { return Chrome.localized("1 image") }
+        if images > 1 { return String(format: Chrome.localized("%d images"), images) }
+        return message.attachments.first?.name ?? Chrome.localized("Message")
     }
 
     @MainActor

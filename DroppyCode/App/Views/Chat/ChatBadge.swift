@@ -24,13 +24,13 @@ struct ChatBadge<Glyph: View, Detail: View>: View {
             HStack(spacing: 8) {
                 glyph()
                     .frame(width: 18, height: 18)
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.chat(.callout, weight: .medium))
                     .foregroundStyle(Chrome.primaryText.opacity(0.9))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if let caption {
-                    Text(verbatim: caption)
+                    Text(verbatim: Chrome.localized(caption))
                         .font(.chat(.caption))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
@@ -75,8 +75,8 @@ struct ChatBadge<Glyph: View, Detail: View>: View {
         .onDisappear { coordinator.close() }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.trailing, 96)
-        .accessibilityLabel(Text(title))
-        .accessibilityValue(Text(needsAttention ? "Needs your attention" : ""))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(title)))
+        .accessibilityValue(Text(verbatim: needsAttention ? Chrome.localized("Needs your attention") : ""))
     }
 }
 

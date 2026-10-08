@@ -151,29 +151,29 @@ struct CommandPalette: View {
         // Chords come from the shortcut store, so the column never shows a key the user
         // has remapped away, and shows nothing at all once a chord is cleared.
         var actions = [
-            Item(id: "new-thread", title: "New thread", symbol: "square.and.pencil", shortcut: ShortcutStore.label(for: .newThread)) {
+            Item(id: "new-thread", title: Chrome.localized("New thread"), symbol: "square.and.pencil", shortcut: ShortcutStore.label(for: .newThread)) {
                 model.newThread()
             },
-            Item(id: "new-worktree", title: "New thread in worktree", symbol: "arrow.triangle.branch", shortcut: ShortcutStore.label(for: .newWorktreeThread)) {
+            Item(id: "new-worktree", title: Chrome.localized("New thread in worktree"), symbol: "arrow.triangle.branch", shortcut: ShortcutStore.label(for: .newWorktreeThread)) {
                 model.newThread(workspace: .worktree)
             },
-            Item(id: "add-project", title: "Add project", symbol: "folder.badge.plus", shortcut: ShortcutStore.label(for: .addProject)) {
+            Item(id: "add-project", title: Chrome.localized("Add project"), symbol: "folder.badge.plus", shortcut: ShortcutStore.label(for: .addProject)) {
                 model.chooseProjectFolder()
             },
         ]
         if let threadID = model.selectedThreadID {
             let runtime = model.runtime(for: threadID)
-            actions.append(Item(id: "terminal", title: "Toggle terminal", symbol: "terminal", shortcut: ShortcutStore.label(for: .toggleTerminal)) {
+            actions.append(Item(id: "terminal", title: Chrome.localized("Toggle terminal"), symbol: "terminal", shortcut: ShortcutStore.label(for: .toggleTerminal)) {
                 runtime.isTerminalVisible.toggle()
             })
-            actions.append(Item(id: "changes", title: "Toggle changes", symbol: "plusminus", shortcut: ShortcutStore.label(for: .toggleChanges)) {
+            actions.append(Item(id: "changes", title: Chrome.localized("Toggle changes"), symbol: "plusminus", shortcut: ShortcutStore.label(for: .toggleChanges)) {
                 runtime.toggleDiff()
             })
-            actions.append(Item(id: "finish", title: model.finishActionTitle, symbol: model.finishActionSymbol, shortcut: ShortcutStore.label(for: .finishThread)) {
+            actions.append(Item(id: "finish", title: Chrome.localized(model.finishActionTitle), symbol: model.finishActionSymbol, shortcut: ShortcutStore.label(for: .finishThread)) {
                 model.finishSelectedThread()
             })
         }
-        actions.append(Item(id: "settings", title: "Settings", symbol: "gearshape", shortcut: ShortcutStore.label(for: .openSettings)) {
+        actions.append(Item(id: "settings", title: Chrome.localized("Settings"), symbol: "gearshape", shortcut: ShortcutStore.label(for: .openSettings)) {
             WindowManager.shared.showSettings()
         })
 
@@ -190,7 +190,7 @@ struct CommandPalette: View {
         let projects = needle.isEmpty ? [] : model.projects
             .filter { $0.name.lowercased().contains(needle) }
             .map { project in
-                Item(id: project.id.uuidString, title: "New thread in \(project.name)", subtitle: project.path, icon: project.icon, symbol: "folder") {
+                Item(id: project.id.uuidString, title: String(format: Chrome.localized("New thread in %@"), project.name), subtitle: project.path, icon: project.icon, symbol: "folder") {
                     model.newThread(in: project)
                 }
             }

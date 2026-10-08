@@ -80,9 +80,9 @@ struct MCPCustomServer: Codable, Sendable, Hashable, Identifiable {
         switch kind {
         case .stdio:
             let line = ([command] + args).joined(separator: " ")
-            return "Runs on this Mac: \(line)."
+            return String(format: AppText.localized("Runs on this Mac: %@."), line)
         case .http:
-            return "Remote server at \(URL(string: url)?.host() ?? url)."
+            return String(format: AppText.localized("Remote server at %@."), URL(string: url)?.host() ?? url)
         }
     }
 
@@ -129,12 +129,12 @@ enum MCPCustomError: Error, Equatable {
 
     var message: String {
         switch self {
-        case .emptyName: "The server needs a name."
-        case .takenName(let name): "A server named “\(name)” already exists."
-        case .emptyCommand: "A stdio server needs a command."
-        case .badURL: "The URL must start with https:// (or http:// for a local server)."
-        case .badVariableKey(let key): "“\(key)” is not a valid variable name: letters, digits, `_`, `-` and `.`, starting with a letter or `_`."
-        case .duplicateVariableKey(let key): "“\(key)” is listed twice."
+        case .emptyName: AppText.localized("The server needs a name.")
+        case .takenName(let name): String(format: AppText.localized("A server named “%@” already exists."), name)
+        case .emptyCommand: AppText.localized("A stdio server needs a command.")
+        case .badURL: AppText.localized("The URL must start with https:// (or http:// for a local server).")
+        case .badVariableKey(let key): String(format: AppText.localized("“%@” is not a valid variable name: letters, digits, `_`, `-` and `.`, starting with a letter or `_`."), key)
+        case .duplicateVariableKey(let key): String(format: AppText.localized("“%@” is listed twice."), key)
         }
     }
 

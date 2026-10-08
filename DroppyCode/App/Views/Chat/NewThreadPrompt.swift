@@ -15,7 +15,8 @@ struct NewThreadPrompt: View {
         VStack(spacing: 26) {
             HStack(spacing: 0) {
                 if let projectName, !projectName.isEmpty {
-                    Text("What should we build in ")
+                    let question = Chrome.localizedAround("What should we build in %@?")
+                    Text(verbatim: question.before)
                     Button {
                         isChoosingProject.toggle()
                     } label: {
@@ -29,7 +30,7 @@ struct NewThreadPrompt: View {
                     .popover(isPresented: $isChoosingProject, arrowEdge: .bottom) {
                         projectChoices
                     }
-                    Text("?")
+                    Text(verbatim: question.after)
                 } else {
                     Text("What should we build?")
                 }

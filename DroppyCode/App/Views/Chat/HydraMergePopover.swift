@@ -90,8 +90,8 @@ struct HydraMergePopover: View {
     /// GitLab calls it a merge request; the other forges call it a pull request.
     private var openTitle: String {
         switch note.link.forge {
-        case .gitlab: "Open merge request"
-        case .github, .gitea: "Open pull request"
+        case .gitlab: Chrome.localized("Open merge request")
+        case .github, .gitea: Chrome.localized("Open pull request")
         }
     }
 
@@ -116,7 +116,7 @@ struct HydraMergePopover: View {
                     Text("Merged")
                         .font(.system(.title3, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
-                    Text(verbatim: "\(note.link.label) on \(host)")
+                    Text(verbatim: String(format: Chrome.localized("%@ on %@"), note.link.label, host))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
@@ -154,7 +154,7 @@ struct HydraMergePopover: View {
                             }
                     }
                     Spacer(minLength: 8)
-                    Text(verbatim: note.heads.count == 1 ? "1 head landed" : "\(note.heads.count) heads landed")
+                    Text(verbatim: note.heads.count == 1 ? Chrome.localized("1 head landed") : String(format: Chrome.localized("%d heads landed"), note.heads.count))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
@@ -200,7 +200,7 @@ struct HydraMergePopover: View {
                                 .foregroundStyle(Chrome.success)
                                 .transition(.scale(scale: 0.6).combined(with: .opacity))
                         }
-                        Text(verbatim: didCopyLink ? "Copied" : "Copy link")
+                        Text(verbatim: didCopyLink ? Chrome.localized("Copied") : Chrome.localized("Copy link"))
                             .contentTransition(.numericText())
                     }
                 }
@@ -260,7 +260,7 @@ struct HydraMergePopover: View {
             Text(verbatim: value)
                 .font(.system(.title2, weight: .semibold).monospacedDigit())
                 .foregroundStyle(tint ?? Chrome.primaryText)
-            Text(verbatim: label)
+            Text(verbatim: Chrome.localized(label))
                 .font(.system(.footnote, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText)
         }

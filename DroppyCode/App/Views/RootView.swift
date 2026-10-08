@@ -78,7 +78,7 @@ struct RootView: View {
             handleDrop(urls)
         }
         .alert(
-            model.alert?.title ?? "",
+            Chrome.localized(model.alert?.title ?? ""),
             isPresented: Binding(
                 get: { model.alert != nil },
                 set: { if !$0 { model.alert = nil } }
@@ -87,7 +87,7 @@ struct RootView: View {
         ) { _ in
             Button("OK", role: .cancel) {}
         } message: { alert in
-            Text(alert.message)
+            Text(verbatim: Chrome.localized(alert.message))
         }
     }
 
@@ -375,7 +375,7 @@ private struct ProviderStatusRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: provider.displayName)
                     .font(.system(.body))
-                Text(verbatim: status.isChecking ? "Checking…" : status.summary)
+                Text(verbatim: status.isChecking ? Chrome.localized("Checking…") : status.summary)
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }

@@ -358,9 +358,9 @@ struct HydraReportsPopover: View {
     private static func outcomeCaption(for head: HydraReportDigest.Head) -> String {
         let base: String
         switch head.outcome {
-        case .done: base = "Finished"
-        case .failed: base = "Failed"
-        case .stopped: base = "Stopped"
+        case .done: base = Chrome.localized("Finished")
+        case .failed: base = Chrome.localized("Failed")
+        case .stopped: base = Chrome.localized("Stopped")
         }
         guard let effort = head.effort, !effort.isEmpty else { return base }
         return base + " · " + effort
@@ -385,7 +385,7 @@ struct HydraReportsPopover: View {
         let f = files.count
         let a = files.reduce(0) { $0 + $1.additions }
         let d = files.reduce(0) { $0 + $1.deletions }
-        return "\(f) file" + (f == 1 ? "" : "s") + " · +\(a) −\(d)"
+        return (f == 1 ? Chrome.localized("1 file") : String(format: Chrome.localized("%d files"), f)) + " · +\(a) −\(d)"
     }
 
     /// The title with a head's name said once: a lead that writes "Juno: Juno: streaming
@@ -422,12 +422,12 @@ struct HydraReportsPopover: View {
             default: break
             }
         }
-        var line = "\(n) \(n == 1 ? "head" : "heads")"
+        var line = n == 1 ? Chrome.localized("1 head") : String(format: Chrome.localized("%d heads"), n)
         guard !files.isEmpty else { return line }
         let f = files.count
         let a = files.reduce(0) { $0 + $1.additions }
         let d = files.reduce(0) { $0 + $1.deletions }
-        line += " · \(f) \(f == 1 ? "file" : "files") · +\(a) −\(d)"
+        line += " · " + (f == 1 ? Chrome.localized("1 file") : String(format: Chrome.localized("%d files"), f)) + " · +\(a) −\(d)"
         return line
     }
 
@@ -557,7 +557,7 @@ struct HydraReportsPopover: View {
             fileRows(files)
         case .notLanded(let files, let error):
             VStack(alignment: .leading, spacing: 4) {
-                Text(error.map { "Did not land: \($0)" } ?? "Did not land")
+                Text(verbatim: error.map { String(format: Chrome.localized("Did not land: %@"), $0) } ?? Chrome.localized("Did not land"))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.warning)
                     .fixedSize(horizontal: false, vertical: true)
@@ -606,7 +606,7 @@ struct HydraReportsPopover: View {
                         .layoutPriority(1)
                     }
                     .font(.system(.subheadline, design: .monospaced))
-                    .help(file.hasConflicts ? "\(file.path) (with conflicts)" : file.path)
+                    .help(file.hasConflicts ? String(format: Chrome.localized("%@ (with conflicts)"), file.path) : file.path)
                 }
             }
             .padding(.horizontal, 8)

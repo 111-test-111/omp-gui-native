@@ -22,10 +22,10 @@ enum RelativeTime {
     static func short(_ date: Date, now: Date = .now) -> String {
         let seconds = now.timeIntervalSince(date)
         switch seconds {
-        case ..<60: return "now"
-        case ..<3_600: return "\(Int(seconds / 60))m"
-        case ..<86_400: return "\(Int(seconds / 3_600))h"
-        case ..<604_800: return "\(Int(seconds / 86_400))d"
+        case ..<60: return Chrome.localized("now")
+        case ..<3_600: return String(format: Chrome.localized("%lldm"), Int(seconds / 60))
+        case ..<86_400: return String(format: Chrome.localized("%lldh"), Int(seconds / 3_600))
+        case ..<604_800: return String(format: Chrome.localized("%lldd"), Int(seconds / 86_400))
         default:
             if let day = days.value(for: date) { return day }
             let day = date.formatted(.dateTime.month(.abbreviated).day())

@@ -8,6 +8,13 @@ enum AppInfo {
     static let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
 }
 
+enum AppText {
+    /// The catalog's translation of an English UI string; a key it does not know comes back unchanged.
+    static func localized(_ key: String) -> String {
+        Bundle.main.localizedString(forKey: key, value: key, table: "Localizable")
+    }
+}
+
 enum TextCleanup {
     static func stripANSI(_ text: String) -> String {
         text.replacing(#/\x1B\[[0-9;?]*[ -/]*[@-~]/#, with: "")

@@ -37,7 +37,7 @@ struct MCPKeyPanelView: View {
             }
             HStack {
                 Spacer()
-                Button(entry.isOAuth ? "Sign in" : "Save and connect") {
+                Button(Chrome.localized(entry.isOAuth ? "Sign in" : "Save and connect")) {
                     save()
                 }
                 .buttonStyle(.glassProminent)
@@ -93,13 +93,13 @@ struct MCPKeyPanelView: View {
                 stepRow(1, text: Text("The page is open in your browser"), accessory: AnyView(
                     Link("Open it again", destination: url).font(.system(.subheadline))
                 ))
-                stepRow(2, text: Text("Copy the \(entry.fields.first?.label.lowercased() ?? "key")"))
+                stepRow(2, text: Text(verbatim: String(format: Chrome.localized("Copy the %@"), entry.fields.first.map { Chrome.localizedLowercased($0.label) } ?? Chrome.localized("key"))))
                 stepRow(3, text: Text("Paste it below and save"))
             }
         } else {
             VStack(alignment: .leading, spacing: 6) {
-                stepRow(1, text: Text("Enter the \(entry.fields.first?.label.lowercased() ?? "value")"))
-                stepRow(2, text: Text(entry.isOAuth ? "Sign in in your browser" : "Save"))
+                stepRow(1, text: Text(verbatim: String(format: Chrome.localized("Enter the %@"), entry.fields.first.map { Chrome.localizedLowercased($0.label) } ?? Chrome.localized("value"))))
+                stepRow(2, text: Text(verbatim: Chrome.localized(entry.isOAuth ? "Sign in in your browser" : "Save")))
             }
         }
     }
@@ -126,7 +126,7 @@ struct MCPKeyPanelView: View {
     @ViewBuilder
     private func fieldView(_ field: MCPField) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(verbatim: field.label)
+            Text(verbatim: Chrome.localized(field.label))
                 .font(.system(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
             HStack(spacing: 6) {
@@ -160,7 +160,7 @@ struct MCPKeyPanelView: View {
                     .fill(Chrome.overlay(0.06))
             }
             if let help = field.help, !help.isEmpty {
-                Text(verbatim: help)
+                Text(verbatim: Chrome.localized(help))
                     .font(.system(size: 10.5))
                     .foregroundStyle(Chrome.secondaryText)
             }

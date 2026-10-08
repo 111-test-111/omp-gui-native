@@ -19,7 +19,7 @@ struct HydraPopoverHeader: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     HydraNameText(persona: persona, size: 14, weight: .semibold, color: Chrome.primaryText)
                     if let caption, !caption.isEmpty {
-                        Text(caption)
+                        Text(verbatim: Chrome.localized(caption))
                             .font(.system(.subheadline, weight: .medium))
                             .foregroundStyle(captionColor)
                             .monospacedDigit()
@@ -104,10 +104,10 @@ struct HydraHeadReportPopover: View {
 
     static func caption(for head: HydraHeadInfo) -> String {
         let base: String = switch head.status {
-        case .completed: "Finished"
-        case .failed: "Failed"
-        case .stopped: "Stopped"
-        case .running: "Working"
+        case .completed: Chrome.localized("Finished")
+        case .failed: Chrome.localized("Failed")
+        case .stopped: Chrome.localized("Stopped")
+        case .running: Chrome.localized("Working")
         }
         guard head.status != .running, let finishedAt = head.finishedAt else { return base }
         return "\(base) · \(duration(from: head.startedAt, to: finishedAt))"

@@ -28,7 +28,7 @@ struct DiffInspector: View {
                         symbol: "plusminus",
                         title: runtime.diffSelection
                             .flatMap { id in runtime.turns.first { $0.id == id } }
-                            .map { "Turn \($0.index + 1)" } ?? "All changes",
+                            .map { String(format: Chrome.localized("Turn %lld"), $0.index + 1) } ?? "All changes",
                         help: "Choose which changes to show"
                     ) {
                         PopoverItem("All changes", isChecked: runtime.diffSelection == nil) {
@@ -36,7 +36,7 @@ struct DiffInspector: View {
                             runtime.diffSelection = nil
                         }
                         ForEach(changedTurns) { turn in
-                            PopoverItem("Turn \(turn.index + 1)", isChecked: runtime.diffSelection == turn.id) {
+                            PopoverItem(String(format: Chrome.localized("Turn %lld"), turn.index + 1), isChecked: runtime.diffSelection == turn.id) {
                                 runtime.clearDiffFocus()
                                 runtime.diffSelection = turn.id
                             }
@@ -44,7 +44,7 @@ struct DiffInspector: View {
                     }
                     Spacer(minLength: 8)
                     if !files.isEmpty {
-                        Text(summary.files.count == 1 ? "1 file" : "\(summary.files.count) files")
+                        Text(verbatim: summary.files.count == 1 ? Chrome.localized("1 file") : String(format: Chrome.localized("%lld files"), summary.files.count))
                             .font(.system(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                         DiffStatLabel(
@@ -58,7 +58,7 @@ struct DiffInspector: View {
                             PopoverItem("Collapse all", symbol: "arrow.up.left.and.arrow.down.right") { collapsed = Set(files.map(\.id)) }
                         }
                         ChromeDivider()
-                        ChromeIconButton(symbol: "xmark", help: "Hide changes" + ShortcutStore.hint(for: .toggleChanges)) {
+                        ChromeIconButton(symbol: "xmark", help: Chrome.localized("Hide changes") + ShortcutStore.hint(for: .toggleChanges)) {
                             runtime.isDiffVisible = false
                         }
                     }
@@ -214,7 +214,7 @@ private struct DiffFileCard: View, Equatable {
 
             if !isCollapsed {
                 if file.isBinary || file.hunks.isEmpty {
-                    Text(file.isBinary ? "Binary file" : "Diff details unavailable")
+                    Text(verbatim: Chrome.localized(file.isBinary ? "Binary file" : "Diff details unavailable"))
                         .font(.caption)
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.horizontal, 12)

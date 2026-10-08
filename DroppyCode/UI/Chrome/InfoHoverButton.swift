@@ -19,8 +19,8 @@ struct InfoHoverButton<Content: View>: View {
             .frame(width: 20, height: 20)
             .contentShape(.rect)
             .focusable(false)
-            .help(help)
-            .accessibilityLabel(Text(help))
+            .help(Text(verbatim: Chrome.localized(help)))
+            .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
             .accessibilityAddTraits(.isButton)
             .onHover { over in
                 isHovering = over

@@ -373,7 +373,7 @@ private struct SubagentWorkingBox: View {
 
     private var name: String {
         let short = TextCleanup.singleLine(title, limit: 24).trimmed
-        return short.isEmpty ? "Helper" : short
+        return short.isEmpty ? Chrome.localized("Helper") : short
     }
 
     var body: some View {
@@ -381,7 +381,7 @@ private struct SubagentWorkingBox: View {
             if isRunning || isSending {
                 HStack(spacing: 6) {
                     MiniSpinner()
-                    Text(verbatim: isSending && !isRunning ? "Sending…" : "\(name) working")
+                    Text(verbatim: isSending && !isRunning ? Chrome.localized("Sending…") : String(format: Chrome.localized("%@ working"), name))
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
@@ -394,7 +394,7 @@ private struct SubagentWorkingBox: View {
                 .chromeGlassCapsule()
                 .transition(.softAppear)
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel(Text(isRunning ? "\(name) working" : "Sending"))
+                .accessibilityLabel(Text(verbatim: isRunning ? String(format: Chrome.localized("%@ working"), name) : Chrome.localized("Sending")))
             }
         }
         // Held while the window is resized: the panel's frame moves every frame.

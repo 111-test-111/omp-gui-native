@@ -135,7 +135,7 @@ struct ProjectIconPicker: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(verbatim: "Project icon")
+            Text(verbatim: Chrome.localized("Project icon"))
                 .font(.system(.callout, weight: .medium))
                 .foregroundStyle(Chrome.primaryText)
             searchField
@@ -161,7 +161,7 @@ struct ProjectIconPicker: View {
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }
-                Text(verbatim: "Folder")
+                Text(verbatim: Chrome.localized("Folder"))
                     .font(.system(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                 Spacer(minLength: 0)
@@ -231,7 +231,7 @@ struct ProjectIconPicker: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
                 .font(.system(.footnote, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText)
             content()

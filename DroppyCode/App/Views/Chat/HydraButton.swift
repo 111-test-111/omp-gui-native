@@ -95,9 +95,9 @@ struct HydraButton: View {
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in
             if CaptureRun.isEnabled { WebsiteCaptures.hydraMarkFrame = frame }
         }
-        .help(help(isOn: isOn, running: running, hasHeads: !heads.isEmpty))
-        .accessibilityLabel(Text(panelHelp(running: running, hasHeads: !heads.isEmpty)))
-        .accessibilityValue(Text(isOn ? "On" : "Off"))
+        .help(Text(verbatim: help(isOn: isOn, running: running, hasHeads: !heads.isEmpty)))
+        .accessibilityLabel(Text(verbatim: panelHelp(running: running, hasHeads: !heads.isEmpty)))
+        .accessibilityValue(Text(verbatim: isOn ? Chrome.localized("On") : Chrome.localized("Off")))
     }
 
     /// Shows the floating panel; shown, hides it. The panel fades and scales in and out
@@ -174,25 +174,25 @@ struct HydraButton: View {
     }
 
     private func panelHelp(running: Int, hasHeads: Bool) -> String {
-        guard hasHeads else { return "Hydra is on, no heads out yet" }
-        if running == 0 { return "Hydra is on, show the panel" }
-        return running == 1 ? "Hydra is on, 1 head working, show or hide the panel" : "Hydra is on, \(running) heads working, show or hide the panel"
+        guard hasHeads else { return Chrome.localized("Hydra is on, no heads out yet") }
+        if running == 0 { return Chrome.localized("Hydra is on, show the panel") }
+        return running == 1 ? Chrome.localized("Hydra is on, 1 head working, show or hide the panel") : String(format: Chrome.localized("Hydra is on, %d heads working, show or hide the panel"), running)
     }
 
     private func help(isOn: Bool, running: Int, hasHeads: Bool) -> String {
-        guard isOn else { return "Hydra is on in Settings" }
-        var parts = ["Hydra is on"]
+        guard isOn else { return Chrome.localized("Hydra is on in Settings") }
+        var parts = [Chrome.localized("Hydra is on")]
         if let pair = model.hydraPair(for: thread) {
             parts.append(HydraPairSummary.workers(pair, registry: model.providers))
         } else {
-            parts.append("Heads run on this chat's model")
+            parts.append(Chrome.localized("Heads run on this chat's model"))
         }
-        if running > 0 { parts.append(running == 1 ? "1 head working" : "\(running) heads working") }
+        if running > 0 { parts.append(running == 1 ? Chrome.localized("1 head working") : String(format: Chrome.localized("%d heads working"), running)) }
         guard hasHeads else {
-            parts.append("No heads out yet")
+            parts.append(Chrome.localized("No heads out yet"))
             return parts.joined(separator: " · ")
         }
-        parts.append(runtime.isHydraPanelHidden ? "Show the panel" : "Hide the panel")
+        parts.append(runtime.isHydraPanelHidden ? Chrome.localized("Show the panel") : Chrome.localized("Hide the panel"))
         return parts.joined(separator: " · ")
     }
 }
@@ -640,7 +640,7 @@ private struct HydraSendWorkingBadge: View {
         .background(isSending ? Chrome.glassTint : Chrome.accent, in: Capsule())
         .contentShape(Capsule())
         .animation(Chrome.panelSlide, value: isSending)
-        .help(running == 1 ? "1 head working · Show or hide the Hydra panel" : "\(running) heads working · Show or hide the Hydra panel")
+        .help(Text(verbatim: running == 1 ? Chrome.localized("1 head working · Show or hide the Hydra panel") : String(format: Chrome.localized("%d heads working · Show or hide the Hydra panel"), running)))
         .accessibilityHidden(true)
     }
 }
@@ -662,32 +662,34 @@ enum HydraPairSummary {
     static func workers(_ pair: HydraPair, registry: ProviderRegistry) -> String {
         var parts: [String] = []
         if let model = workerModel(pair, registry: registry) {
-            parts.append("Heads on " + model + (pair.sendsHeadsElsewhere ? " (\(pair.headsProvider.displayName))" : ""))
+            parts.append(pair.sendsHeadsElsewhere
+                ? String(format: Chrome.localized("Heads on %@ (%@)"), model, pair.headsProvider.displayName)
+                : String(format: Chrome.localized("Heads on %@"), model))
         } else if pair.sendsHeadsElsewhere {
-            parts.append("Heads on \(pair.headsProvider.displayName)")
+            parts.append(String(format: Chrome.localized("Heads on %@"), pair.headsProvider.displayName))
         } else {
-            parts.append("Heads on the chat's model")
+            parts.append(Chrome.localized("Heads on the chat's model"))
         }
-        if let effort = pair.workerEffort { parts.append(ModelOption.effortTitle(effort) + " effort") }
+        if let effort = pair.workerEffort { parts.append(String(format: Chrome.localized("%@ effort"), Chrome.localized(ModelOption.effortTitle(effort)))) }
         return parts.joined(separator: " · ")
     }
 
     /// "Claude lead, Antigravity heads" across providers, or just "Claude".
     static func providers(_ pair: HydraPair) -> String {
-        pair.sendsHeadsElsewhere ? "\(pair.provider.displayName) lead, \(pair.headsProvider.displayName) heads" : pair.provider.displayName
+        pair.sendsHeadsElsewhere ? String(format: Chrome.localized("%@ lead, %@ heads"), pair.provider.displayName, pair.headsProvider.displayName) : pair.provider.displayName
     }
 
     /// The efforts in one phrase: "High effort" when lead and heads share one, "Lead high,
     /// heads medium effort" when they differ, one side alone when only it is set, and
     /// nothing when neither is, so a row with defaults says nothing about effort.
     static func efforts(_ pair: HydraPair) -> String? {
-        let lead = pair.orchestratorEffort.map { ModelOption.effortTitle($0).lowercased() }
-        let heads = pair.workerEffort.map { ModelOption.effortTitle($0).lowercased() }
+        let lead = pair.orchestratorEffort.map { Chrome.localizedLowercased(ModelOption.effortTitle($0)) }
+        let heads = pair.workerEffort.map { Chrome.localizedLowercased(ModelOption.effortTitle($0)) }
         switch (lead, heads) {
-        case let (lead?, heads?) where lead == heads: return "\(lead.capitalized) effort"
-        case let (lead?, heads?): return "Lead \(lead), heads \(heads) effort"
-        case let (lead?, nil): return "Lead \(lead) effort"
-        case let (nil, heads?): return "Heads \(heads) effort"
+        case let (lead?, heads?) where lead == heads: return String(format: Chrome.localized("%@ effort"), lead.capitalized)
+        case let (lead?, heads?): return String(format: Chrome.localized("Lead %@, heads %@ effort"), lead, heads)
+        case let (lead?, nil): return String(format: Chrome.localized("Lead %@ effort"), lead)
+        case let (nil, heads?): return String(format: Chrome.localized("Heads %@ effort"), heads)
         case (nil, nil): return nil
         }
     }
@@ -696,9 +698,9 @@ enum HydraPairSummary {
     /// providers "Fable + Gemini 3.8 Flash".
     @MainActor
     static func modelsTitle(_ pair: HydraPair, registry: ProviderRegistry) -> String {
-        let lead = pair.orchestratorModel.map { registry.model($0, for: pair.provider)?.shortName ?? $0 } ?? "Any \(pair.provider.displayName) model"
+        let lead = pair.orchestratorModel.map { registry.model($0, for: pair.provider)?.shortName ?? $0 } ?? String(format: Chrome.localized("Any %@ model"), pair.provider.displayName)
         guard let worker = workerModel(pair, registry: registry) ?? (pair.sendsHeadsElsewhere ? pair.headsProvider.displayName : nil) else {
-            return "\(lead) + itself"
+            return String(format: Chrome.localized("%@ + itself"), lead)
         }
         return "\(lead) + \(worker)"
     }

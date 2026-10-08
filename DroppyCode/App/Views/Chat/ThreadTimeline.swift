@@ -2101,7 +2101,7 @@ private struct WorkingIndicator: View {
         let word = WorkingWords.word(seed: seed, elapsedSeconds: Int64(max(0, elapsed)))
         let isRunning = finishedAt == nil
         let hasTools = liveWork.contains { $0.kind == .tool }
-        let label = hasTools ? WorkGroupSummary.text(for: liveWork) : (isRunning ? "\(word)…" : "Earlier steps")
+        let label = hasTools ? WorkGroupSummary.text(for: liveWork) : (isRunning ? "\(word)…" : Chrome.localized("Earlier steps"))
         let canExpand = !thinkingSteps.isEmpty || !liveWork.isEmpty
         VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
             Button {
@@ -2149,8 +2149,8 @@ private struct WorkingIndicator: View {
                 .geometryGroup()
             }
             .buttonStyle(.plain)
-            .help(canExpand ? (isExpanded ? "Hide these steps" : "Show these steps") : "")
-            .accessibilityHint(canExpand ? Text("Shows what the agent is doing") : Text(""))
+            .help(Text(verbatim: canExpand ? Chrome.localized(isExpanded ? "Hide these steps" : "Show these steps") : ""))
+            .accessibilityHint(Text(verbatim: canExpand ? Chrome.localized("Shows what the agent is doing") : ""))
 
             if isExpanded, canExpand {
                 VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {

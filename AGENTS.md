@@ -59,3 +59,9 @@
 - `scripts/publish_release.sh` runs `scripts/release_credits.py --check` on the notes and refuses to publish while anyone is missing.
 - The app's About cards ignore the Thanks heading, so it changes nothing there.
 - When a merge request from outside merges between releases, add the person to the `## [Unreleased]` entry's Thanks right away rather than at release time.
+
+## Project contracts
+
+- UI: always reuse ChromeSection, ChromeCard, ChromeRow, GlassPickerButton, ChromeVisualPicker and SettingsSwitch. Never invent styles, colors, fonts, spacing or custom controls.
+- Localization: English text is the key in `DroppyCode/Resources/Localizable.xcstrings`. Every new user-facing string needs a zh-Hans entry. Translate faithfully, clearly and naturally; keep English for product names, provider/model names, MCP, Git, worktree, token and anything that reads worse translated. Native language names stay native.
+- Follow `docs/i18n/CONVENTIONS.md` for catalog lookup and translation fragments.

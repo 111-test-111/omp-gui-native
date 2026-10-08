@@ -40,7 +40,7 @@ struct ThreadChangesTab: View {
             AttachmentAnchorCapture(onResolve: anchor)
         }
         .fixedSize()
-        .help("Show this thread's changes\(ShortcutStore.hint(for: .toggleChanges))")
-        .accessibilityLabel(Text(verbatim: "\(stats.files.count) files changed, \(stats.additions) added, \(stats.deletions) removed"))
+        .help(Text(verbatim: String(format: Chrome.localized("Show this thread's changes%@"), ShortcutStore.hint(for: .toggleChanges))))
+        .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("%d files changed, %d added, %d removed"), stats.files.count, stats.additions, stats.deletions)))
     }
 }

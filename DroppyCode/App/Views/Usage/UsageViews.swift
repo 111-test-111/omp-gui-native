@@ -14,7 +14,7 @@ struct PlanLimitsView: View {
         let isLoading = registry.loadingLimits.contains(provider)
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
-                Text(verbatim: limits?.planName.map { "Plan usage limits · \($0)" } ?? "Plan usage limits")
+                Text(verbatim: limits?.planName.map { String(format: Chrome.localized("Plan usage limits · %@"), $0) } ?? Chrome.localized("Plan usage limits"))
                     .font(.system(.body))
                     .foregroundStyle(Chrome.secondaryText)
                 Spacer(minLength: 8)
@@ -47,7 +47,7 @@ struct PlanLimitsView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.system(.footnote, weight: .semibold))
                                 .foregroundStyle(Chrome.warning)
-                            Text(verbatim: problem)
+                            Text(verbatim: Chrome.localized(problem))
                                 .font(.system(.subheadline))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .lineLimit(2)
@@ -57,7 +57,7 @@ struct PlanLimitsView: View {
                         .padding(.top, 14)
                     } else {
                         HStack(spacing: 8) {
-                            Text(verbatim: "Click here to login again")
+                            Text("Click here to login again")
                                 .font(.system(.callout))
                                 .foregroundStyle(Chrome.secondaryText)
                             Spacer(minLength: 8)
@@ -69,7 +69,7 @@ struct PlanLimitsView: View {
                     }
                 }
             } else if !isLoading {
-                Text(verbatim: "\(provider.displayName) did not report plan limits.")
+                Text(verbatim: String(format: Chrome.localized("%@ did not report plan limits."), provider.displayName))
                     .font(.system(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.top, 8)
@@ -93,11 +93,11 @@ struct CreditsView: View {
         let isLoading = registry.loadingCredits.contains(provider)
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: "Remaining credits")
+                Text("Remaining credits")
                     .font(.system(.body))
                     .foregroundStyle(Chrome.primaryText)
                 if let note = note(for: credits, isLoading: isLoading) {
-                    Text(verbatim: note)
+                    Text(verbatim: Chrome.localized(note))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -129,10 +129,10 @@ struct CreditsView: View {
     /// consequence once there is none, and what happened when nothing came back.
     private func note(for credits: ProviderCredits?, isLoading: Bool) -> String? {
         guard let credits else {
-            return isLoading ? nil : "\(provider.displayName) did not report a balance."
+            return isLoading ? nil : String(format: Chrome.localized("%@ did not report a balance."), provider.displayName)
         }
         if credits.isDepleted {
-            return "\(provider.displayName) declines turns until the balance is topped up."
+            return String(format: Chrome.localized("%@ declines turns until the balance is topped up."), provider.displayName)
         }
         return credits.breakdownText
     }
@@ -144,13 +144,13 @@ private struct LimitRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
-                Text(verbatim: window.title)
+                Text(verbatim: Chrome.localized(window.title))
                     .font(.system(.body))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                 Spacer(minLength: 8)
                 if let resetsAt = window.resetsAt {
-                    Text(verbatim: "Resets \(Self.resetText(resetsAt))")
+                    Text(verbatim: String(format: Chrome.localized("Resets %@"), Self.resetText(resetsAt)))
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
@@ -161,12 +161,12 @@ private struct LimitRow: View {
                     .monospacedDigit()
             }
             if let detail = window.detail {
-                Text(verbatim: detail)
+                Text(verbatim: Chrome.localized(detail))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
             }
-            UsageBar(fraction: window.percent / 100, tint: Self.tint(for: window.percent), label: window.title)
+            UsageBar(fraction: window.percent / 100, tint: Self.tint(for: window.percent), label: Chrome.localized(window.title))
         }
     }
 
@@ -182,7 +182,7 @@ private struct LimitRow: View {
         if seconds < 86_400 {
             let hours = Int(seconds) / 3_600
             let minutes = Int(seconds) % 3_600 / 60
-            return hours > 0 ? "in \(hours) hr \(minutes) min" : "in \(max(1, minutes)) min"
+            return hours > 0 ? String(format: Chrome.localized("in %lld hr %lld min"), hours, minutes) : String(format: Chrome.localized("in %lld min"), max(1, minutes))
         }
         if seconds < 6 * 86_400 {
             return date.formatted(.dateTime.weekday(.abbreviated).hour().minute())
@@ -226,7 +226,7 @@ private struct BankedResetsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
-                Text(verbatim: "Banked resets")
+                Text("Banked resets")
                     .font(.system(.body))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: "· \(countText)")
@@ -265,14 +265,14 @@ private struct BankedResetsView: View {
                     .font(.system(.subheadline, weight: .semibold))
                     .foregroundStyle(outcome == .reset ? Chrome.success : Chrome.secondaryText)
                     .symbolEffect(.bounce, value: phase)
-                Text(verbatim: outcome.message)
+                Text(verbatim: Chrome.localized(outcome.message))
                     .font(.system(.subheadline))
                     .foregroundStyle(outcome == .reset ? Chrome.success : Chrome.secondaryText)
             }
             .padding(.top, 4)
             .transition(.blurReplace)
         case .failed(let message):
-            Text(verbatim: message)
+            Text(verbatim: Chrome.localized(message))
                 .font(.system(.subheadline))
                 .foregroundStyle(Chrome.danger)
                 .padding(.top, 4)
@@ -284,9 +284,9 @@ private struct BankedResetsView: View {
 
     private var countText: String {
         switch credits.availableCount {
-        case 0: "None available yet"
-        case 1: "1 available"
-        default: "\(credits.availableCount) available"
+        case 0: Chrome.localized("None available yet")
+        case 1: Chrome.localized("1 available")
+        default: String(format: Chrome.localized("%lld available"), credits.availableCount)
         }
     }
 
@@ -322,11 +322,11 @@ private struct BankedResetRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: row.credit?.title ?? (several ? "Reset \(index + 1)" : "Reset"))
+                Text(verbatim: row.credit?.title.map { Chrome.localized($0) } ?? (several ? String(format: Chrome.localized("Reset %lld"), index + 1) : Chrome.localized("Reset")))
                     .font(.system(.body))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
-                Text(verbatim: row.credit?.detail ?? expiryText)
+                Text(verbatim: row.credit?.detail.map { Chrome.localized($0) } ?? expiryText)
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(1)
@@ -337,9 +337,9 @@ private struct BankedResetRow: View {
     }
 
     private var expiryText: String {
-        guard let expiresAt = row.credit?.expiresAt else { return "No expiry reported" }
-        if expiresAt <= .now { return "Expired" }
-        return "Expires " + LimitRow.resetText(expiresAt)
+        guard let expiresAt = row.credit?.expiresAt else { return Chrome.localized("No expiry reported") }
+        if expiresAt <= .now { return Chrome.localized("Expired") }
+        return String(format: Chrome.localized("Expires %@"), LimitRow.resetText(expiresAt))
     }
 
     @ViewBuilder private var control: some View {
@@ -353,7 +353,7 @@ private struct BankedResetRow: View {
         case .applying(let id) where id == row.id:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
-                Text(verbatim: "Resetting…")
+                Text("Resetting…")
                     .font(.system(.callout))
                     .foregroundStyle(Chrome.secondaryText)
             }
@@ -390,7 +390,7 @@ struct UsageBar: View {
         }
         .frame(height: 5)
         .accessibilityElement()
-        .accessibilityLabel(Text(verbatim: label))
-        .accessibilityValue(Text(verbatim: "\(Int((min(max(fraction, 0), 1) * 100).rounded()))% used"))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(label)))
+        .accessibilityValue(Text(verbatim: String(format: Chrome.localized("%lld%% used"), Int((min(max(fraction, 0), 1) * 100).rounded()))))
     }
 }

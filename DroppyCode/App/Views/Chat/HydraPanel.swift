@@ -175,14 +175,14 @@ struct HydraPanel: View {
                 .accessibilityLabel(Text("Drag to move"))
             HStack(spacing: 8) {
                 if isPoppedOut {
-                    ChromeCircleButton(symbol: "arrow.down.left", help: "Put \(selected?.hydra?.displayName ?? "the head") back in the team panel") {
+                    ChromeCircleButton(symbol: "arrow.down.left", help: String(format: Chrome.localized("Put %@ back in the team panel"), selected?.hydra?.displayName ?? Chrome.localized("the head"))) {
                         dismiss()
                     }
                 } else {
                     // The head on stage pops out into a second panel, as long as another
                     // head stays behind to keep this one.
                     if let selected, let popOut, heads.count > 1 {
-                        ChromeCircleButton(symbol: "arrow.up.right", help: "Pop \(selected.hydra?.displayName ?? "this head") out into its own panel") {
+                        ChromeCircleButton(symbol: "arrow.up.right", help: String(format: Chrome.localized("Pop %@ out into its own panel"), selected.hydra?.displayName ?? Chrome.localized("this head"))) {
                             popOut(selected.id)
                         }
                         .transition(.softAppear)
@@ -251,15 +251,15 @@ private struct HydraHeadsButton: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(heads.count == 1 ? "1 head" : "\(heads.count) heads")
+        .help(Text(verbatim: heads.count == 1 ? Chrome.localized("1 head") : String(format: Chrome.localized("%d heads"), heads.count)))
         .accessibilityAddTraits(.isButton)
-        .accessibilityLabel(Text(heads.count == 1 ? "1 head" : "\(heads.count) heads"))
+        .accessibilityLabel(Text(verbatim: heads.count == 1 ? Chrome.localized("1 head") : String(format: Chrome.localized("%d heads"), heads.count)))
         .accessibilityAction { isPresented.toggle() }
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu {
                 let waiting = runtime.hydraWaitingCount
-                let header = running == 0 ? "Heads" : (running == 1 ? "1 head working" : "\(running) heads working")
-                PopoverSectionHeader(waiting > 0 ? header + (waiting == 1 ? ", 1 waiting" : ", \(waiting) waiting") : header)
+                let header = running == 0 ? Chrome.localized("Heads") : (running == 1 ? Chrome.localized("1 head working") : String(format: Chrome.localized("%d heads working"), running))
+                PopoverSectionHeader(waiting > 0 ? (waiting == 1 ? String(format: Chrome.localized("%@, 1 waiting"), header) : String(format: Chrome.localized("%@, %d waiting"), header, waiting)) : header)
                 ForEach(heads) { head in
                     HydraHeadRow(head: head, isOnStage: head.id == runtime.hydraSelectedHeadID) {
                         runtime.hydraSelectedHeadID = head.id
@@ -329,7 +329,7 @@ private struct HydraHeadRow: View {
                                     .foregroundStyle(info.status == .failed ? Chrome.danger : Chrome.secondaryText)
                                     .lineLimit(1)
                             }
-                            Text(verbatim: info.task.isEmpty ? "Waiting for a task" : info.task)
+                            Text(verbatim: info.task.isEmpty ? Chrome.localized("Waiting for a task") : info.task)
                                 .font(.system(.callout))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .lineLimit(1)
@@ -357,7 +357,7 @@ private struct HydraHeadRow: View {
                 withAnimation(Chrome.hover) { isHovering = hovering }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text("\(info.displayName), \(HydraStatusText.long(info)), \(info.task)\(isOnStage ? ", on stage" : "")"))
+            .accessibilityLabel(Text(verbatim: String(format: Chrome.localized(isOnStage ? "%@, %@, %@, on stage" : "%@, %@, %@"), info.displayName, HydraStatusText.long(info), info.task)))
         }
     }
 }
@@ -377,8 +377,8 @@ private struct HydraStopButton: View {
                 .background(.tint, in: .circle)
         }
         .buttonStyle(.plain)
-        .help("Stop \(name)")
-        .accessibilityLabel(Text("Stop \(name)"))
+        .help(Text(verbatim: String(format: Chrome.localized("Stop %@"), name)))
+        .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("Stop %@"), name)))
     }
 }
 
@@ -458,7 +458,7 @@ private struct HydraHeadFooter: View {
                 .truncationMode(.tail)
             Spacer(minLength: 8)
             if info.toolCalls > 0 {
-                Text(verbatim: info.toolCalls == 1 ? "1 step" : "\(info.toolCalls) steps")
+                Text(verbatim: info.toolCalls == 1 ? Chrome.localized("1 step") : String(format: Chrome.localized("%d steps"), info.toolCalls))
                     .font(.system(.subheadline).monospacedDigit())
                     .foregroundStyle(Chrome.secondaryText)
             }
@@ -490,36 +490,36 @@ enum HydraLiveInfo {
 enum HydraStatusText {
     static func short(_ info: HydraHeadInfo) -> String {
         switch info.status {
-        case .running: "working"
-        case .completed: "done"
-        case .failed: "failed"
-        case .stopped: "stopped"
+        case .running: Chrome.localized("working")
+        case .completed: Chrome.localized("done")
+        case .failed: Chrome.localized("failed")
+        case .stopped: Chrome.localized("stopped")
         }
     }
 
     static func long(_ info: HydraHeadInfo) -> String {
         switch info.status {
         case .running:
-            return info.activity.map { "· " + TextCleanup.singleLine($0, limit: 40) } ?? "· working"
+            return "· " + (info.activity.map { TextCleanup.singleLine($0, limit: 40) } ?? Chrome.localized("working"))
         case .completed:
-            return "· done" + elapsed(info) + steps(info) + (landed(info).map { " · " + $0 } ?? "")
+            return "· " + Chrome.localized("done") + elapsed(info) + steps(info) + (landed(info).map { " · " + $0 } ?? "")
         case .failed:
-            return "· failed"
+            return "· " + Chrome.localized("failed")
         case .stopped:
-            return "· stopped"
+            return "· " + Chrome.localized("stopped")
         }
     }
 
     static func footer(_ info: HydraHeadInfo) -> String {
         switch info.status {
         case .running:
-            return info.activity.map { TextCleanup.singleLine($0, limit: 80) } ?? "Working"
+            return info.activity.map { TextCleanup.singleLine($0, limit: 80) } ?? Chrome.localized("Working")
         case .completed:
-            return "Done" + elapsed(info) + steps(info) + (landed(info).map { " · " + $0 } ?? "") + (info.summary.map { " · " + TextCleanup.singleLine($0, limit: 80) } ?? "")
+            return Chrome.localized("Done") + elapsed(info) + steps(info) + (landed(info).map { " · " + $0 } ?? "") + (info.summary.map { " · " + TextCleanup.singleLine($0, limit: 80) } ?? "")
         case .failed:
-            return "Failed" + (info.summary.map { " · " + TextCleanup.singleLine($0, limit: 80) } ?? "")
+            return Chrome.localized("Failed") + (info.summary.map { " · " + TextCleanup.singleLine($0, limit: 80) } ?? "")
         case .stopped:
-            return "Stopped"
+            return Chrome.localized("Stopped")
         }
     }
 
@@ -527,26 +527,27 @@ enum HydraStatusText {
     /// of its own.
     static func landed(_ info: HydraHeadInfo) -> String? {
         guard let landing = info.landing else { return nil }
-        if landing.isEmpty { return "changed nothing" }
-        let files = landing.files.count == 1 ? "1 file" : "\(landing.files.count) files"
-        if landing.patchPath != nil { return "kept as a patch" }
-        if landing.error != nil { return "did not land" }
+        if landing.isEmpty { return Chrome.localized("changed nothing") }
+        let files = landing.files.count == 1 ? Chrome.localized("1 file") : String(format: Chrome.localized("%d files"), landing.files.count)
+        if landing.patchPath != nil { return Chrome.localized("kept as a patch") }
+        if landing.error != nil { return Chrome.localized("did not land") }
         if !landing.conflicts.isEmpty {
-            return "landed \(files), " + (landing.conflicts.count == 1 ? "1 conflict" : "\(landing.conflicts.count) conflicts")
+            return String(format: Chrome.localized("landed %@, %@"), files, landing.conflicts.count == 1 ? Chrome.localized("1 conflict") : String(format: Chrome.localized("%d conflicts"), landing.conflicts.count))
         }
-        return "landed \(files)"
+        return String(format: Chrome.localized("landed %@"), files)
     }
 
     private static func steps(_ info: HydraHeadInfo) -> String {
         guard info.toolCalls > 0 else { return "" }
-        return info.toolCalls == 1 ? " · 1 step" : " · \(info.toolCalls) steps"
+        return " · " + (info.toolCalls == 1 ? Chrome.localized("1 step") : String(format: Chrome.localized("%d steps"), info.toolCalls))
     }
 
     private static func elapsed(_ info: HydraHeadInfo) -> String {
         guard let finished = info.finishedAt else { return "" }
         let seconds = Int(finished.timeIntervalSince(info.startedAt))
         guard seconds > 0 else { return "" }
-        return " in " + Duration.seconds(seconds)
+        let duration = Duration.seconds(seconds)
             .formatted(.units(allowed: [.seconds, .minutes], width: .narrow, maximumUnitCount: 2, fractionalPart: .hide(rounded: .down)))
+        return " " + String(format: Chrome.localized("in %@"), duration)
     }
 }

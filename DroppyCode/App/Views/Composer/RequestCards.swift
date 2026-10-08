@@ -9,7 +9,7 @@ struct ApprovalCard: View {
             HStack(spacing: 8) {
                 Image(systemName: request.symbol)
                     .foregroundStyle(Chrome.warning)
-                Text(request.headline)
+                Text(verbatim: Chrome.localized(request.headline))
                     .font(.headline)
                 Spacer()
             }
@@ -49,11 +49,11 @@ struct ApprovalCard: View {
                 let ownsShortcut = request.id == runtime.approvals.first?.id
                 ForEach(request.options.reversed()) { option in
                     if option.role == .approve {
-                        Button(option.title) { runtime.resolve(request, option: option) }
+                        Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
                             .buttonStyle(.glassProminent)
                             .keyboardShortcut(ownsShortcut ? KeyboardShortcut(.return, modifiers: .command) : nil)
                     } else {
-                        Button(option.title) { runtime.resolve(request, option: option) }
+                        Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
                             .buttonStyle(.glass)
                     }
                 }

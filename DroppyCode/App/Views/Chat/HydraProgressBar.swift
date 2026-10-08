@@ -205,7 +205,7 @@ struct HydraProgressBar: View {
         }
         .onDisappear { SweepBudget.shared.leave(ObjectIdentifier(runtime)) }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: "\(counts.sentence), \(elapsed)\(isRunning ? " so far" : "")"))
+        .accessibilityLabel(Text(verbatim: String(format: Chrome.localized(isRunning ? "%@, %@ so far" : "%@, %@"), counts.sentence, elapsed)))
     }
 
     /// The step a stave stands for, on the rail's card. Sits just above the bar, centred on
@@ -294,9 +294,9 @@ struct HydraProgressBar: View {
 
         private var parts: [String] {
             var parts: [String] = []
-            if edits > 0 { parts.append("\(edits) \(edits == 1 ? "edit" : "edits")") }
-            if commands > 0 { parts.append("\(commands) \(commands == 1 ? "command" : "commands")") }
-            if reads > 0 { parts.append("\(reads) \(reads == 1 ? "read" : "reads")") }
+            if edits > 0 { parts.append(edits == 1 ? Chrome.localized("1 edit") : String(format: Chrome.localized("%d edits"), edits)) }
+            if commands > 0 { parts.append(commands == 1 ? Chrome.localized("1 command") : String(format: Chrome.localized("%d commands"), commands)) }
+            if reads > 0 { parts.append(reads == 1 ? Chrome.localized("1 read") : String(format: Chrome.localized("%d reads"), reads)) }
             return parts
         }
 
@@ -304,7 +304,7 @@ struct HydraProgressBar: View {
         var line: String { parts.joined(separator: " · ") }
 
         var sentence: String {
-            parts.isEmpty ? "Nothing done yet" : parts.joined(separator: ", ")
+            parts.isEmpty ? Chrome.localized("Nothing done yet") : parts.joined(separator: Chrome.localized(", "))
         }
     }
 
@@ -329,7 +329,7 @@ struct HydraProgressBar: View {
                 // The first line of the reply is all the stave shows, so only the head of the
                 // text is split, not the whole reply on every streamed flush.
                 let words = TextCleanup.singleLine(String(message.text.prefix(600)), limit: 60)
-                return Stave(kind: .reply, arrivedAt: entry.item.date, step: words.isEmpty ? "Replied" : "Replied: \(words)", mcp: nil, symbol: "bubble.left")
+                return Stave(kind: .reply, arrivedAt: entry.item.date, step: words.isEmpty ? Chrome.localized("Replied") : String(format: Chrome.localized("Replied: %@"), words), mcp: nil, symbol: "bubble.left")
             default:
                 return nil
             }

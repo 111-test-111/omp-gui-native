@@ -90,7 +90,7 @@ struct UsagePanel: View {
             }
             HStack(spacing: 6) {
                 ProviderIcon(provider: p, size: 13)
-                Text(verbatim: "\(role) · \(p.displayName)")
+                Text(verbatim: String(format: Chrome.localized("%@ · %@"), Chrome.localized(role), p.displayName))
                     .font(.system(.callout, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
             }

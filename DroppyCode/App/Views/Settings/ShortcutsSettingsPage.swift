@@ -25,7 +25,7 @@ private struct ShortcutSectionHeader<Accessory: View>: View {
             SidebarIconBadge {
                 SidebarSymbol(symbol)
             }
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
                 .font(.system(.body, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .lineLimit(1)
@@ -117,12 +117,12 @@ private struct ShortcutSettingsRow<Accessory: View>: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: ShortcutRowMetrics.controlSpacing) {
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
                 .font(.callout)
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
-                .help(detail)
+                .help(Text(verbatim: Chrome.localized(detail)))
                 .layoutPriority(0)
             Spacer(minLength: 0)
             accessory
@@ -438,7 +438,7 @@ private struct ShortcutRecordingPopoverContent: View {
                 }
             }
             if let message = session.message {
-                Text(verbatim: message)
+                Text(verbatim: Chrome.localized(message))
                     .font(.system(.subheadline, weight: .medium))
                     .foregroundStyle(KeycapTint.rejectedColor)
                     .lineLimit(1)
@@ -448,7 +448,7 @@ private struct ShortcutRecordingPopoverContent: View {
                 HStack(spacing: 8) {
                     ForEach(session.actions) { action in
                         Button(action: action.perform) {
-                            Text(verbatim: action.title)
+                            Text(verbatim: Chrome.localized(action.title))
                                 .font(.system(.callout, weight: .semibold))
                                 .lineLimit(1)
                                 .padding(.horizontal, 12)

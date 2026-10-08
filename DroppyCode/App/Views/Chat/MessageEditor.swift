@@ -92,8 +92,8 @@ struct MessageEditor: View {
                     .foregroundStyle(Chrome.secondaryText)
             case .found(let preview) where preview.restorable.isEmpty:
                 // Everything it changed has been changed again by something else since.
-                Label(preview.files.count == 1 ? "The file it changed has changed again since, so it stays as it is"
-                      : "The \(preview.files.count) files it changed have changed again since, so they stay as they are",
+                Label(preview.files.count == 1 ? Chrome.localized("The file it changed has changed again since, so it stays as it is")
+                      : String(format: Chrome.localized("The %d files it changed have changed again since, so they stay as they are"), preview.files.count),
                       systemImage: "hand.raised")
                     .foregroundStyle(Chrome.secondaryText)
                 fileList(preview.files)
@@ -103,7 +103,7 @@ struct MessageEditor: View {
                     HStack(spacing: 8) {
                         Text("Undo the file changes this thread made")
                         Spacer(minLength: 8)
-                        Text(restorable.count == 1 ? "1 file" : "\(restorable.count) files")
+                        Text(verbatim: restorable.count == 1 ? Chrome.localized("1 file") : String(format: Chrome.localized("%d files"), restorable.count))
                             .foregroundStyle(Chrome.secondaryText)
                         DiffStatLabel(additions: preview.additions, deletions: preview.deletions)
                     }
@@ -143,7 +143,7 @@ struct MessageEditor: View {
                 .font(.caption)
                 // Off, or kept: the row stays as a reminder of what is not going back.
                 .opacity(restoresFiles && !file.isKept ? 1 : 0.45)
-                .help(file.isKept ? "\(file.path)\nChanged again since this thread last touched it, so it is left alone." : file.path)
+                .help(file.isKept ? file.path + "\n" + Chrome.localized("Changed again since this thread last touched it, so it is left alone.") : file.path)
             }
         }
         if files.count > 5 {

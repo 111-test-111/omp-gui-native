@@ -56,9 +56,9 @@ struct FollowUpQueueTab: View {
                     Image(systemName: "arrow.turn.down.right")
                         .font(Chrome.inlineIconFont)
                         .foregroundStyle(Chrome.secondaryText)
-                    Text(verbatim: runtime.followUps.count == 1 ? "1 follow-up" : "\(runtime.followUps.count) follow-ups")
+                    Text(verbatim: runtime.followUps.count == 1 ? Chrome.localized("1 follow-up") : String(format: Chrome.localized("%d follow-ups"), runtime.followUps.count))
                         .foregroundStyle(Chrome.primaryText.opacity(0.9))
-                    Text(verbatim: "queued")
+                    Text(verbatim: Chrome.localized("queued"))
                         .foregroundStyle(Chrome.secondaryText)
                     Spacer(minLength: 8)
                     Image(systemName: "chevron.down")
@@ -77,9 +77,9 @@ struct FollowUpQueueTab: View {
             // thread spun in that rebuild forever (the Sept 15 2026 freezes). None of the tab's
             // controls are meant to be tabbed to, so none of them join the loop.
             .focusable(false)
-            .help(isCollapsed ? "Expand queued follow-ups" : "Collapse queued follow-ups")
-            .accessibilityLabel(Text(verbatim: runtime.followUps.count == 1 ? "1 queued follow-up" : "\(runtime.followUps.count) queued follow-ups"))
-            .accessibilityValue(Text(isCollapsed ? "Collapsed" : "Expanded"))
+            .help(Text(verbatim: isCollapsed ? Chrome.localized("Expand queued follow-ups") : Chrome.localized("Collapse queued follow-ups")))
+            .accessibilityLabel(Text(verbatim: runtime.followUps.count == 1 ? Chrome.localized("1 queued follow-up") : String(format: Chrome.localized("%d queued follow-ups"), runtime.followUps.count)))
+            .accessibilityValue(Text(verbatim: isCollapsed ? Chrome.localized("Collapsed") : Chrome.localized("Expanded")))
 
             // The rows stay in place and fold: a clip animates between zero
             // and their measured height while they fade, so nothing is ever
@@ -502,9 +502,9 @@ private struct FollowUpRow: View {
         let images = prompt.attachments.filter(\.isImage).count
         let files = prompt.attachments.count - images
         var parts: [String] = []
-        if images == 1 { parts.append("1 image") } else if images > 1 { parts.append("\(images) images") }
-        if files == 1 { parts.append("1 file") } else if files > 1 { parts.append("\(files) files") }
-        guard !parts.isEmpty else { return "Empty follow-up" }
+        if images == 1 { parts.append(Chrome.localized("1 image")) } else if images > 1 { parts.append(String(format: Chrome.localized("%d images"), images)) }
+        if files == 1 { parts.append(Chrome.localized("1 file")) } else if files > 1 { parts.append(String(format: Chrome.localized("%d files"), files)) }
+        guard !parts.isEmpty else { return Chrome.localized("Empty follow-up") }
         return parts.joined(separator: ", ")
     }
 }
@@ -526,7 +526,7 @@ private struct QueueIconButton: View {
         .buttonStyle(.plain)
         .focusable(false)
         .disabled(!isEnabled)
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
     }
 }

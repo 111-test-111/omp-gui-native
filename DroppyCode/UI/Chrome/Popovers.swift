@@ -122,7 +122,7 @@ struct PopoverSectionHeader: View {
     }
 
     var body: some View {
-        Text(verbatim: title)
+        Text(verbatim: Chrome.localized(title))
             .font(.system(.subheadline, weight: .semibold))
             .foregroundStyle(Chrome.secondaryText)
             .padding(.horizontal, 8)
@@ -140,7 +140,7 @@ struct PopoverNote: View {
     }
 
     var body: some View {
-        Text(verbatim: text)
+        Text(verbatim: Chrome.localized(text))
             .font(.system(.callout))
             .foregroundStyle(Chrome.secondaryText)
             .padding(.horizontal, 8)
@@ -304,14 +304,14 @@ struct PopoverItem: View {
                         .frame(width: 16)
                         .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
-                (isConfirmed ? Text(verbatim: confirmation ?? title) : (titleText ?? Text(verbatim: title)))
+                (isConfirmed ? Text(verbatim: Chrome.localized(confirmation ?? title)) : (titleText ?? Text(verbatim: Chrome.localized(title))))
                     .font(.system(.body))
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .contentTransition(.numericText())
                 Spacer(minLength: 16)
                 if let detail {
-                    Text(verbatim: detail)
+                    Text(verbatim: Chrome.localized(detail))
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
@@ -329,7 +329,7 @@ struct PopoverItem: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
-        .accessibilityLabel(Text(detail.map { "\(title), \($0)" } ?? title))
+        .accessibilityLabel(Text(verbatim: detail.map { "\(Chrome.localized(title)), \(Chrome.localized($0))" } ?? Chrome.localized(title)))
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
@@ -372,9 +372,9 @@ struct RowActionMenuButtons: View {
                 item.action()
             } label: {
                 if let symbol = item.symbol {
-                    Label(item.title, systemImage: symbol)
+                    Label { Text(verbatim: Chrome.localized(item.title)) } icon: { Image(systemName: symbol) }
                 } else {
-                    Text(item.title)
+                    Text(verbatim: Chrome.localized(item.title))
                 }
             }
         }

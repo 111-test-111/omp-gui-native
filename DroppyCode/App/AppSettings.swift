@@ -1,5 +1,21 @@
 import SwiftUI
 
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case system
+    case english
+    case simplifiedChinese
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .system: "System default"
+        case .english: "English"
+        case .simplifiedChinese: "简体中文"
+        }
+    }
+}
+
 enum TextGenerationChoice: String, CaseIterable, Identifiable {
     case automatic
     case claude
@@ -141,6 +157,7 @@ final class AppSettings {
         static let efforts = "lastEfforts"
         static let lastHydraPair = "lastHydraPairID"
         static let textGeneration = "textGeneration"
+        static let appLanguage = "appLanguage"
         static let commitInstructions = "commitInstructions"
         static let terminalHeight = "terminalHeight"
         static let modelList = "modelList"
@@ -297,6 +314,20 @@ final class AppSettings {
         didSet { defaults.set(backdropOpacity, forKey: Key.backdropOpacity) }
     }
     static let defaultBackdropOpacity = 0.5
+
+    var appLanguage: AppLanguage {
+        didSet {
+            defaults.set(appLanguage.rawValue, forKey: Key.appLanguage)
+            switch appLanguage {
+            case .system:
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            case .english:
+                UserDefaults.standard.set(["en"], forKey: "AppleLanguages")
+            case .simplifiedChinese:
+                UserDefaults.standard.set(["zh-Hans"], forKey: "AppleLanguages")
+            }
+        }
+    }
 
     var textGeneration: TextGenerationChoice {
         didSet { defaults.set(textGeneration.rawValue, forKey: Key.textGeneration) }
@@ -730,6 +761,7 @@ final class AppSettings {
             ?? .system
         theme = initialTheme
         ThemeManager.current = initialTheme
+        appLanguage = AppLanguage(rawValue: defaults.string(forKey: Key.appLanguage) ?? "") ?? .system
         textGeneration = TextGenerationChoice(rawValue: defaults.string(forKey: Key.textGeneration) ?? "") ?? .automatic
         commitInstructions = defaults.string(forKey: Key.commitInstructions) ?? ""
         terminalHeight = defaults.object(forKey: Key.terminalHeight) as? Double ?? 260

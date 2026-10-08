@@ -1,6 +1,17 @@
 import AppKit
 import SwiftUI
 
+/// A Hydra merge stage's words in the app language. With several projects the stage reads
+/// "Project: words", and only the words after the last colon are translated.
+enum MergeStageText {
+    static func localized(_ stage: String) -> String {
+        let whole = Chrome.localized(stage)
+        if whole != stage { return whole }
+        guard let colon = stage.range(of: ": ", options: .backwards) else { return stage }
+        return String(stage[..<colon.upperBound]) + Chrome.localized(String(stage[colon.upperBound...]))
+    }
+}
+
 /// The timeline's shared geometry. One vertical rhythm governs every pair of rows —
 /// reply to reply, reply to work line, work line to row — so the distance between
 /// text and the steps never varies. A message's hover controls sit inside that gap
@@ -110,7 +121,7 @@ struct UserMessageRow: View {
                             .modifier(ChipChrome())
                             .help(quote.text)
                             .accessibilityElement(children: .combine)
-                            .accessibilityLabel(Text(verbatim: "Quote: \(quote.excerpt)"))
+                            .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("Quote: %@"), quote.excerpt)))
                         }
                     }
                     .padding(.trailing, UserBubble.tail)
@@ -289,7 +300,7 @@ struct HydraReportRow: View {
             }
             .buttonStyle(.plain)
             .disabled(details.isEmpty)
-            .help(details.isEmpty ? "" : "Show the message")
+            .help(Text(verbatim: details.isEmpty ? "" : Chrome.localized("Show the message")))
             .badgePopover(isPresented: $isShowingReport) {
                 // Reports from heads draw the digest; a merge note draws its own card;
                 // every other note keeps the markdown view.
@@ -343,18 +354,19 @@ struct HydraReportRow: View {
         let others = names.filter { outcomes[$0] != nil }
         var parts: [String] = []
         if !done.isEmpty {
-            parts.append("\(list(done)) \(done.count == 1 ? "is" : "are") done")
+            parts.append(String(format: Chrome.localized(done.count == 1 ? "%@ is done" : "%@ are done"), list(done)))
         }
         for name in others {
-            parts.append("\(name) \(outcomes[name] ?? "failed")")
+            parts.append(String(format: Chrome.localized(outcomes[name] == "stopped" ? "%@ stopped" : "%@ failed"), name))
         }
-        return TextCleanup.singleLine(parts.joined(separator: ", "), limit: 140)
+        let joined = parts.dropFirst().reduce(parts.first ?? "") { String(format: Chrome.localized("%@, %@"), $0, $1) }
+        return TextCleanup.singleLine(joined, limit: 140)
     }
 
     /// "Hank", "Hank and Walter", "Hank, Walter and Ada".
     private static func list(_ names: [String]) -> String {
         if names.count <= 1 { return names.first ?? "" }
-        return names.dropLast().joined(separator: ", ") + " and " + (names.last ?? "")
+        return names.dropLast().joined(separator: Chrome.localized(", ")) + Chrome.localized(" and ") + (names.last ?? "")
     }
 
     /// Each head's outcome off its `## Name: task (failed)` / `(stopped)` section, by
@@ -442,16 +454,17 @@ private struct FinishedHeadPill: View {
 
     var body: some View {
         let title: String = switch head.status {
-        case .failed: "\(head.persona.name) failed"
-        case .stopped: "\(head.persona.name) was stopped"
-        default: "\(head.persona.name) finished working"
+        case .failed: String(format: Chrome.localized("%@ failed"), head.persona.name)
+        case .stopped: String(format: Chrome.localized("%@ was stopped"), head.persona.name)
+        default: String(format: Chrome.localized("%@ finished working"), head.persona.name)
         }
+        let outcome = Chrome.localizedAround(head.status == .failed ? "%@ failed" : (head.status == .stopped ? "%@ was stopped" : "%@ finished working"))
         Button {
             isShowingReport.toggle()
         } label: {
             HStack(spacing: 8) {
                 HydraGlyph(persona: head.persona, size: 18, status: head.status)
-                (HydraNameStyle.text(head.persona, base: Chrome.primaryText.opacity(0.75)) + Text(verbatim: head.status == .failed ? " failed" : (head.status == .stopped ? " was stopped" : " finished working")))
+                (Text(verbatim: outcome.before) + HydraNameStyle.text(head.persona, base: Chrome.primaryText.opacity(0.75)) + Text(verbatim: outcome.after))
                     .font(.chat(.callout, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -743,13 +756,12 @@ struct HydraDelegationBlock: View {
     /// "Summoning heads" while the briefs still stream; once the block has closed, how many
     /// are going (or went) out, the one head by name when the lead named it.
     private static func title(for delegations: [HydraDelegation], streaming: Bool, sent: Bool) -> String {
-        if streaming || delegations.isEmpty { return "Summoning heads" }
-        let verb = sent ? "Summoned" : "Summoning"
+        if streaming || delegations.isEmpty { return Chrome.localized("Summoning heads") }
         if delegations.count == 1 {
-            if let persona = persona(named: delegations[0].name) { return "\(verb) \(persona.name)" }
-            return "\(verb) a head"
+            if let persona = persona(named: delegations[0].name) { return String(format: Chrome.localized(sent ? "Summoned %@" : "Summoning %@"), persona.name) }
+            return Chrome.localized(sent ? "Summoned a head" : "Summoning a head")
         }
-        return "\(verb) \(delegations.count) heads"
+        return String(format: Chrome.localized(sent ? "Summoned %d heads" : "Summoning %d heads"), delegations.count)
     }
 
     /// The roster persona the lead announced for an entry, when it is a roster name.
@@ -953,7 +965,7 @@ struct HydraMergeRow: View {
 
     private func pill(outcome: HydraMergeOutcome?, isMerging: Bool) -> some View {
         // The same stage words the sidebar shows beside its own spinner.
-        let stage = (runtime.hydraMergeStage ?? "Merging") + "…"
+        let stage = MergeStageText.localized(runtime.hydraMergeStage ?? "Merging") + "…"
         // The stage alone, no clock: the merge's stages say what it is doing, and a
         // count of seconds beside them read as a stall.
         return HStack(spacing: 8) {
@@ -1016,7 +1028,7 @@ struct HydraMergeRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.trailing, 96)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(outcome?.title ?? "Merging the team's work: \(stage)"))
+        .accessibilityLabel(Text(verbatim: outcome?.title ?? String(format: Chrome.localized("Merging the team's work: %@"), stage)))
         .onChange(of: isMerging) { wasMerging, merging in
             guard wasMerging, !merging, let outcome, outcome.title.contains("Hydra merged") else { return }
             flourish = true
@@ -1107,7 +1119,7 @@ struct HydraMergeRow: View {
             }
             .buttonStyle(.plain)
             .disabled(outcome.details.isEmpty)
-            .help(outcome.details.isEmpty ? "" : "Show the message")
+            .help(Text(verbatim: outcome.details.isEmpty ? "" : Chrome.localized("Show the message")))
             .popover(isPresented: $isShowingReport, arrowEdge: .bottom) {
                 // A merge note draws its own card; every other outcome keeps the markdown view.
                 if let link = outcome.link, let request = MergeRequestLink(url: link), let note = HydraMergeNote.parse(outcome.details, link: request) {
@@ -1494,8 +1506,8 @@ struct WorkGroup: View {
                     .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
-                .help(isCollapsed ? "Show these steps" : "Hide these steps")
-                .accessibilityLabel(Text(isCollapsed ? "Show these steps" : "Hide these steps"))
+                .help(Text(verbatim: Chrome.localized(isCollapsed ? "Show these steps" : "Hide these steps")))
+                .accessibilityLabel(Text(verbatim: Chrome.localized(isCollapsed ? "Show these steps" : "Hide these steps")))
                 if !isCollapsed {
                     WorkSteps(entries: entries, runtime: runtime, workingDirectory: workingDirectory, showsAll: $showsAll)
                 }
@@ -1533,7 +1545,7 @@ struct WorkSteps: View {
                         .font(.chat(.caption))
                         .foregroundStyle(Chrome.secondaryText)
                         .frame(width: TimelineMetrics.iconWidth)
-                    Text(hidden == 1 ? "1 earlier step" : "\(hidden) earlier steps")
+                    Text(verbatim: hidden == 1 ? Chrome.localized("1 earlier step") : String(format: Chrome.localized("%d earlier steps"), hidden))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 .font(.chat(.callout))
@@ -1600,13 +1612,13 @@ enum WorkGroupSummary {
             guard let isRunning = running[kind] else { continue }
             parts.append(label(for: kind, running: isRunning))
         }
-        if parts.isEmpty { return "Worked" }
+        if parts.isEmpty { return Chrome.localized("Worked") }
         guard parts.count > 1 else { return parts[0] }
         let rest = parts.dropFirst().map { part -> String in
             guard let head = part.first else { return part }
             return String(head).lowercased() + String(part.dropFirst())
         }
-        return ([parts[0]] + rest).joined(separator: ", ")
+        return ([parts[0]] + rest).joined(separator: Chrome.localized(", "))
     }
 
     static func symbol(for entries: [TimelineEntry]) -> String {
@@ -1621,14 +1633,14 @@ enum WorkGroupSummary {
 
     private static func label(for kind: ToolCall.Kind, running: Bool) -> String {
         switch kind {
-        case .edit: running ? "Editing files" : "Edited files"
-        case .read: running ? "Reading files" : "Read files"
-        case .command: running ? "Running commands" : "Ran commands"
-        case .search: running ? "Searching" : "Searched"
-        case .web: running ? "Browsing" : "Browsed"
-        case .mcp: running ? "Calling tools" : "Called tools"
-        case .agent: running ? "Delegating tasks" : "Delegated tasks"
-        case .other: running ? "Using tools" : "Used tools"
+        case .edit: Chrome.localized(running ? "Editing files" : "Edited files")
+        case .read: Chrome.localized(running ? "Reading files" : "Read files")
+        case .command: Chrome.localized(running ? "Running commands" : "Ran commands")
+        case .search: Chrome.localized(running ? "Searching" : "Searched")
+        case .web: Chrome.localized(running ? "Browsing" : "Browsed")
+        case .mcp: Chrome.localized(running ? "Calling tools" : "Called tools")
+        case .agent: Chrome.localized(running ? "Delegating tasks" : "Delegated tasks")
+        case .other: Chrome.localized(running ? "Using tools" : "Used tools")
         }
     }
 }
@@ -1703,7 +1715,7 @@ struct ToolRow: View {
                             .contentShape(.rect)
                     }
                     .buttonStyle(.plain)
-                    .help(helpText(opensDiff: opensDiff, opensImage: opensImage, opensHead: opensHead, showsOutput: showsOutput))
+                    .help(Text(verbatim: helpText(opensDiff: opensDiff, opensImage: opensImage, opensHead: opensHead, showsOutput: showsOutput)))
                 } else {
                     line(call: call, imagePath: imagePath, opensPopover: opensPopover, opensHead: opensHead, showsOutput: showsOutput)
                 }
@@ -1736,13 +1748,14 @@ struct ToolRow: View {
 
     /// What the departing row says: on its way, out, or never sent.
     private static func departureLabel(for call: ToolCall, name: String?, task: String) -> String {
-        let who = name ?? "a head"
-        let rest = task.isEmpty ? "" : ": \(task)"
-        switch call.status {
-        case .running: return "Sending out \(who)\(rest)"
-        case .failed: return "Could not send out \(who)\(rest)"
-        default: return "Sent out \(who)\(rest)"
+        let who = name ?? Chrome.localized("a head")
+        let template = switch call.status {
+        case .running: "Sending out %@"
+        case .failed: "Could not send out %@"
+        default: "Sent out %@"
         }
+        if task.isEmpty { return String(format: Chrome.localized(template), who) }
+        return String(format: Chrome.localized(template + ": %@"), who, task)
     }
 
     /// The glyph's badge for a departing row: nothing on its way, the outcome once known.
@@ -1785,7 +1798,7 @@ struct ToolRow: View {
                 }
                 // One text run after the icon, so the row reads as
                 // icon + space + text instead of three spaced items.
-                Text(head.map { "\(call.status == .running ? "Sending out" : "Sent out") \($0.persona.name): \(call.title)" }
+                Text(verbatim: head.map { String(format: Chrome.localized(call.status == .running ? "Sending out %@: %@" : "Sent out %@: %@"), $0.persona.name, call.title) }
                     ?? departing.map { Self.departureLabel(for: call, name: $0.name, task: $0.task) }
                     ?? mcp.map { ToolPresentation.mcpLabel(entry: $0.entry, tool: $0.tool, running: call.status == .running) }
                     ?? ToolPresentation.label(for: call))
@@ -1845,11 +1858,11 @@ struct ToolRow: View {
     }
 
     private func helpText(opensDiff: Bool, opensImage: Bool, opensHead: Bool, showsOutput: Bool) -> String {
-        if opensHead { return "Show the head's steps" }
-        if opensDiff { return "Show this change" }
-        if opensImage { return "Show the image" }
+        if opensHead { return Chrome.localized("Show the head's steps") }
+        if opensDiff { return Chrome.localized("Show this change") }
+        if opensImage { return Chrome.localized("Show the image") }
         guard showsOutput else { return "" }
-        return isExpanded ? "Hide the output" : "Show the output"
+        return Chrome.localized(isExpanded ? "Hide the output" : "Show the output")
     }
 }
 
@@ -1946,7 +1959,7 @@ struct HydraHeadStepsPopover: View {
     }
 
     private func sectionTitle(_ title: String) -> some View {
-        Text(verbatim: title)
+        Text(verbatim: Chrome.localized(title))
             .font(.chat(.caption, weight: .semibold))
             .foregroundStyle(Chrome.secondaryText)
     }
@@ -2009,14 +2022,14 @@ struct HydraHeadStepsPopover: View {
     /// long it took.
     private static func statusLine(for hydra: HydraHeadInfo) -> String {
         let outcome: String = switch hydra.status {
-        case .running: "Working…"
-        case .completed: "Done"
-        case .failed: "Failed"
-        case .stopped: "Stopped"
+        case .running: Chrome.localized("Working…")
+        case .completed: Chrome.localized("Done")
+        case .failed: Chrome.localized("Failed")
+        case .stopped: Chrome.localized("Stopped")
         }
         var parts = [outcome]
         if hydra.toolCalls > 0 {
-            parts.append(hydra.toolCalls == 1 ? "1 tool" : "\(hydra.toolCalls) tools")
+            parts.append(hydra.toolCalls == 1 ? Chrome.localized("1 tool") : String(format: Chrome.localized("%d tools"), hydra.toolCalls))
         }
         if let finishedAt = hydra.finishedAt {
             parts.append(RelativeTime.duration(finishedAt.timeIntervalSince(hydra.startedAt)))
@@ -2154,7 +2167,7 @@ private struct ToolDetailView: View {
                         .padding(10)
                         .background(.quaternary.opacity(0.45), in: .rect(cornerRadius: 10, style: .continuous))
                     if lineCount > Self.outputLineLimit {
-                        Button(showsFullOutput ? "Show less" : "Show full output (\(lineCount) lines)") {
+                        Button(showsFullOutput ? Chrome.localized("Show less") : String(format: Chrome.localized("Show full output (%d lines)"), lineCount)) {
                             showsFullOutput.toggle()
                         }
                         .buttonStyle(.link)
@@ -2208,14 +2221,14 @@ enum ToolPresentation {
     static func verb(for call: ToolCall) -> String {
         let running = call.status == .running
         return switch call.kind {
-        case .command: running ? "Running" : "Ran"
-        case .read: running ? "Reading" : "Read"
-        case .edit: running ? "Editing" : "Edited"
-        case .search: running ? "Searching" : "Searched"
-        case .web: running ? "Browsing" : "Browsed"
-        case .mcp: running ? "Calling" : "Called"
-        case .agent: running ? "Delegating" : "Delegated"
-        case .other: running ? "Using" : "Used"
+        case .command: Chrome.localized(running ? "Running" : "Ran")
+        case .read: Chrome.localized(running ? "Reading" : "Read")
+        case .edit: Chrome.localized(running ? "Editing" : "Edited")
+        case .search: Chrome.localized(running ? "Searching" : "Searched")
+        case .web: Chrome.localized(running ? "Browsing" : "Browsed")
+        case .mcp: Chrome.localized(running ? "Calling" : "Called")
+        case .agent: Chrome.localized(running ? "Delegating" : "Delegated")
+        case .other: Chrome.localized(running ? "Using" : "Used")
         }
     }
 
@@ -2305,7 +2318,7 @@ struct PlanCard: View {
                                 .buttonStyle(.glass)
                             }
                             .disabled(isBusy)
-                            .help(isBusy ? "Wait for the current turn to finish" : "")
+                            .help(Text(verbatim: isBusy ? Chrome.localized("Wait for the current turn to finish") : ""))
                         }
                     }
                     .padding(16)
@@ -2317,18 +2330,18 @@ struct PlanCard: View {
 
     private static func title(for state: ProposedPlan.State) -> String {
         switch state {
-        case .drafting: "Writing a plan"
-        case .proposed: "Plan ready"
-        case .accepted, .dismissed: "Plan"
+        case .drafting: Chrome.localized("Writing a plan")
+        case .proposed: Chrome.localized("Plan ready")
+        case .accepted, .dismissed: Chrome.localized("Plan")
         }
     }
 
     private static func caption(for state: ProposedPlan.State) -> String? {
         switch state {
         case .drafting: nil
-        case .proposed: "Implement or dismiss"
-        case .accepted: "Approved"
-        case .dismissed: "Dismissed"
+        case .proposed: Chrome.localized("Implement or dismiss")
+        case .accepted: Chrome.localized("Approved")
+        case .dismissed: Chrome.localized("Dismissed")
         }
     }
 
@@ -2448,9 +2461,9 @@ struct TurnEndRow: View {
     static func label(for summary: TurnSummary) -> String {
         let duration = RelativeTime.duration(summary.duration)
         return switch summary.status {
-        case .completed, .running: "Worked for \(duration)"
-        case .interrupted: "Stopped after \(duration)"
-        case .failed: "Failed after \(duration)"
+        case .completed, .running: String(format: Chrome.localized("Worked for %@"), duration)
+        case .interrupted: String(format: Chrome.localized("Stopped after %@"), duration)
+        case .failed: String(format: Chrome.localized("Failed after %@"), duration)
         }
     }
 }
@@ -2618,8 +2631,8 @@ struct TurnFinishedBlock: View {
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .help(isExpanded ? "Hide this turn's steps" : "Show this turn's steps")
-            .accessibilityLabel(Text(isExpanded ? "Hide this turn's steps" : "Show this turn's steps"))
+            .help(Text(verbatim: Chrome.localized(isExpanded ? "Hide this turn's steps" : "Show this turn's steps")))
+            .accessibilityLabel(Text(verbatim: Chrome.localized(isExpanded ? "Hide this turn's steps" : "Show this turn's steps")))
 
             if showsBody {
                 Divider()
@@ -2737,7 +2750,7 @@ private struct TurnFileCard: View {
         // this card alive after it scrolls away.
         let reviewBox = reviewAnchor
         let files = changes.files
-        let title = files.count == 1 ? "Edited 1 file" : "Edited \(files.count) files"
+        let title = files.count == 1 ? Chrome.localized("Edited 1 file") : String(format: Chrome.localized("Edited %d files"), files.count)
         HStack(spacing: 8) {
             Button { isShowingFiles.toggle() } label: {
                 HStack(spacing: 8) {
@@ -2848,7 +2861,7 @@ private struct TurnFileCard: View {
                 .padding(.vertical, 7)
             }
             if files.count > 12 {
-                Text(files.count == 13 ? "and 1 more file" : "and \(files.count - 12) more files")
+                Text(verbatim: files.count == 13 ? Chrome.localized("and 1 more file") : String(format: Chrome.localized("and %d more files"), files.count - 12))
                     .font(.chat(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 12)

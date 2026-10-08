@@ -70,17 +70,17 @@ struct MCPSetupPanelView: View {
             if state.isConnected {
                 successView
             } else {
-                Text(verbatim: guide.reason)
+                Text(verbatim: Chrome.localized(guide.reason))
                     .font(.system(.callout))
                     .foregroundStyle(Chrome.primaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(Array(guide.steps.enumerated()), id: \.offset) { index, step in
-                        stepRow(index + 1, text: Text(verbatim: step))
+                        stepRow(index + 1, text: Text(verbatim: Chrome.localized(step)))
                     }
                 }
                 HStack {
-                    Button(guide.pageLabel) {
+                    Button(Chrome.localized(guide.pageLabel)) {
                         if let url = URL(string: guide.pageURL) {
                             NSWorkspace.shared.open(url)
                         }
@@ -104,7 +104,7 @@ struct MCPSetupPanelView: View {
                 }
                 if checkedOnce && !state.isConnecting {
                     if case .needsSetup = state {
-                        Text(verbatim: "Still off on the server's side. " + (guide.note ?? ""))
+                        Text(verbatim: String(format: Chrome.localized("Still off on the server's side. %@"), guide.note.map { Chrome.localized($0) } ?? ""))
                             .font(.system(.subheadline))
                             .foregroundStyle(Chrome.warning)
                             .fixedSize(horizontal: false, vertical: true)
@@ -150,7 +150,7 @@ struct MCPSetupPanelView: View {
                 Text(verbatim: entry.name)
                     .font(.system(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
-                Text(verbatim: guide.title)
+                Text(verbatim: Chrome.localized(guide.title))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
@@ -196,7 +196,7 @@ struct MCPSetupPanelView: View {
                 if case .connected(let count) = state { return count }
                 return 0
             }()
-            Text(verbatim: "Connected · \(count) tools")
+            Text(verbatim: String(format: Chrome.localized("Connected · %lld tools"), count))
                 .font(.system(.callout, weight: .medium))
                 .foregroundStyle(Chrome.primaryText)
         }

@@ -49,7 +49,7 @@ struct TerminalPanel: View {
                         .font(Chrome.iconFont)
                 }
                 .buttonStyle(.chip)
-                .help("Hide terminal\(ShortcutStore.hint(for: .toggleTerminal))")
+                .help(Text(verbatim: Chrome.localized("Hide terminal") + ShortcutStore.hint(for: .toggleTerminal)))
                 .accessibilityLabel(Text("Hide terminal"))
             }
             .padding(.horizontal, 10)
@@ -178,9 +178,9 @@ private struct TerminalTab: View {
         .onTapGesture(perform: select)
         .onHover { isHovering = $0 }
         .opacity(session.isRunning ? 1 : 0.55)
-        .help(session.isRunning ? session.title : "\(session.title) · the shell has exited")
+        .help(Text(verbatim: session.isRunning ? session.title : String(format: Chrome.localized("%@ · the shell has exited"), session.title)))
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(session.isRunning ? session.title : "\(session.title), the shell has exited"))
+        .accessibilityLabel(Text(verbatim: session.isRunning ? session.title : String(format: Chrome.localized("%@, the shell has exited"), session.title)))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }

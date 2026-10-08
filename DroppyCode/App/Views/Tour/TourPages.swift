@@ -9,7 +9,7 @@ enum Tour {
         TourPage(imageName: "tour-threads", title: "Threads, when you want them", description: "Hide the sidebar and the chat has the whole window. The Threads button brings the list back as a floating panel: the same search, the same rows, and it goes away as soon as you pick one."),
         TourPage(imageName: "tour-recipes", title: "Recipes for a team", description: "Hydra's cookbook holds ready-made pairs: a lead, its heads and the effort each side gets, from the providers you have signed in. Pick one in Settings and every new chat starts on it."),
         TourPage(imageName: "tour-panels", title: "Panels that float", description: "Changes, the terminal and the team's panel dock to any corner and can pop out on their own. The conversation makes room, and everything stays in one window."),
-        TourPage(imageName: "tour-themes", title: "Make it yours", description: "\(themeCount) themes, from Catppuccin to Kanagawa, in real Liquid Glass. Built in Swift, so it scrolls at 120 frames a second and starts in a blink."),
+        TourPage(imageName: "tour-themes", title: "Make it yours", description: String(format: Chrome.localized("%@ themes, from Catppuccin to Kanagawa, in real Liquid Glass. Built in Swift, so it scrolls at 120 frames a second and starts in a blink."), themeCount)),
     ]
 
     /// The number of themes spelled out ("Twenty-six"), read from the catalogue so the
@@ -18,7 +18,7 @@ enum Tour {
     private static var themeCount: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .spellOut
-        formatter.locale = Locale(identifier: "en_US")
+        formatter.locale = Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en_US")
         let spelled = formatter.string(from: NSNumber(value: AppTheme.allCases.count)) ?? "\(AppTheme.allCases.count)"
         return spelled.prefix(1).uppercased() + spelled.dropFirst()
     }

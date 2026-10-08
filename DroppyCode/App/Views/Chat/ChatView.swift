@@ -1129,7 +1129,7 @@ private struct ChatChromeRow: View {
                     ThreadsButton()
                         .transition(.softAppear)
                 }
-                ChromeCircleButton(symbol: "square.and.pencil", help: "New thread" + ShortcutStore.hint(for: .newThread)) {
+                ChromeCircleButton(symbol: "square.and.pencil", help: Chrome.localized("New thread") + ShortcutStore.hint(for: .newThread)) {
                     model.newThread(in: project)
                 }
                 if let thread = model.thread(runtime.threadID) {
@@ -1162,11 +1162,11 @@ private struct ChatChromeRow: View {
                         }
                     }
                     ChromeCapsule {
-                        ChromeIconButton(symbol: "terminal", isActive: runtime.isTerminalVisible, help: "Terminal" + ShortcutStore.hint(for: .toggleTerminal)) {
+                        ChromeIconButton(symbol: "terminal", isActive: runtime.isTerminalVisible, help: Chrome.localized("Terminal") + ShortcutStore.hint(for: .toggleTerminal)) {
                             runtime.isTerminalVisible.toggle()
                         }
                         ChromeDivider()
-                        ChromeIconButton(symbol: "plusminus", isActive: runtime.isDiffVisible, help: "Changes" + ShortcutStore.hint(for: .toggleChanges)) {
+                        ChromeIconButton(symbol: "plusminus", isActive: runtime.isDiffVisible, help: Chrome.localized("Changes") + ShortcutStore.hint(for: .toggleChanges)) {
                             runtime.toggleDiff()
                         }
                     }
@@ -1200,7 +1200,7 @@ private struct ChatChromeTitle: View {
             renameText = title
             isPresented.toggle()
         } label: {
-            Text(verbatim: title.isEmpty ? "New thread" : title)
+            Text(verbatim: title.isEmpty ? Chrome.localized("New thread") : title)
                 .font(.system(.title3, weight: .semibold))
                 .foregroundStyle(title.isEmpty ? Chrome.secondaryText : Chrome.primaryText)
                 .lineLimit(1)
@@ -1331,7 +1331,7 @@ private struct PermissionMenu: View {
     let thread: ChatThread
 
     var body: some View {
-        ChromeCircleMenu(symbol: thread.runtimeMode.symbol, help: "\(thread.runtimeMode.title) · \(thread.runtimeMode.summary)") {
+        ChromeCircleMenu(symbol: thread.runtimeMode.symbol, help: "\(Chrome.localized(thread.runtimeMode.title)) · \(Chrome.localized(thread.runtimeMode.summary))") {
             PopoverSectionHeader("Permissions")
             ForEach(RuntimeMode.allCases) { mode in
                 PopoverItem(mode.title, symbol: mode.symbol, isChecked: thread.runtimeMode == mode) {
@@ -1475,8 +1475,8 @@ private struct GitActionsMenu: View {
 
     var body: some View {
         let changed = git.status?.changedFiles ?? 0
-        ChromeMenuButton(symbol: "arrow.triangle.pull", help: changed == 0 ? "Commit, push and open pull requests" : "\(changed) changed files") {
-            PopoverNote(changed == 1 ? "1 changed file" : "\(changed) changed files")
+        ChromeMenuButton(symbol: "arrow.triangle.pull", help: changed == 0 ? "Commit, push and open pull requests" : String(format: Chrome.localized("%d changed files"), changed)) {
+            PopoverNote(changed == 1 ? "1 changed file" : String(format: Chrome.localized("%d changed files"), changed))
             PopoverDivider()
             PopoverItem("Commit…", symbol: "checkmark.circle", isEnabled: changed > 0) { isCommitting = true }
             PopoverItem("Push", symbol: "arrow.up.circle") { push() }
@@ -1560,7 +1560,7 @@ private struct CommitSheet: View {
                     .scrollContentBackground(.hidden)
                     .padding(8)
                 if message.isEmpty {
-                    Text(isGenerating ? "Writing a message…" : "Commit message")
+                    Text(verbatim: isGenerating ? Chrome.localized("Writing a message…") : Chrome.localized("Commit message"))
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.horizontal, 13)
                         .padding(.vertical, 8)
@@ -1589,7 +1589,7 @@ private struct CommitSheet: View {
                 }
                 .buttonStyle(.glass)
                 .disabled(isGenerating || !canGenerate)
-                .help(canGenerate ? "Write a commit message from these changes" : "Turn on text generation in Settings > Source control")
+                .help(Text(verbatim: canGenerate ? Chrome.localized("Write a commit message from these changes") : Chrome.localized("Turn on text generation in Settings > Source control")))
                 Toggle("Push after committing", isOn: $pushesAfterCommit)
                     .toggleStyle(.checkbox)
                 Spacer()
@@ -1715,7 +1715,7 @@ private struct ScriptsEditor: View {
                 }
                 .buttonStyle(.glassProminent)
                 .disabled(incomplete)
-                .help(incomplete ? "Every script needs a command." : "Save these scripts")
+                .help(Text(verbatim: incomplete ? Chrome.localized("Every script needs a command.") : Chrome.localized("Save these scripts")))
             }
         }
         .padding(20)
