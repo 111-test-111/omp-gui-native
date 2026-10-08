@@ -1,5 +1,3 @@
-<img src="docs/icon.png" width="128" alt="Tivano icon">
-
 # Tivano
 
 A native macOS app for your coding agents, and a fork of [Droppy Code](https://getdroppycode.app) by Jordy Spruit. Written entirely in Swift and SwiftUI with Liquid Glass, for Macs with Apple silicon on macOS 26 and later.

@@ -4786,17 +4786,6 @@
         }
       }
     },
-    "Droppy Code is a coding app by Droppy for Mac." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Droppy Code 是 Droppy 出品的 Mac 编程应用。"
-          }
-        }
-      }
-    },
     "Tivano is licensed under the GNU AGPL v3.0 with attribution terms; SwiftTerm is MIT licensed." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6744,28 +6733,6 @@
         }
       }
     },
-    "Made by Droppy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "由 Droppy 制作"
-          }
-        }
-      }
-    },
-    "Made by Droppy. Open getdroppy.app" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "由 Droppy 制作。打开 getdroppy.app"
-          }
-        }
-      }
-    },
     "Make a key on the page, then copy it" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7840,17 +7807,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开食谱"
-          }
-        }
-      }
-    },
-    "Open getdroppy.app" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 getdroppy.app"
           }
         }
       }
@@ -11294,28 +11250,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "对话上次使用的组合"
-          }
-        }
-      }
-    },
-    "The coding app by Droppy. A calm, native home for your coding agents." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Droppy 出品的编程应用，为你的编程智能体打造安静的原生之家。"
-          }
-        }
-      }
-    },
-    "The coding app by Droppy: a native home for your coding agents, built in Swift with Liquid Glass." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Droppy 出品的编程应用：为你的编程智能体打造的原生之家，使用 Swift 构建，采用 Liquid Glass 设计。"
           }
         }
       }
