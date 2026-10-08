@@ -57,10 +57,10 @@ Release's even when the numeric version catches up.
 
 ## Shared real data
 
-See [shared library](shared-library.md). Editions are for switching, not concurrent
-writers. The owner accepts the risk of Dev modifying the real store, including
+See [shared library](shared-library.md). Both editions have the same conversation read/write behavior;
+the owner controls concurrent use manually. The owner accepts the risk of Dev modifying the real store, including
 schema changes that an older Release may not understand. Keep backups before
-risky experiments; the writer lease prevents concurrent overwrite but cannot
+risky experiments; short file transactions do not prevent concurrent conversation edits or
 make arbitrary schema downgrades safe.
 
 Source: [Apple CFBundleShortVersionString](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleshortversionstring)
