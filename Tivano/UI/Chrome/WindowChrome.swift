@@ -182,7 +182,9 @@ enum WindowChrome {
         // A focused window draws a separator under the title bar that cuts through the rounded corner.
         window.titlebarSeparatorStyle = .none
         window.isOpaque = false
-        window.backgroundColor = .clear
+        // A zero-alpha base can flash flat gray when Stage Manager restores Liquid Glass
+        // on macOS 27.0.1. A visually negligible nonzero alpha avoids it in the focus probe.
+        window.backgroundColor = NSColor.white.withAlphaComponent(0.000001)
         window.hasShadow = true
         window.isMovableByWindowBackground = false
         window.invalidateShadow()
