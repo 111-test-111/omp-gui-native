@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Package a built Droppy Code.app into the styled installer DMG.
+# Package a built Tivano.app into the styled installer DMG.
 #
 # Stages the app + Applications symlink together with the pre-baked window
 # styling from release/dmg (background, .DS_Store, volume icon), then builds
@@ -7,7 +7,7 @@
 # can carry the custom-icon Finder flag. Signing/notarization stay with the
 # caller (release.sh).
 #
-# Usage: package_dmg.sh --app <path/to/Droppy Code.app> --output <path/to/out.dmg>
+# Usage: package_dmg.sh --app <path/to/Tivano.app> --output <path/to/out.dmg>
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -22,7 +22,7 @@ error() { echo "package_dmg: $1" >&2; exit 1; }
 
 APP_PATH=""
 OUTPUT_PATH=""
-VOLNAME="Droppy Code"
+VOLNAME="Tivano"
 APP_BUNDLE_NAME="$VOLNAME.app"
 
 while [ $# -gt 0 ]; do
@@ -33,11 +33,11 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-[ -n "$APP_PATH" ] && [ -n "$OUTPUT_PATH" ] || error "Usage: --app <Droppy Code.app> --output <out.dmg>"
+[ -n "$APP_PATH" ] && [ -n "$OUTPUT_PATH" ] || error "Usage: --app <Tivano.app> --output <out.dmg>"
 [ -d "$APP_PATH" ] || error "App bundle not found at $APP_PATH"
 
 # The pre-baked .DS_Store keys icon positions and the background alias by
-# name ("Droppy Code.app", volume "Droppy Code", "/.background.tiff"). Refuse anything
+# name ("Tivano.app", volume "Tivano", "/.background.tiff"). Refuse anything
 # that would silently ship a broken-looking window; see release/dmg/README.md.
 [ "$(basename "$APP_PATH")" = "$APP_BUNDLE_NAME" ] || error "App bundle must be named $APP_BUNDLE_NAME (got $(basename "$APP_PATH"))"
 [ -f "$BACKGROUND_ASSET" ] || error "Missing installer background asset at $BACKGROUND_ASSET"
@@ -46,7 +46,7 @@ done
 VOLUME_ICON_SOURCE="$APP_PATH/Contents/Resources/AppIcon.icns"
 [ -f "$VOLUME_ICON_SOURCE" ] || error "Missing app icon at $VOLUME_ICON_SOURCE (needed for the DMG volume icon)"
 
-WORK_DIR="$(mktemp -d /tmp/droppy-code-dmg-XXXX)"
+WORK_DIR="$(mktemp -d /tmp/tivano-dmg-XXXX)"
 ACTIVE_MOUNT_POINT=""
 cleanup() {
     if [ -n "$ACTIVE_MOUNT_POINT" ] && [ -d "$ACTIVE_MOUNT_POINT" ]; then
@@ -58,7 +58,7 @@ trap cleanup EXIT
 
 STAGE_PATH="$WORK_DIR/dmg-root"
 DSSTORE_PATH="$WORK_DIR/DS_Store"
-RW_DMG_PATH="$WORK_DIR/droppy-code-rw.dmg"
+RW_DMG_PATH="$WORK_DIR/tivano-rw.dmg"
 MOUNT_POINT="$WORK_DIR/mnt"
 
 # Decoded before any disk-image work so a bad asset fails in a second, not a
@@ -106,7 +106,7 @@ if [ "$detached" -ne 1 ]; then
 fi
 ACTIVE_MOUNT_POINT=""
 
-# ULMO is supported since macOS 10.15, below Droppy Code's macOS 26 minimum.
+# ULMO is supported since macOS 10.15, below Tivano's macOS 26 minimum.
 # It preserves every byte and compresses the measured installer about 19%
 # smaller than the previous maximum-zlib UDZO image.
 rm -f "$OUTPUT_PATH"

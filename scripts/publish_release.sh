@@ -1,27 +1,24 @@
 #!/bin/bash
-# Publishes a built disk image as a GitLab release: what the in-app updater
-# offers and what the website's download link resolves to.
 #
-#   scripts/publish_release.sh [path/to/Droppy-Code-1.2.3.dmg]
+# Publishes a release on GitHub: tags the version, uploads the notarized disk
+# image and posts the notes from CHANGELOG.md. This is what the app's About
+# page update check reads (api.github.com/repos/elijah7x/tivano/releases).
 #
-# The version is project.yml's MARKETING_VERSION; the disk image defaults to
+#   scripts/publish_release.sh [path/to/Tivano-1.2.3.dmg]
+#
+# The version is config/release.xcconfig's MARKETING_VERSION; the disk image defaults to
 # the one scripts/release.sh leaves in build.noindex. The notes are the ## [<version>] section of CHANGELOG.md, written as "### New features", "### Bug fixes" and "### Refinements" headings with a bullet per change; scripts/build_changelog.py --section extracts it with the headings promoted to "## ", which is what the app reads into its cards. A `### Thanks` heading under the version names every outside contributor whose merge request shipped in it, and publishing stops until `scripts/release_credits.py --check` finds them all named. The tag goes on HEAD, or on RELEASE_REF when
-# the version bump has landed on main from elsewhere. Needs glab signed in as
-# a maintainer.
-# The site's changelog is rebuilt from CHANGELOG.md and deployed here too.
+# the version bump has landed on main from elsewhere. Needs gh signed in with
+# write access to the repository.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-PROJECT="droppyformac1/droppy-code"
-ENCODED_PROJECT="${PROJECT//\//%2F}"
-VERSION=$(sed -nE 's/^[[:space:]]*MARKETING_VERSION:[[:space:]]*"([^"]+)".*/\1/p' project.yml | head -1)
+PROJECT="elijah7x/tivano"
+VERSION=$(scripts/version.sh release)
 TAG="v$VERSION"
-DMG="${1:-build.noindex/Droppy-Code-$VERSION.dmg}"
-NOTES="$(mktemp -t droppy-code-notes)"
+DMG="${1:-build.noindex/Tivano-$VERSION.dmg}"
+NOTES="$(mktemp -t tivano-notes)"
 python3 scripts/build_changelog.py --section "$VERSION" > "$NOTES" || { echo "No ## [$VERSION] section in CHANGELOG.md. Add one before publishing."; exit 1; }
-# Every release links its image under this path, so GitLab's
-# /-/releases/permalink/latest/downloads/Droppy-Code.dmg is always the newest.
-ASSET_PATH="/Droppy-Code.dmg"
 
 step() { printf '\n==> %s\n' "$1"; }
 
@@ -43,31 +40,18 @@ xcrun stapler validate "$DMG" > /dev/null
 
 step "Tagging $TAG"
 if ! git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
-  git tag -a "$TAG" "${RELEASE_REF:-HEAD}" -m "Droppy Code $VERSION"
+  git tag -a "$TAG" "${RELEASE_REF:-HEAD}" -m "Tivano $VERSION"
 fi
 git push origin "$TAG"
 
 step "Creating the release"
-if glab release view "$TAG" -R "$PROJECT" > /dev/null 2>&1; then
-  echo "Release $TAG already exists on GitLab."
+if gh release view "$TAG" -R "$PROJECT" > /dev/null 2>&1; then
+  echo "Release $TAG already exists on GitHub."
   exit 1
 fi
-glab release create "$TAG" "$DMG#Droppy Code $VERSION (Apple silicon)" \
+gh release create "$TAG" "$DMG#Tivano $VERSION (Apple silicon)" \
   -R "$PROJECT" \
-  --name "Droppy Code $VERSION" \
+  --name "Tivano $VERSION" \
   --notes-file "$NOTES"
 
-step "Pointing the latest-download permalink at it"
-LINK_ID=$(glab api "projects/$ENCODED_PROJECT/releases/$TAG/assets/links" \
-  | python3 -c 'import json, sys; links = json.load(sys.stdin); print(next(l["id"] for l in links if l["url"].lower().endswith(".dmg")))')
-# GitLab insists on a name or url in every link update, so the name rides along.
-glab api -X PUT "projects/$ENCODED_PROJECT/releases/$TAG/assets/links/$LINK_ID" \
-  -f "name=Droppy Code $VERSION (Apple silicon)" -f "direct_asset_path=$ASSET_PATH" -f link_type=package > /dev/null
-
-step "Checking the permalink"
-curl -sIL "https://gitlab.com/$PROJECT/-/releases/permalink/latest/downloads${ASSET_PATH}" | grep -i "content-disposition"
-
-step "Rebuilding the changelog and deploying the site"
-scripts/deploy_site.sh
-
-printf '\nPublished: https://gitlab.com/%s/-/releases/%s\n' "$PROJECT" "$TAG"
+printf '\nPublished: https://github.com/%s/releases/tag/%s\n' "$PROJECT" "$TAG"

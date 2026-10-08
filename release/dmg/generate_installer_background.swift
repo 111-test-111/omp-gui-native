@@ -1,5 +1,5 @@
 #!/usr/bin/env swift
-// Renders the Droppy Code installer (DMG) window background at 1x and 2x, plus a
+// Renders the Tivano installer (DMG) window background at 1x and 2x, plus a
 // preview composite that mimics how Finder lays out the two icons on top of it.
 //
 // Usage: swift generate_installer_background.swift <output-directory> [path/to/AppIcon.icns]
@@ -8,7 +8,7 @@
 // .DS_Store (see release/dmg/README.md). If any of these constants change, the
 // .DS_Store must be re-baked so Finder's icon positions match the artwork:
 //   window content size: 660x370
-//   Droppy Code.app icon center: (165, 208)   Applications icon center: (495, 208)
+//   Tivano.app icon center: (165, 208)   Applications icon center: (495, 208)
 //   icon size: 128
 import AppKit
 
@@ -30,7 +30,7 @@ let iconSize: CGFloat = 128
 let backgroundColor = NSColor(srgbRed: 0x0b / 255.0, green: 0x0e / 255.0, blue: 0x14 / 255.0, alpha: 1)
 let textPrimary = NSColor(srgbRed: 0xe8 / 255.0, green: 0xea / 255.0, blue: 0xed / 255.0, alpha: 1)
 let accent = NSColor(srgbRed: 0x4f / 255.0, green: 0x9c / 255.0, blue: 0xff / 255.0, alpha: 1)
-let wordmark = "Droppy Code"
+let wordmark = "Tivano"
 let outputStem = "installer-background"
 
 guard CommandLine.arguments.count >= 2 else {
@@ -154,11 +154,11 @@ func drawIcon(_ image: NSImage?, center: CGPoint, label: String, in context: CGC
     image?.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
     drawText(label, font: .systemFont(ofSize: 12), color: textPrimary, center: CGPoint(x: center.x, y: center.y + iconSize / 2 + 12))
 }
-// The preview's app icon: an optional third argument names an .icns, else the installed Droppy Code's.
+// The preview's app icon: an optional third argument names an .icns, else the installed Tivano's.
 let previewIconPath = CommandLine.arguments.dropFirst(2).first { $0.hasSuffix(".icns") }
 let appIcon = previewIconPath.flatMap { NSImage(contentsOfFile: $0) }
-    ?? NSImage(contentsOfFile: "/Applications/Droppy Code.app/Contents/Resources/AppIcon.icns")
-    ?? NSWorkspace.shared.icon(forFile: "/Applications/Droppy Code.app")
+    ?? NSImage(contentsOfFile: "/Applications/Tivano.app/Contents/Resources/AppIcon.icns")
+    ?? NSWorkspace.shared.icon(forFile: "/Applications/Tivano.app")
 let applicationsIcon = NSWorkspace.shared.icon(forFile: "/Applications")
 let preview = render(scale: 2) { context in
     drawIcon(appIcon, center: appIconCenter, label: wordmark, in: context)

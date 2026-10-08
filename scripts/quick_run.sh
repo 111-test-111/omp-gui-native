@@ -1,73 +1,18 @@
 #!/bin/bash
-# Dev loop for Droppy Code: build Debug, install it as the single
-# /Applications copy of the dev app, and relaunch it.
-#
-#   scripts/quick_run.sh
-#
-# A Debug build is "Droppy Code Dev" (bundle id iordv.droppycode.dev): it runs
-# beside the released Droppy Code with its own library, settings, keychain items
-# and worktrees (~/.droppy-code-dev), and never touches the release app's. Dev
-# keeps its own data across relaunches: pair names, MCP sign-ins and the threads
-# made in Dev live only there, and a mirror of the release app would wipe them.
-# Set DROPPY_DEV_SYNC=1 to have scripts/sync_dev_data.sh replace Dev's library,
-# settings and API keys with the release app's before the relaunch.
-#
-# Builds under build.noindex (never ~/Library/Developer/Xcode/DerivedData),
-# because the ".noindex" suffix keeps Spotlight and Launchpad from listing
-# the build folder as a second copy of the app. There must only ever be one
-# dev app: /Applications/Droppy Code Dev.app.
-#
-# Safe to run from an agent inside Droppy Code itself: quitting the app may
-# interrupt the calling session, but this script keeps going and the fresh
-# build picks up the new changes on relaunch.
+# Only for an explicitly requested Dev run/relaunch. Packaging alone uses
+# package_local.sh and never launches. Both editions share the real library.
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
-APP_NAME="Droppy Code Dev"
-DERIVED="build.noindex/dev"
-PRODUCT="$DERIVED/Build/Products/Debug/$APP_NAME.app"
+APP_NAME='Tivano Dev'
 TARGET="/Applications/$APP_NAME.app"
-
-step() { printf '\n==> %s\n' "$1"; }
-
-step "Building $APP_NAME (Debug)"
-xcodebuild \
-  -project DroppyCode.xcodeproj \
-  -scheme DroppyCode \
-  -configuration Debug \
-  -destination 'platform=macOS' \
-  -derivedDataPath "$DERIVED" \
-  -skipPackagePluginValidation \
-  build 2>&1 | tail -n 5
-
-step "Installing the single copy to $TARGET"
-# Atomic swap: move running bundle aside so ditto installs the fresh build immediately
-rm -rf "$TARGET.old"
-mv "$TARGET" "$TARGET.old" 2>/dev/null || true
-ditto "$PRODUCT" "$TARGET"
-rm -rf "$TARGET.old" 2>/dev/null || true
-
-# Keep Xcode's Development signature (Team NARHG44L48). macOS TCC ties granted
-# permissions to the app's signed identity, so re-signing ad-hoc here gave every
-# build a new identity with no Team ID and macOS forgot all approvals on each
-# run. Only fall back to ad-hoc when the fresh build has no valid signature.
-if codesign --verify --deep --strict "$TARGET" 2>/dev/null; then
-  xattr -dr com.apple.quarantine "$TARGET" 2>/dev/null || true
-else
-  codesign --force --deep --sign - "$TARGET"
+running() { ps -axo command= | grep -F "$TARGET/Contents/MacOS/" | grep -v grep >/dev/null; }
+if running; then
+  osascript -e 'with timeout of 300 seconds' -e "tell application \"$APP_NAME\" to quit" -e 'end timeout'
+  for _ in $(seq 1 300); do
+    running || break
+    sleep 1
+  done
+  if running; then echo 'Dev is still finishing work; it was not replaced.' >&2; exit 1; fi
 fi
-
-step "Relaunching"
-osascript -e "with timeout of 300 seconds" -e "tell application \"$APP_NAME\" to quit" -e "end timeout" 2>/dev/null || true
-# The app holds its quit while a Hydra merge is going out (up to four minutes): wait for it.
-for _ in $(seq 1 300); do
-  ps aux | grep -F "$APP_NAME.app/Contents/MacOS" | grep -v grep >/dev/null || break
-  sleep 1
-done
-if [ "${DROPPY_DEV_SYNC:-0}" = "1" ]; then
-  step "Mirroring the release app's data into $APP_NAME"
-  scripts/sync_dev_data.sh
-fi
+scripts/package_local.sh --dev
 open "$TARGET"
-sleep 4
-ps aux | grep -F "$APP_NAME.app/Contents/MacOS" | grep -v grep | head -n 3

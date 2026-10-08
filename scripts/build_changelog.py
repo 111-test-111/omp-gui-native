@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Builds website/changelog.json from CHANGELOG.md.
+"""Extracts release sections from CHANGELOG.md.
 
-Run: python3 scripts/build_changelog.py
-Idempotent: rewrites website/changelog.json from scratch each run.
-### Thanks bullets land in the `thanks` list, not in the sections.
+Run: python3 scripts/build_changelog.py --section <version>
+Prints the `## [<version>]` section with `###` headings promoted to `##`, which is
+what scripts/publish_release.sh posts as release notes and the app's About page
+reads into its cards. `### Thanks` bullets land outside the sections.
+
+The website JSON builder that used to live here went away with the site.
 """
 
 import datetime
@@ -15,7 +18,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CHANGELOG = ROOT / "CHANGELOG.md"
-OUT = ROOT / "website" / "changelog.json"
 
 RELEASE_RE = re.compile(r"^## \[(\d+(?:\.\d+)*)\](?: - (\d{4}-\d{2}-\d{2}))?\s*$")
 SECTION_RE = re.compile(r"^### (.*)$")
@@ -165,13 +167,8 @@ def main():
             return 1
         sys.stdout.write(section)
         return 0
-    releases = build_releases()
-    payload = {
-        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "releases": releases,
-    }
-    OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Wrote {len(releases)} releases to {OUT.relative_to(ROOT)}")
+    print("Usage: build_changelog.py --section <version>", file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Renders the onboarding tour's captures from the real app, then imports them as assets.
 
-The app runs once in its tour capture mode (see DroppyCode/App/Captures/TourCaptures.swift):
+The app runs once in its tour capture mode (see Tivano/App/Captures/TourCaptures.swift):
 it opens the real window with mock data over a curated gradient backdrop, photographs
 each tour scene as a 16:10 still into build.noindex/tour-captures, and quits. This
 script then resizes every still to exactly 1320x824 and writes it into the tour
@@ -11,16 +11,9 @@ A still's sidecar may name a `focus`, the part of the scene the page is about (t
 open popover with its chip, the team's panel); the page is then cut around that focus
 instead of the whole window, so the slider, recipes and Hydra pages zoom on their subject.
 
-The website's set is NOT cut here: scripts/website_captures.py encodes the same
-tour run whole into build.noindex/website-tour and uploads it to the R2 tour/v4
-prefix with per-key verification, so only one uploader writes those keys. With
---website/--export-only/--upload this script delegates to that pipeline. Needs
-Pillow (pip).
+Needs Pillow (pip).
 
     scripts/tour_captures.py                 # build, capture, import into the asset catalog
-    scripts/tour_captures.py --website       # ...and encode the website's set via website_captures.py
-    scripts/tour_captures.py --export-only   # encode the website's set from the last run
-    scripts/tour_captures.py --upload        # ...and push it to R2 (wrangler signed in)
 """
 
 import json
@@ -33,8 +26,8 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CAPTURES = ROOT / "build.noindex" / "tour-captures"
 DERIVED = ROOT / "build.noindex" / "tour"
-APP = DERIVED / "Build/Products/Debug/Droppy Code.app"
-ASSETS = ROOT / "DroppyCode" / "Resources" / "Assets.xcassets"
+APP = DERIVED / "Build/Products/Debug/Tivano.app"
+ASSETS = ROOT / "Tivano" / "Resources" / "Assets.xcassets"
 
 WIDTH = 1320
 HEIGHT = 824
@@ -42,12 +35,12 @@ SCENES = ["welcome", "hydra", "pairs", "slider", "threads", "recipes", "panels"]
 CONTENTS = {"info": {"author": "xcode", "version": 1}}
 
 # App window size in points for each still, matching the stage sizes in
-# DroppyCode/App/Captures/TourCaptures.swift (and TourCaptures+Hydra.swift). Every
+# Tivano/App/Captures/TourCaptures.swift (and TourCaptures+Hydra.swift). Every
 # still is a 16:10 rect around the window: the frame grown by 72 pt on every
 # side, then widened/heightened to 1.6. The popover scenes (tour-pairs,
 # tour-slider, tour-recipes, web-hero) photograph the window unioned with the open popover
 # (see Stage.tourCaptureRect(including:)), so their PNGs are larger than the
-# window-only rect below; the website pipeline serves those whole, uncropped.
+# window-only rect below.
 WINDOW_SIZES = {
     "tour-welcome": (1280, 800),
     "web-hero": (1280, 800),
@@ -95,10 +88,10 @@ def step(title):
 
 
 def build():
-    step("Building Droppy Code (Debug)")
+    step("Building Tivano (Debug)")
     subprocess.run(["xcodegen", "generate", "--quiet"], cwd=ROOT, check=True)
     result = subprocess.run([
-        "xcodebuild", "-project", "DroppyCode.xcodeproj", "-scheme", "DroppyCode", "-configuration", "Debug",
+        "xcodebuild", "-project", "Tivano.xcodeproj", "-scheme", "Tivano", "-configuration", "Debug",
         "-destination", "platform=macOS", "-derivedDataPath", str(DERIVED), "-skipPackagePluginValidation", "build",
     ], cwd=ROOT, capture_output=True, text=True)
     if result.returncode != 0:
@@ -262,34 +255,8 @@ def encode():
     write_imageset("tour-themes", fit(theme_mosaic(), WIDTH, HEIGHT))
 
 
-# The website's set used to be cut and uploaded from here: cropped-on-the-action
-# WebP files into website/assets/app/tour/, pushed to the same R2 tour/v4 prefix
-# website_captures.py writes. That path is superseded and removed, so only one
-# uploader writes those keys: --website/--export-only/--upload delegate to
-# website_captures.py, which encodes every still whole (popovers uncropped) into
-# build.noindex/website-tour and verifies each key serves byte-identical.
-def _tour_pipeline():
-    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-    import website_captures
-    return website_captures
-
-
-def website():
-    _tour_pipeline().encode_tour()
-
-
-def upload():
-    _tour_pipeline().upload_tour()
-
-
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    if "--export-only" not in args:
-        build()
-        capture()
-        encode()
-        print(f"\nReady: {ASSETS}")
-    if "--website" in args or "--export-only" in args or "--upload" in args:
-        website()
-    if "--upload" in args:
-        upload()
+    build()
+    capture()
+    encode()
+    print(f"\nReady: {ASSETS}")

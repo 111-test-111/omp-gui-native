@@ -1,8 +1,8 @@
-<img src="docs/icon.png" width="128" alt="Droppy Code icon">
+<img src="docs/icon.png" width="128" alt="Tivano icon">
 
-# Droppy Code
+# Tivano
 
-The coding app by [Droppy](https://getdroppy.app). A native macOS app for your coding agents. Written entirely in Swift and SwiftUI with Liquid Glass, for Macs with Apple silicon on macOS 26 and later.
+A native macOS app for your coding agents, and a fork of [Droppy Code](https://getdroppycode.app) by Jordy Spruit. Written entirely in Swift and SwiftUI with Liquid Glass, for Macs with Apple silicon on macOS 26 and later.
 
 It drives the coding agents you already have installed and signed in, on your own subscriptions:
 
@@ -29,7 +29,7 @@ It drives the coding agents you already have installed and signed in, on your ow
 - Plan mode, model and reasoning selection, and four permission modes per thread.
 - Twenty-six tinted-glass themes, from System to Catppuccin, Dracula, Claude and Codex.
 - A diff for every turn, captured as hidden git checkpoints, with revert.
-- An embedded terminal per thread, plus project scripts from `droppy-code.json`.
+- An embedded terminal per thread, plus project scripts from `tivano.json`.
 - New threads in their own git worktree.
 - Commit, push and pull requests, with generated commit messages and thread titles.
 - A command palette, keyboard shortcuts and notifications when work finishes.
@@ -50,16 +50,29 @@ Remote access, mobile apps, cloud sync, telemetry and a web client are left out 
 ```bash
 brew install xcodegen
 xcodegen generate
-open DroppyCode.xcodeproj
+open Tivano.xcodeproj
 ```
 
 SwiftTerm, the only dependency, is fetched by Swift Package Manager. Xcode asks once to trust its build plugin.
 
+For local Debug builds, run `scripts/setup_local_signing.sh` once to create/reuse
+**Tivano Local Development** in your login keychain. See
+[local development signing](docs/local-development.md) for build-only commands,
+permission limitations and explicitly requested installs. Debug uses this fixed
+local identity; Release still requires Developer ID before public distribution.
+The approved icon package is archived under [design/icons](design/icons/README.md).
+Dev adds a derived DEV corner badge without changing the original. The editions
+are versioned independently in `config/*.xcconfig` and share the
+[real session library](docs/shared-library.md), with one writer at a time.
+An owner-requested build/package also updates `/Applications`: use
+`scripts/package_local.sh --dev|--release|--both`, without automatically launching.
+See [packaging and independent versions](docs/packaging.md).
+
 ## Release
 
-`scripts/release.sh` archives an Apple silicon build, signs it with Developer ID, notarizes and staples both the app and a disk image, and checks Gatekeeper. The disk image lands in `build.noindex/`, a folder Spotlight skips. `scripts/package_dmg.sh` gives the disk image the same styled drag-to-Applications window as Droppy's; its background and baked window layout live in `release/dmg`, and the volume icon is the app's own.
+`scripts/release.sh` archives an Apple silicon build, signs it with Developer ID, notarizes and staples both the app and a disk image, and checks Gatekeeper. The disk image lands in `build.noindex/`, a folder Spotlight skips. `scripts/package_dmg.sh` gives the disk image the same styled drag-to-Applications window; its background and baked window layout live in `release/dmg`, and the volume icon is the app's own.
 
-`scripts/publish_release.sh` then tags the version from `project.yml`, creates the GitLab release with the notes from the `## [<version>]` section of `CHANGELOG.md` (`### New features`, `### Bug fixes` and `### Refinements` bullets, which the app's About page reads into its cards) and points the latest-download permalink at the new disk image, which is what Settings › About and the website's download button resolve to.
+`scripts/publish_release.sh` then tags the version from `config/release.xcconfig` and creates the GitHub release with the notes from the `## [<version>]` section of `CHANGELOG.md` (`### New features`, `### Bug fixes` and `### Refinements` bullets, which the app's About page reads into its cards); the release's `Tivano-<version>.dmg` asset is what Settings › About downloads.
 
 ## Layout
 
@@ -67,30 +80,27 @@ The sources sit in four layers with a one-way rule: Core reaches into nothing el
 
 | Folder | Contents |
 | --- | --- |
-| `DroppyCode/Core` | Models and pure support: projects and threads, timelines, providers (`ProviderKind` lives here), Hydra, shortcuts, process I/O, JSON-RPC and the login shell. Depends on nothing else in the app. |
-| `DroppyCode/Services` | Git, worktrees and diff parsing, the on-disk store, and the Codex, Claude, ACP, Antigravity, Copilot, Command Code, Pi, DeepSeek, Meta and Z.ai adapters behind one event model. Depends on Core. |
-| `DroppyCode/UI` | Window chrome, common controls, Markdown rendering, the theme and the chimes. Depends on Core only. |
-| `DroppyCode/App` | The app entry, commands and settings, the project library, the per-thread runtime, windows, captures and every feature view: sidebar, chat, composer, changes, terminal, palette, settings, usage and the tour. Depends on all of the above. |
-| `website` | The marketing site, a static page published by Netlify (`netlify.toml`) |
+| `Tivano/Core` | Models and pure support: projects and threads, timelines, providers (`ProviderKind` lives here), Hydra, shortcuts, process I/O, JSON-RPC and the login shell. Depends on nothing else in the app. |
+| `Tivano/Services` | Git, worktrees and diff parsing, the on-disk store, and the Codex, Claude, ACP, Antigravity, Copilot, Command Code, Pi, DeepSeek, Meta and Z.ai adapters behind one event model. Depends on Core. |
+| `Tivano/UI` | Window chrome, common controls, Markdown rendering, the theme and the chimes. Depends on Core only. |
+| `Tivano/App` | The app entry, commands and settings, the project library, the per-thread runtime, windows, captures and every feature view: sidebar, chat, composer, changes, terminal, palette, settings, usage and the tour. Depends on all of the above. |
 
-## Made by Droppy
+## Upstream
 
-<a href="https://getdroppy.app"><img src="docs/droppy-logo.png" width="64" alt="Droppy logo"></a>
-
-Droppy Code is made by [Droppy](https://getdroppy.app) for Mac. Find Droppy at [getdroppy.app](https://getdroppy.app).
+Tivano is a fork of [Droppy Code](https://getdroppycode.app) by Jordy Spruit (Droppy), renamed and maintained independently. It is not affiliated with or endorsed by Droppy.
 
 ## Acknowledgements
 
-Droppy Code began as a native Swift rewrite of [T3 Code](https://github.com/pingdotgg/t3code) by T3 Tools Inc., under the MIT License, in T3 Code's own repository; this repository's history carries their work, and the license keeps their notice. The terminal is [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) by Miguel de Icaza, MIT License. The working indicators, the gradient pulse beside a reply and the mini pulse on working threads, along with their rotating words, are ported from [Zeron](https://github.com/zeronsh/zeron) by Wing, under the MIT License. Spending a Codex account's banked resets from the usage popover follows [MonoCode](https://github.com/hardbeat920/monocode) by hardbeat920, under the MIT License. The Copilot provider icon is the `copilot` mark from GitHub's [Octicons](https://github.com/primer/octicons), under the MIT License. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the app carries the same notices under Settings › About › Licenses.
+Tivano began as a native Swift rewrite of [T3 Code](https://github.com/pingdotgg/t3code) by T3 Tools Inc., under the MIT License, in T3 Code's own repository; this repository's history carries their work, and the license keeps their notice. The terminal is [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) by Miguel de Icaza, MIT License. The working indicators, the gradient pulse beside a reply and the mini pulse on working threads, along with their rotating words, are ported from [Zeron](https://github.com/zeronsh/zeron) by Wing, under the MIT License. Spending a Codex account's banked resets from the usage popover follows [MonoCode](https://github.com/hardbeat920/monocode) by hardbeat920, under the MIT License. The Copilot provider icon is the `copilot` mark from GitHub's [Octicons](https://github.com/primer/octicons), under the MIT License. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the app carries the same notices under Settings › About › Licenses.
 
 ## License
 
-GNU AGPL v3.0 with additional attribution terms: see [LICENSE](LICENSE). You may use, study, change and share Droppy Code, and anyone who distributes it or a modified version, or runs a modified version for others over a network, must make their source available under the same license and keep the credit to Droppy Code by Jordy Spruit (Droppy). Modified versions must say they are modified and must not present themselves as Droppy Code. The names "Droppy" and "Droppy Code" and their icons are not part of the license, see [TRADEMARK.md](TRADEMARK.md). Portions descend from T3 Code by T3 Tools Inc. under the MIT License, whose notice is preserved in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+GNU AGPL v3.0 with additional attribution terms: see [LICENSE](LICENSE). You may use, study, change and share Tivano, and anyone who distributes it or a modified version, or runs a modified version for others over a network, must make their source available under the same license and keep the attribution "Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app". Modified versions must say they are modified and must not present themselves as the original. The names "Droppy" and "Droppy Code" and their icons are not part of the license, see [TRADEMARK.md](TRADEMARK.md). Portions descend from T3 Code by T3 Tools Inc. under the MIT License, whose notice is preserved in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Credit
 
-If you build on Droppy Code, keep the line "Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app" in your About screen, your README and your source headers, and keep THIRD_PARTY_NOTICES.md. That is the whole ask.
+If you build on this work, keep the attribution "Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app" in your About screen, your README and your source headers, and keep THIRD_PARTY_NOTICES.md. That is the whole ask.
 
 ## Contributors
 
-Every release names the people whose merge requests shipped in it, in the Thanks section of the release entry in CHANGELOG.md, the GitLab release notes and the changelog page on getdroppycode.app; a merge request that lands is credited under the author's name and GitLab handle in the next release.
+Upstream names the people whose merge requests shipped in each release in the Thanks section of the release entry in CHANGELOG.md. This fork carries that history along unchanged; its own changes are credited in the fork's commit history.
