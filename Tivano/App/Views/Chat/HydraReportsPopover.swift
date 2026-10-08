@@ -283,7 +283,7 @@ struct HydraReportsPopover: View {
                         // Faces past a handful overrun the header: the rest are counted
                         // here, and the totals line beside names the full number.
                         Text(verbatim: "+\(personas.count - 9)")
-                            .font(.system(.subheadline, weight: .semibold))
+                            .font(.ui(.subheadline, weight: .semibold))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
@@ -294,15 +294,15 @@ struct HydraReportsPopover: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: Self.cleanedTitle(title, names: personas.map(\.name)))
                         .foregroundColor(Chrome.primaryText)
-                        .font(.system(.body, weight: .semibold))
+                        .font(.ui(.body, weight: .semibold))
                         .lineLimit(2)
                     Text(Self.totalsLine(for: digest))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .monospacedDigit()
                     if let intro = digest.intro, let sentence = Self.stillAtWorkSentence(in: intro) {
                         Text(sentence)
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                             .lineLimit(2)
                     }
@@ -321,15 +321,15 @@ struct HydraReportsPopover: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(head.name)
-                        .font(.system(.body, weight: .semibold))
+                        .font(.ui(.body, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     Text(Self.outcomeCaption(for: head))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Self.outcomeColor(for: head.outcome))
                         .monospacedDigit()
                     if let files = Self.filesLine(for: head) {
                         Text("· " + files)
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                             .monospacedDigit()
                             .lineLimit(1)
@@ -337,13 +337,13 @@ struct HydraReportsPopover: View {
                 }
                 let task = Self.withoutNamePrefix(Self.cleanedTitle(head.task, names: [head.name]), name: head.name)
                 Text(task.isEmpty ? Self.cleanedTitle(title, names: [head.name]) : task)
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
                 if let intro = digest.intro, let sentence = Self.stillAtWorkSentence(in: intro) {
                     Text(sentence)
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(2)
                 }
@@ -480,7 +480,7 @@ struct HydraReportsPopover: View {
                             nameRow(head)
                             Spacer(minLength: 0)
                             Image(systemName: "chevron.right")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .rotationEffect(.degrees(expanded.contains(head.name) ? 90 : 0))
                         }
@@ -496,7 +496,7 @@ struct HydraReportsPopover: View {
                 let task = Self.withoutNamePrefix(Self.cleanedTitle(head.task, names: [head.name]), name: head.name)
                 if !task.isEmpty {
                     Text(task)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.primaryText)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -520,24 +520,24 @@ struct HydraReportsPopover: View {
         HStack(alignment: .center, spacing: 8) {
             HydraGlyph(persona: persona(for: head), size: 20, status: Self.status(head.outcome))
             Text(head.name)
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
                 .foregroundStyle(persona(for: head).color)
             switch head.outcome {
             case .done:
                 EmptyView()
             case .failed:
                 Text("Failed")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.danger)
             case .stopped:
                 Text("Stopped")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.warning)
             }
             Spacer(minLength: 8)
             if let effort = head.effort, !effort.isEmpty {
                 Text(effort)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .monospacedDigit()
                     .lineLimit(1)
@@ -558,23 +558,23 @@ struct HydraReportsPopover: View {
         case .notLanded(let files, let error):
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: error.map { String(format: Chrome.localized("Did not land: %@"), $0) } ?? Chrome.localized("Did not land"))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.warning)
                     .fixedSize(horizontal: false, vertical: true)
                 fileRows(files)
             }
         case .nothing:
             Text("Changed nothing.")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         case .unfinished(let copyPath):
             VStack(alignment: .leading, spacing: 2) {
                 Text("Nothing landed")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.warning)
                 if let copyPath {
                     Text(copyPath)
-                        .font(.system(.subheadline, design: .monospaced))
+                        .font(.ui(.subheadline, design: .monospaced))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -605,7 +605,7 @@ struct HydraReportsPopover: View {
                         .monospacedDigit()
                         .layoutPriority(1)
                     }
-                    .font(.system(.subheadline, design: .monospaced))
+                    .font(.ui(.subheadline, design: .monospaced))
                     .help(file.hasConflicts ? String(format: Chrome.localized("%@ (with conflicts)"), file.path) : file.path)
                 }
             }
@@ -630,7 +630,7 @@ struct HydraReportsPopover: View {
     private func reportBody(_ head: HydraReportDigest.Head) -> some View {
         if !hasReport(head) {
             Text("No report.")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         } else if let headBlocks = blocks[head.name] {
             // Eager: a lazy stack reports an estimated height until its rows exist, and
@@ -642,8 +642,8 @@ struct HydraReportsPopover: View {
                 }
             }
             .padding(.top, 2)
-            .font(.system(.callout))
-            .environment(\.markdownPointSize, 12)
+            .font(.ui(.callout))
+            .environment(\.markdownPointSize, TypeScale.shared.content(12))
             .environment(\.markdownDimmed, false)
             .textSelection(.enabled)
         } else {

@@ -133,10 +133,10 @@ struct UserMessageRow: View {
                         ForEach(parts.quotes) { quote in
                             HStack(spacing: 5) {
                                 Image(systemName: "text.quote")
-                                    .font(.system(.footnote, weight: .semibold))
+                                    .font(.chat(.footnote, weight: .semibold))
                                     .foregroundStyle(Chrome.secondaryText)
                                 Text(verbatim: quote.excerpt)
-                                    .font(.system(.subheadline))
+                                    .font(.chat(.subheadline))
                                     .foregroundStyle(Chrome.primaryText.opacity(0.9))
                                     .lineLimit(1)
                                     .truncationMode(.tail)
@@ -697,8 +697,8 @@ private struct HydraReportPopover: View {
                 }
             }
             // The note reads at the popover's own compact size.
-            .font(.system(.callout))
-            .environment(\.markdownPointSize, 12)
+            .font(.chat(.callout))
+            .environment(\.markdownPointSize, TypeScale.shared.content(12))
             .environment(\.markdownDimmed, false)
             .textSelection(.enabled)
             .padding(.horizontal, 16)
@@ -1618,7 +1618,7 @@ struct WorkSteps: View {
                 // and dimmed like its thinking, in line with the tool rows.
                 MarkdownView(text: message.text, isStreaming: message.isStreaming).equatable()
                     .foregroundStyle(Chrome.secondaryText)
-                    .environment(\.markdownPointSize, 12)
+                    .environment(\.markdownPointSize, TypeScale.shared.content(12))
                     .environment(\.markdownDimmed, true)
                     .padding(.leading, TimelineMetrics.iconWidth + TimelineMetrics.iconSpacing)
             } else {
@@ -2190,7 +2190,7 @@ private struct ToolDetailView: View {
             }
             if let detail = call.detail, !detail.isEmpty {
                 Text(detail)
-                    .font(.chat(.caption, design: .monospaced))
+                    .font(.code(.caption))
                     .foregroundStyle(Chrome.secondaryText)
                     .textSelection(.enabled)
                     .lineLimit(12)
@@ -2219,7 +2219,7 @@ private struct ToolDetailView: View {
                 let visible = collapsed ? Self.head(of: output, lines: Self.outputLineLimit) : output
                 VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
                     Text(visible)
-                        .font(.chat(.caption, design: .monospaced))
+                        .font(.code(.caption))
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(10)
@@ -2867,9 +2867,9 @@ private struct TurnFileCard: View {
                 .popover(isPresented: $isConfirmingRevert, arrowEdge: .bottom) {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Revert up to this point?")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.chat(size: 14, weight: .semibold))
                         Text("Files go back to how they were before this turn, and the turn leaves the conversation.")
-                            .font(.system(.callout))
+                            .font(.chat(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 8) {

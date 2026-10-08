@@ -175,15 +175,15 @@ struct ThreadTimeline: View, Equatable {
     private func continuationStart(_ continuation: ThreadContinuation) -> some View {
         VStack(spacing: 10) {
             ContinuationSourceLabel(sourceTitle: continuation.sourceTitle)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.chat(size: 15, weight: .semibold))
                 .foregroundStyle(Chrome.primaryText)
             Text("Choose a model or Hydra pair below, then send a message to continue.")
-                .font(.system(size: 13))
+                .font(.chat(size: 13))
                 .foregroundStyle(Chrome.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
             if continuation.isTruncated {
                 Text("Context carried over; some messages were shortened or omitted.")
-                    .font(.system(size: 12))
+                    .font(.chat(size: 12))
                     .foregroundStyle(Chrome.secondaryText.opacity(0.8))
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -194,7 +194,7 @@ struct ThreadTimeline: View, Equatable {
                     model.selectedThreadID = continuation.sourceThreadID
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: 13))
+                .font(.chat(size: 13))
                 .foregroundStyle(Chrome.accent)
                 .padding(.top, 2)
             }
@@ -454,7 +454,7 @@ struct ThreadTimeline: View, Equatable {
                 // the conversation and outside the folds.
                 if let continuation = runtime.continuation {
                     ContinuationSourceLabel(sourceTitle: continuation.sourceTitle)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.chat(size: 12, weight: .medium))
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.bottom, TimelineMetrics.rowSpacing)
                 }
@@ -560,6 +560,11 @@ struct ThreadTimeline: View, Equatable {
         }
         .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) {
             paneWidth = $0
+        }
+        .onChange(of: [TypeScale.shared.ui, TypeScale.shared.content, TypeScale.shared.code]) {
+            measurements.frames.removeAll()
+            mountedRange = nil
+            tracking.armViewportRefresh()
         }
         .onChange(of: layoutWidth ?? min(860, paneWidth)) { _, width in
             measurements.invalidate(width: width)
@@ -864,6 +869,7 @@ struct ThreadTimeline: View, Equatable {
         entry.mountedIDs = mountedRange.map { Array(ids.dropFirst($0.lowerBound).prefix($0.count)) } ?? ids
         entry.frames = measurements.frames
         entry.width = measurements.width
+        entry.fontSizes = [TypeScale.shared.ui, TypeScale.shared.content, TypeScale.shared.code]
         if let id = ids.first(where: { measurements.viewportFrame($0, offset: tracking.offset).map { $0.maxY > 0 && $0.minY < viewportHeight } ?? false }),
            let frame = measurements.viewportFrame(id, offset: tracking.offset) {
             entry.anchorID = id
@@ -875,7 +881,7 @@ struct ThreadTimeline: View, Equatable {
         let entry = TimelinePresentationStore.entry(for: runtime.threadID)
         guard !entry.pinned, let id = entry.anchorID,
               let index = blocks.firstIndex(where: { $0.id == id }) else { return false }
-        if measurements.width == entry.width { measurements.frames = entry.frames }
+        if measurements.width == entry.width, entry.fontSizes == [TypeScale.shared.ui, TypeScale.shared.content, TypeScale.shared.code] { measurements.frames = entry.frames }
         let savedIDs = Set(entry.mountedIDs)
         let indices = blocks.indices.filter { savedIDs.contains(blocks[$0].id) }
         let lower = min(index, indices.first ?? index)
@@ -2500,7 +2506,7 @@ private struct WorkingIndicator: View {
                             }
                         }
                         .foregroundStyle(.secondary)
-                        .environment(\.markdownPointSize, 12)
+                        .environment(\.markdownPointSize, TypeScale.shared.content(12))
                         .environment(\.markdownDimmed, true)
                         .padding(.leading, TimelineMetrics.iconWidth + TimelineMetrics.iconSpacing)
                         .transition(liveAppearance ? .softAppear : .identity)
@@ -2754,6 +2760,7 @@ final class TimelinePresentation {
     @ObservationIgnored var mountedIDs: [String] = []
     @ObservationIgnored var frames: [String: CGRect] = [:]
     @ObservationIgnored var width: CGFloat = 0
+    @ObservationIgnored var fontSizes: [Int] = []
 }
 
 @MainActor

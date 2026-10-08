@@ -73,10 +73,10 @@ struct GitHubConnectView: View {
                 }
             }
             if let error = connection.errorMessage {
-                Text(verbatim: error).font(.caption).foregroundStyle(Chrome.danger)
+                Text(verbatim: error).font(.ui(.caption)).foregroundStyle(Chrome.danger)
             }
         }
-        .font(.system(.callout))
+        .font(.ui(.callout))
         .task { await connection.refreshCLIStatus() }
     }
 }

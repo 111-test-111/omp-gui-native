@@ -19,12 +19,12 @@ struct HydraSettingsPage: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
                             Text("Hydra")
-                                .font(.system(.title3, weight: .semibold))
+                                .font(.ui(.title3, weight: .semibold))
                                 .foregroundStyle(Chrome.primaryText)
                             InfoHoverButton(help: "How Hydra works") { HydraInfoPopover(topic: .hydra) }
                         }
                         Text("One chat leads a team of heads on big jobs.")
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                             .lineLimit(1)
                     }
@@ -39,7 +39,7 @@ struct HydraSettingsPage: View {
             // each row repeating why it is off.
             if !settings.hydraEnabled {
                 Text("Switch Hydra on to set up its heads.")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 4)
             }
@@ -114,7 +114,7 @@ struct HydraSettingsPage: View {
                         HStack(spacing: 6) {
                             HydraGlyph(persona: HydraRoster.persona(at: 0), size: 30)
                             Image(systemName: "arrow.right")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                                 .foregroundStyle(Chrome.secondaryText)
                             HStack(spacing: -8) {
                                 ForEach(1..<4, id: \.self) { index in
@@ -125,10 +125,10 @@ struct HydraSettingsPage: View {
                         .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 3) {
                             Text("One leads, the others build")
-                                .font(.system(.body, weight: .semibold))
+                                .font(.ui(.body, weight: .semibold))
                                 .foregroundStyle(Chrome.primaryText)
                             Text("A pair says which model leads and which runs the heads. Put a deep thinker over quick hands on one provider, or lead on one provider and send the heads out on another: the strongest lead with the fastest team, every time.")
-                                .font(.system(.subheadline))
+                                .font(.ui(.subheadline))
                                 .foregroundStyle(Chrome.secondaryText)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -156,7 +156,7 @@ struct HydraSettingsPage: View {
                     }
                 }
                 Text("Pairs sit at the top of the model picker: a tap puts the chat in one. Right-click a project in the sidebar to start each of its new chats on one pair.")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 4)
             }
@@ -186,12 +186,12 @@ struct HydraSettingsPage: View {
                 }
             }
             Text("These controls affect Codex's local CLI/app session history, independently of Tivano's sidebar. They do not manage conversations on provider websites. Heads with descendants or an unconfirmed idle state are not archived. Changing this setting never sweeps existing history.")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
                 .padding(.horizontal, 4)
             ForEach(model.threads.filter { $0.provider == .codex && $0.hydra?.providerHistoryIssue != nil }) { head in
                 Text("\(head.title): \(head.hydra?.providerHistoryIssue ?? "")")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 4)
             }
@@ -285,15 +285,15 @@ private struct HydraPairRow: View {
                     HydraPairIcons(pair: pair)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: HydraPairSummary.title(pair, registry: registry))
-                            .font(.system(.body))
+                            .font(.ui(.body))
                             .foregroundStyle(Chrome.primaryText)
                         Text(verbatim: summary(registry: registry))
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                     }
                     Spacer(minLength: 8)
                     Image(systemName: "slider.horizontal.3")
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .opacity(isHovering ? 1 : 0)
                 }
@@ -310,7 +310,7 @@ private struct HydraPairRow: View {
                 withAnimation(Chrome.panelSlide) { model.removeHydraPair(pair.id) }
             } label: {
                 Image(systemName: "minus.circle")
-                    .font(.system(.callout, weight: .medium))
+                    .font(.ui(.callout, weight: .medium))
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(width: 24, height: 24)
                     .contentShape(.rect)
@@ -399,13 +399,13 @@ private struct HydraPairEditor: View {
                     .textFieldStyle(.plain)
                     .focused($isNameFocused)
                     .focusEffectDisabled()
-                    .font(.system(.title3, weight: .semibold))
+                    .font(.ui(.title3, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
                     .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                     Text("Shown in the picker and the composer")
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.horizontal, 2)
                 }
@@ -531,7 +531,7 @@ private struct HydraPairEditor: View {
                 ForEach(Self.catalogProviders(pair), id: \.self) { provider in
                     if registry.models(for: provider).isEmpty {
                         Text(verbatim: String(format: Chrome.localized(registry.loadingCatalogs.contains(provider) ? "Loading %@'s models…" : "No models loaded for %@ yet."), provider.displayName))
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 14)
                             .padding(.top, 8)
@@ -555,13 +555,13 @@ private struct HydraPairEditor: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if let detail {
                     Text(verbatim: Chrome.localized(detail))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
             }
@@ -581,7 +581,7 @@ private struct HydraPairEditor: View {
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
             Text(verbatim: Chrome.localized(title))
-                .font(.system(.subheadline, weight: .semibold))
+                .font(.ui(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .padding(.horizontal, 14)
                 .padding(.top, 10)

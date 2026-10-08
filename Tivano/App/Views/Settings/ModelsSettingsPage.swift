@@ -67,7 +67,7 @@ struct ModelsSettingsPage: View {
                     }
                     if trimmed.isEmpty {
                         Text(verbatim: String(format: Chrome.localized("%lld of %lld. Click a model to set its reasoning effort and fast mode for every new chat."), pins.count, AppSettings.modelListLimit))
-                            .font(.system(size: 11))
+                            .font(.ui(size: 11))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 4)
                     }
@@ -87,7 +87,7 @@ struct ModelsSettingsPage: View {
 
             if !trimmed.isEmpty, visiblePins.isEmpty, providers.isEmpty {
                 Text(verbatim: String(format: Chrome.localized("No models match “%@”."), trimmed))
-                    .font(.system(size: 13))
+                    .font(.ui(size: 13))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 4)
             }
@@ -179,7 +179,7 @@ private struct PinnedModelRow: View {
         let preference = settings.preference(for: pin.provider, model: pin.modelID)
         HStack(spacing: 10) {
             Image(systemName: "line.3.horizontal")
-                .font(.system(size: 11, weight: .medium))
+                .font(.ui(size: 11, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText.opacity(isHoveringGrip ? 1 : 0.7))
                 .frame(width: 24, height: 24)
                 .contentShape(.rect)
@@ -201,15 +201,15 @@ private struct PinnedModelRow: View {
                         .frame(width: 22)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: option?.shortName ?? pin.modelID)
-                            .font(.system(size: 13))
+                            .font(.ui(size: 13))
                             .foregroundStyle(Chrome.primaryText)
                         Text(verbatim: summary(option: option, preference: preference))
-                            .font(.system(size: 11))
+                            .font(.ui(size: 11))
                             .foregroundStyle(Chrome.secondaryText)
                     }
                     Spacer(minLength: 8)
                     Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 12))
+                        .font(.ui(size: 12))
                         .foregroundStyle(Chrome.secondaryText)
                         .opacity(isHovering ? 1 : 0)
                 }
@@ -285,7 +285,7 @@ private struct RowControl: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .medium))
+                .font(.ui(size: 12, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText)
                 .frame(width: 24, height: 24)
                 .contentShape(.rect)
@@ -356,7 +356,7 @@ private struct ProviderModelsSection: View {
                             HStack(spacing: 10) {
                                 if option.supportsFast {
                                     Image(systemName: "bolt")
-                                        .font(.system(size: 11))
+                                        .font(.ui(size: 11))
                                         .foregroundStyle(Chrome.secondaryText)
                                         .help("Supports fast mode")
                                 }
@@ -372,7 +372,7 @@ private struct ProviderModelsSection: View {
                                     }
                                 } label: {
                                     Image(systemName: isAdded ? "checkmark.circle.fill" : "plus.circle")
-                                        .font(.system(size: 17))
+                                        .font(.ui(size: 17))
                                         .foregroundStyle(isAdded ? Chrome.accent : Chrome.secondaryText)
                                         .contentTransition(.symbolEffect(.replace))
                                 }
@@ -420,11 +420,11 @@ struct CollapsibleProviderHeader: View {
                 ProviderIcon(provider: provider, size: 16)
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: provider.displayName)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.ui(size: 13, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.ui(size: 11, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
             }

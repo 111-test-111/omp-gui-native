@@ -68,10 +68,10 @@ struct MCPKeyPanelView: View {
             MCPIcon(entry: entry, size: 26)
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: entry.name)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.ui(size: 14, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text("Connect")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             Spacer(minLength: 8)
@@ -79,7 +79,7 @@ struct MCPKeyPanelView: View {
                 onDone()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(.subheadline, weight: .semibold))
+                    .font(.ui(.subheadline, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
             }
             .buttonStyle(.plain)
@@ -91,7 +91,7 @@ struct MCPKeyPanelView: View {
         if let keysURL = entry.keysURL, let url = URL(string: keysURL) {
             VStack(alignment: .leading, spacing: 6) {
                 stepRow(1, text: Text("The page is open in your browser"), accessory: AnyView(
-                    Link("Open it again", destination: url).font(.system(.subheadline))
+                    Link("Open it again", destination: url).font(.ui(.subheadline))
                 ))
                 stepRow(2, text: Text(verbatim: String(format: Chrome.localized("Copy the %@"), entry.fields.first.map { Chrome.localizedLowercased($0.label) } ?? Chrome.localized("key"))))
                 stepRow(3, text: Text("Paste it below and save"))
@@ -111,12 +111,12 @@ struct MCPKeyPanelView: View {
                     .fill(Chrome.accent.opacity(0.18))
                     .frame(width: 18, height: 18)
                 Text(verbatim: "\(number)")
-                    .font(.system(.footnote, weight: .semibold))
+                    .font(.ui(.footnote, weight: .semibold))
                     .foregroundStyle(Chrome.accent)
             }
             HStack(spacing: 4) {
                 text
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.primaryText)
                 if let accessory { accessory }
             }
@@ -127,7 +127,7 @@ struct MCPKeyPanelView: View {
     private func fieldView(_ field: MCPField) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(verbatim: Chrome.localized(field.label))
-                .font(.system(.subheadline, weight: .semibold))
+                .font(.ui(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
             HStack(spacing: 6) {
                 Group {
@@ -140,14 +140,14 @@ struct MCPKeyPanelView: View {
                 }
                 .textFieldStyle(.plain)
                 .focusEffectDisabled()
-                .font(.system(.callout, design: .monospaced))
+                .font(.ui(.callout, design: .monospaced))
                 .focused($focusedField, equals: field.key)
                 if field.kind == .path {
                     Button {
                         pickPath(for: field)
                     } label: {
                         Image(systemName: "folder")
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                     }
                     .buttonStyle(.plain)
@@ -161,7 +161,7 @@ struct MCPKeyPanelView: View {
             }
             if let help = field.help, !help.isEmpty {
                 Text(verbatim: Chrome.localized(help))
-                    .font(.system(size: 10.5))
+                    .font(.ui(size: 10.5))
                     .foregroundStyle(Chrome.secondaryText)
             }
         }

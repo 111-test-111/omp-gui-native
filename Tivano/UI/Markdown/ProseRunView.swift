@@ -14,7 +14,8 @@ struct ProseRunView: View {
     @State private var faviconRevision = 0
 
     var body: some View {
-        let scaled = (pointSize * 2).rounded() / 2
+        let resolvedSize = pointSize == 0 ? TypeScale.shared.content(13) : pointSize
+        let scaled = (resolvedSize * 2).rounded() / 2
         let sources = ProseRunRepresentable.joinedSources(blocks)
         let linkKey = RichLink.linkAssetKey(for: sources)
         let linkBox = linkView
@@ -32,7 +33,8 @@ struct ProseRunView: View {
 
 struct ProseRunRepresentable: NSViewRepresentable {
     let blocks: [MarkdownBlock]
-    var pointSize: CGFloat = 13
+    var pointSize: CGFloat = TypeScale.shared.content(13)
+    var codePointSize: CGFloat = TypeScale.shared.code(12)
     var dimmed: Bool = false
     var revision: Int = 0
     var mentions: [HydraPersona] = []
@@ -60,10 +62,12 @@ struct ProseRunRepresentable: NSViewRepresentable {
         let mentionNames = mentions.map(\.name)
         let headLinks = targets.mapValues(\.url)
         if coordinator.lastSource != source || coordinator.lastPointSize != pointSize
+            || coordinator.lastCodePointSize != codePointSize
             || coordinator.lastDimmed != dimmed || coordinator.lastRevision != revision
             || coordinator.lastMentions != mentionNames || coordinator.lastHeads != headLinks {
             coordinator.lastSource = source
             coordinator.lastPointSize = pointSize
+            coordinator.lastCodePointSize = codePointSize
             coordinator.lastDimmed = dimmed
             coordinator.lastRevision = revision
             coordinator.lastMentions = mentionNames
@@ -127,7 +131,7 @@ struct ProseRunRepresentable: NSViewRepresentable {
         switch block {
         case .paragraph(let text):
             separate(to: out, font: base, color: color)
-            let line = NSMutableAttributedString(attributedString: LinkParagraphView.attributed(source: text, pointSize: pointSize, dimmed: dimmed, mentions: mentions, targets: targets))
+            let line = NSMutableAttributedString(attributedString: LinkParagraphView.attributed(source: text, pointSize: pointSize, codePointSize: TypeScale.shared.code(max(9, pointSize - CGFloat(TypeScale.shared.content - TypeScale.stockContent) - 1)), dimmed: dimmed, mentions: mentions, targets: targets))
             let style = NSMutableParagraphStyle()
             style.firstLineHeadIndent = indent
             style.headIndent = indent
@@ -136,14 +140,16 @@ struct ProseRunRepresentable: NSViewRepresentable {
             out.append(line)
         case .heading(let level, let text):
             separate(to: out, font: base, color: color)
-            let size: CGFloat
+            let stockSize = pointSize - CGFloat(TypeScale.shared.content - TypeScale.stockContent)
+            let headingStockSize: CGFloat
             switch level {
-            case 1: size = (pointSize * 1.35).rounded()
-            case 2: size = (pointSize * 1.2).rounded()
-            case 3: size = (pointSize * 1.08).rounded()
-            default: size = pointSize
+            case 1: headingStockSize = (stockSize * 1.35).rounded()
+            case 2: headingStockSize = (stockSize * 1.2).rounded()
+            case 3: headingStockSize = (stockSize * 1.08).rounded()
+            default: headingStockSize = stockSize
             }
-            let line = NSMutableAttributedString(attributedString: LinkParagraphView.attributed(source: text, pointSize: size, dimmed: dimmed, mentions: mentions, targets: targets))
+            let size = TypeScale.shared.content(headingStockSize)
+            let line = NSMutableAttributedString(attributedString: LinkParagraphView.attributed(source: text, pointSize: size, codePointSize: TypeScale.shared.code(max(9, headingStockSize - 1)), dimmed: dimmed, mentions: mentions, targets: targets))
             let semibold = NSFont.systemFont(ofSize: size, weight: .semibold)
             line.enumerateAttribute(.font, in: NSRange(location: 0, length: line.length), options: []) { value, range, _ in
                 guard let font = value as? NSFont else { return }
@@ -175,7 +181,7 @@ struct ProseRunRepresentable: NSViewRepresentable {
                     .foregroundColor: color,
                 ])
                 if !item.text.isEmpty {
-                    line.append(LinkParagraphView.attributed(source: item.text, pointSize: pointSize, dimmed: dimmed, mentions: mentions, targets: targets))
+                    line.append(LinkParagraphView.attributed(source: item.text, pointSize: pointSize, codePointSize: TypeScale.shared.code(max(9, pointSize - CGFloat(TypeScale.shared.content - TypeScale.stockContent) - 1)), dimmed: dimmed, mentions: mentions, targets: targets))
                 }
                 let style = NSMutableParagraphStyle()
                 style.firstLineHeadIndent = indent

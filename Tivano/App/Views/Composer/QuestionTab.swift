@@ -93,7 +93,7 @@ struct QuestionSheet: View {
                     }
                     Spacer()
                     Text(verbatim: String(format: Chrome.localized("%d of %d"), page + 1, count))
-                        .font(.system(.subheadline)).monospacedDigit()
+                        .font(.ui(.subheadline)).monospacedDigit()
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 .animation(Chrome.panelSlide, value: page)
@@ -131,7 +131,7 @@ struct QuestionSheet: View {
                 }
                 if unanswered > 0 {
                     Text(verbatim: unanswered == 1 ? Chrome.localized("1 question still to answer") : String(format: Chrome.localized("%d questions still to answer"), unanswered))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
                 }
@@ -209,12 +209,12 @@ private struct QuestionPage: View {
         VStack(alignment: .leading, spacing: 10) {
             if !question.header.isEmpty {
                 Text(verbatim: question.header)
-                    .font(.system(.subheadline, weight: .medium))
+                    .font(.ui(.subheadline, weight: .medium))
                     .foregroundStyle(Chrome.secondaryText)
                     .textCase(.uppercase)
             }
             Text(verbatim: question.prompt)
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
                 .foregroundStyle(Chrome.primaryText)
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
@@ -268,18 +268,18 @@ private struct QuestionPage: View {
         } label: {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: symbol(selected: isSelected, multiple: question.allowsMultiple))
-                    .font(.system(size: 14))
+                    .font(.ui(size: 14))
                     .foregroundStyle(isSelected ? AnyShapeStyle(Chrome.accent) : AnyShapeStyle(Chrome.secondaryText))
                     .frame(width: 18)
                     .padding(.top, 1)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(verbatim: bare.label)
-                            .font(.system(.body, weight: isSelected ? .semibold : .regular))
+                            .font(.ui(.body, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(Chrome.primaryText)
                         if bare.isRecommended {
                             Text("Recommended")
-                                .font(.system(.footnote, weight: .medium))
+                                .font(.ui(.footnote, weight: .medium))
                                 .foregroundStyle(Chrome.accent)
                                 .padding(.horizontal, 6).padding(.vertical, 2)
                                 .background(Capsule().fill(Chrome.accent.opacity(0.14)))
@@ -287,7 +287,7 @@ private struct QuestionPage: View {
                     }
                     if let detail = choice.detail, !detail.isEmpty {
                         Text(verbatim: detail)
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
                     }

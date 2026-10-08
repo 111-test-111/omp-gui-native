@@ -17,10 +17,10 @@ struct HydraCookbookPanel: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 3) {
                 Text("Cookbook")
-                    .font(.system(.title3, weight: .semibold))
+                    .font(.ui(.title3, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text("Pairs built from the models in your library: which one leads, at what effort, and which ones build. Add one and it is in the model picker.")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -32,7 +32,7 @@ struct HydraCookbookPanel: View {
                 VStack(alignment: .leading, spacing: 0) {
                     if ready.isEmpty {
                         Text("Set up a provider in Settings › Providers, and its models bring their pairs here.")
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(16)
                     }
@@ -42,7 +42,7 @@ struct HydraCookbookPanel: View {
                     }
                     if !waiting.isEmpty {
                         Text("Needs a provider")
-                            .font(.system(.subheadline, weight: .semibold))
+                            .font(.ui(.subheadline, weight: .semibold))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 16)
                             .padding(.top, 14)
@@ -87,10 +87,10 @@ private struct HydraCookbookRow: View {
             .frame(width: 52, alignment: .leading)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: pair.map { HydraPairSummary.title($0, registry: registry) } ?? Chrome.localized(recipe.title))
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
                 Text(verbatim: Chrome.localized(recipe.tagline))
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 if let pair {
@@ -100,13 +100,13 @@ private struct HydraCookbookRow: View {
                     let detail = [providersLine, HydraPairSummary.efforts(pair)].compactMap { $0 }.joined(separator: " · ")
                     if !detail.isEmpty {
                         Text(verbatim: detail)
-                            .font(.system(.subheadline))
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Chrome.secondaryText.opacity(0.8))
                             .lineLimit(2)
                     }
                 } else if let missing {
                     Text(verbatim: String(format: Chrome.localized("Set up %@ to add this pair."), missing.displayName))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText.opacity(0.8))
                 }
             }
@@ -114,7 +114,7 @@ private struct HydraCookbookRow: View {
             if let pair {
                 if isAdded {
                     Label("Added", systemImage: "checkmark")
-                        .font(.system(.callout, weight: .medium))
+                        .font(.ui(.callout, weight: .medium))
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.horizontal, 10)
                 } else {

@@ -1200,17 +1200,6 @@
         }
       }
     },
-    "%lld%% of the stock size" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "默认大小的 %lld%%"
-          }
-        }
-      }
-    },
     "%lld%% used" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1904,17 +1893,6 @@
         }
       }
     },
-    "Actual Size" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "实际大小"
-          }
-        }
-      }
-    },
     "Add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2054,6 +2032,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "换行而不发送。"
+          }
+        }
+      }
+    },
+    "Adjust Tivano's base font size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整 Tivano 的基础字号"
+          }
+        }
+      }
+    },
+    "Adjust the base font size of code in chat and diff views" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整聊天和差异视图中代码的基础字号"
+          }
+        }
+      }
+    },
+    "Adjust the base font size of conversations" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整对话的基础字号"
+          }
+        }
+      }
+    },
+    "Advanced" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级"
           }
         }
       }
@@ -2670,17 +2692,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢复默认效果"
-          }
-        }
-      }
-    },
-    "Back to the stock size" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "恢复默认大小"
           }
         }
       }
@@ -3389,6 +3400,17 @@
         }
       }
     },
+    "Code font size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码字号"
+          }
+        }
+      }
+    },
     "Collapse all" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3715,6 +3737,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连接方式"
+          }
+        }
+      }
+    },
+    "Content font size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内容字号"
           }
         }
       }
@@ -4269,6 +4302,17 @@
         }
       }
     },
+    "Decrease Font Size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "减小字号"
+          }
+        }
+      }
+    },
     "Default" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4276,6 +4320,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "默认"
+          }
+        }
+      }
+    },
+    "Default Font Size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认字号"
           }
         }
       }
@@ -6260,6 +6315,17 @@
         }
       }
     },
+    "Increase Font Size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增大字号"
+          }
+        }
+      }
+    },
     "Inspects pages, console messages and performance traces" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6322,6 +6388,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "可替代 `%@`：来自 %@ 的 Studio 密钥，保存在你的钥匙串中并交给命令行工具使用。"
+          }
+        }
+      }
+    },
+    "Interface font size" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "界面字号"
           }
         }
       }
@@ -9164,6 +9241,17 @@
         }
       }
     },
+    "Reset to defaults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置为默认设置"
+          }
+        }
+      }
+    },
     "Resets %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11496,17 +11584,6 @@
         }
       }
     },
-    "The stock size" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "默认大小"
-          }
-        }
-      }
-    },
     "The team's changes go out as a merge request and are merged." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12750,61 +12827,6 @@
         }
       }
     },
-    "Zoom" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "缩放"
-          }
-        }
-      }
-    },
-    "Zoom In" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "放大"
-          }
-        }
-      }
-    },
-    "Zoom Out" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "缩小"
-          }
-        }
-      }
-    },
-    "Zoom in" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "放大"
-          }
-        }
-      }
-    },
-    "Zoom out" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "缩小"
-          }
-        }
-      }
-    },
     "a head" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13076,6 +13098,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "服务商设置"
+          }
+        }
+      }
+    },
+    "px" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "px"
           }
         }
       }

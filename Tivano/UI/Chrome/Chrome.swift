@@ -44,9 +44,9 @@ enum Chrome {
     /// One weight and size for every symbol that is a control on its own: chrome buttons,
     /// the composer's paperclip and send, the terminal strip. Symbols beside text step down
     /// a point so they sit level with the type; menu chevrons are small and bold.
-    static let iconFont: Font = .system(.callout, weight: .semibold)
-    static let inlineIconFont: Font = .system(.subheadline, weight: .semibold)
-    static let chevronFont: Font = .system(size: 8, weight: .bold)
+    @MainActor static var iconFont: Font { .ui(.callout, weight: .semibold) }
+    @MainActor static var inlineIconFont: Font { .ui(.subheadline, weight: .semibold) }
+    static var chevronFont: Font { .system(size: 8, weight: .bold) }
     static let chromeHorizontalPadding: CGFloat = 14
     static let chromeTopPadding: CGFloat = 12
     static let capsuleContentHeight: CGFloat = 28
@@ -83,7 +83,7 @@ enum Chrome {
     /// The height a settings row's trailing button label is held to. A monospaced `> agy`
     /// copy button drew a taller capsule than the plain "Sign in" beside it, so the two
     /// read as two sizes; one clamped label height keeps the controls in a row even.
-    static let rowButtonLabelHeight: CGFloat = 16
+    @MainActor static var rowButtonLabelHeight: CGFloat { TypeScale.shared.ui(16) }
 
     // MARK: Color and motion
 
@@ -511,7 +511,7 @@ struct ChromeTextMenu<Content: View>: View {
                 Image(systemName: symbol)
                     .font(Chrome.inlineIconFont)
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.ui(size: 12.5, weight: .medium))
                     .lineLimit(1)
                 Image(systemName: "chevron.down")
                     .font(Chrome.chevronFont)
@@ -555,7 +555,7 @@ struct ChromeTextButton: View {
                 Image(systemName: symbol)
                     .font(Chrome.inlineIconFont)
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.ui(size: 12.5, weight: .medium))
                     .lineLimit(1)
             }
             .foregroundStyle(foreground)
@@ -659,7 +659,7 @@ struct ChromeCompactTitle: View {
     var body: some View {
         let progress = model.progress
         Text(verbatim: Chrome.localized(title))
-            .font(.system(.title3, weight: .semibold))
+            .font(.ui(.title3, weight: .semibold))
             .foregroundStyle(Chrome.primaryText)
             .lineLimit(1)
             .opacity(Double(progress))
@@ -738,7 +738,7 @@ struct SidebarRow<Icon: View, Accessory: View>: View {
                 icon
                     .frame(width: Chrome.iconSize, alignment: .center)
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(.body, weight: isSelected || isEmphasized ? .medium : .regular))
+                    .font(.ui(.body, weight: isSelected || isEmphasized ? .medium : .regular))
                     .foregroundStyle(Chrome.primaryText.opacity(isSelected ? 1 : 0.92))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -808,11 +808,11 @@ struct SidebarSearchField: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .font(.system(.callout, weight: .medium))
+                .font(.ui(.callout, weight: .medium))
                 .foregroundStyle(Chrome.secondaryText.opacity(0.85))
             TextField(prompt, text: $text)
                 .textFieldStyle(.plain)
-                .font(.system(.body))
+                .font(.ui(.body))
                 .frame(maxWidth: .infinity)
                 .onSubmit(onSubmit)
                 .onKeyPress(.upArrow) { move(-1) }
@@ -822,7 +822,7 @@ struct SidebarSearchField: View {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText.opacity(0.75))
                 }
                 .buttonStyle(.plain)
@@ -830,7 +830,7 @@ struct SidebarSearchField: View {
             }
         }
         .padding(.horizontal, 9)
-        .frame(height: 30)
+        .frame(minHeight: TypeScale.shared.ui(30))
         .background {
             Capsule(style: .continuous).fill(Chrome.overlay(0.07))
         }
@@ -857,7 +857,7 @@ struct ChromeSearchField: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .font(.system(.callout, weight: .semibold))
+                .font(.ui(.callout, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .accessibilityHidden(true)
             TextField(prompt, text: $query)
@@ -865,13 +865,13 @@ struct ChromeSearchField: View {
                 // The capsule is the field's edge; the focus ring flashed around the text
                 // alone as the caret landed.
                 .focusEffectDisabled()
-                .font(.system(size: 12.5))
+                .font(.ui(size: 12.5))
                 .foregroundStyle(Chrome.primaryText)
             Button {
                 query = ""
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .foregroundStyle(Chrome.secondaryText.opacity(0.8))
             }
             .buttonStyle(.plain)
@@ -919,11 +919,11 @@ struct GlassPickerButton<Value: Hashable>: View {
                 }
                 if let symbol = symbol(selection) {
                     Image(systemName: symbol)
-                        .font(.system(.callout, weight: .medium))
+                        .font(.ui(.callout, weight: .medium))
                         .foregroundStyle(Chrome.secondaryText)
                 }
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.ui(size: 12.5, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Image(systemName: "chevron.down")
@@ -1062,7 +1062,7 @@ struct ChromeSection<Content: View>: View {
         VStack(alignment: .leading, spacing: Chrome.sectionHeaderSpacing) {
             HStack(spacing: 4) {
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
                 if let accessory { accessory }
                 if let trailing {
@@ -1085,11 +1085,11 @@ struct ChromeRow<Control: View>: View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: Chrome.localized(title))
-                    .font(.system(.body))
+                    .font(.ui(.body))
                     .foregroundStyle(Chrome.primaryText)
                 if let detail, !detail.isEmpty {
                     Text(verbatim: Chrome.localized(detail))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
                 }

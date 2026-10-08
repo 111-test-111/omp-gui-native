@@ -168,7 +168,7 @@ struct HydraProgressBar: View {
             .animation(.smooth(duration: 0.15), value: hoveredIndex)
             if !counts.line.isEmpty {
                 Text(verbatim: counts.line)
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(maxWidth: .infinity)
             }
@@ -195,12 +195,12 @@ struct HydraProgressBar: View {
                 MCPGlyph(entry: entry, size: 14)
             } else if let name = stave.symbol {
                 Image(systemName: name)
-                    .font(.system(.callout, weight: .semibold))
+                    .font(.ui(.callout, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
                     .frame(width: 14)
             }
             Text(verbatim: stave.step)
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
                 .foregroundStyle(Chrome.primaryText)
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -854,7 +854,7 @@ struct HydraWorkingTitle: View {
     var body: some View {
         let animates = chatColumnIsShown && isRunning && FrontMonitor.shared.isVisible && !performanceMode && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let title = Text(verbatim: text)
-            .font(.system(.body, weight: .medium))
+            .font(.ui(.body, weight: .medium))
             .foregroundStyle(Chrome.primaryText)
         TimelineView(.animation(minimumInterval: 1.0 / 12.0, paused: !animates || ScrollActivity.shared.isScrolling)) { context in
             let now = context.date.timeIntervalSinceReferenceDate
@@ -885,7 +885,7 @@ struct HydraElapsedTime: View {
                 Text(verbatim: RelativeTime.duration((finishedAt ?? .now).timeIntervalSince(startedAt)))
             }
         }
-        .font(.system(.subheadline))
+        .font(.ui(.subheadline))
         .monospacedDigit()
         .foregroundStyle(Chrome.secondaryText)
     }

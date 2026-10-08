@@ -20,7 +20,7 @@ struct GitHubSettingsSection: View {
                             Text(verbatim: connection.user.map { $0.name ?? $0.login } ?? "GitHub")
                                 .foregroundStyle(Chrome.primaryText)
                             if let detail = accountDetail {
-                                Text(verbatim: detail).font(.subheadline).foregroundStyle(Chrome.secondaryText)
+                                Text(verbatim: detail).font(.ui(.subheadline)).foregroundStyle(Chrome.secondaryText)
                             }
                         }
                         Spacer(minLength: 12)

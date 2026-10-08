@@ -67,7 +67,7 @@ struct FollowUpQueueTab: View {
                         .frame(width: 22, height: 22)
                         .rotationEffect(.degrees(isCollapsed ? 180 : 0))
                 }
-                .font(.system(.callout, weight: .medium).monospacedDigit())
+                .font(.ui(.callout, weight: .medium).monospacedDigit())
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)
@@ -329,16 +329,17 @@ private struct FollowUpRow: View {
 
     /// How far the prose is lifted to centre its x-height on the row's line: half the
     /// gap between cap height and x-height of its 12 pt font, on the half point.
-    nonisolated private static let proseLift: CGFloat = {
-        let font = NSFont.systemFont(ofSize: 12)
+    private static var proseLift: CGFloat {
+        let font = NSFont.systemFont(ofSize: TypeScale.shared.content(12))
         return ((font.capHeight - font.xHeight) / 2 * 2).rounded() / 2
-    }()
+    }
 
     var body: some View {
         // Which follow-up is open for editing is the thread's, so the editor survives the
         // row: leaving the thread closes the popover only, and the row coming back reopens
         // it on the edit as it was left.
         let isEditing = runtime.followUpEdit?.id == prompt.id
+        let proseLift = Self.proseLift
         // One shared center line: the number, grip, thumbnails, text and
         // buttons all center on it, so single-line rows read as one line.
         HStack(alignment: .center, spacing: 8) {
@@ -354,7 +355,7 @@ private struct FollowUpRow: View {
                             NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
                         } label: {
                             Image(systemName: "link")
-                                .font(.system(.footnote, weight: .semibold))
+                                .font(.ui(.footnote, weight: .semibold))
                                 .foregroundStyle(Color.accentColor)
                         }
                         .buttonStyle(.plain)
@@ -364,20 +365,20 @@ private struct FollowUpRow: View {
                         .accessibilityLabel(Text("Unlink"))
                     } else {
                         Image(systemName: "link")
-                            .font(.system(.footnote, weight: .semibold))
+                            .font(.ui(.footnote, weight: .semibold))
                             .foregroundStyle(Color.accentColor)
                             .accessibilityHidden(true)
                     }
                 } else {
                     Text(verbatim: "\(position)")
-                        .font(.system(.subheadline, weight: .medium).monospacedDigit())
+                        .font(.ui(.subheadline, weight: .medium).monospacedDigit())
                         .foregroundStyle(isBundledWithNext ? Color.accentColor : Chrome.secondaryText)
                         .accessibilityHidden(true)
                 }
             }
             .frame(width: 14, alignment: .trailing)
             Image(systemName: "line.3.horizontal")
-                .font(.system(.subheadline, weight: .medium))
+                .font(.ui(.subheadline, weight: .medium))
                 .foregroundStyle(isBundledWithNext ? Color.accentColor.opacity(isHoveringGrip ? 1 : 0.85) : Chrome.secondaryText.opacity(isHoveringGrip ? 1 : 0.7))
                 .frame(width: 28, height: 22)
                 .contentShape(.rect)
@@ -409,7 +410,7 @@ private struct FollowUpRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 if prompt.text.trimmed.isEmpty {
                     Text(verbatim: attachmentOnlyLabel)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(2)
                         .truncationMode(.tail)
@@ -418,7 +419,7 @@ private struct FollowUpRow: View {
                     // and this tab keeps every AppKit view out of the key-view-loop walk
                     // (see `WindowRectAnchor`). The pencil opens the full text to copy.
                     Text(verbatim: prompt.text)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.primaryText.opacity(0.9))
                         .lineLimit(2)
                         .truncationMode(.tail)
@@ -427,7 +428,7 @@ private struct FollowUpRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             // The line box centres on cap height, which is right for the digit and the
             // symbols, but prose is read by its x-height and sat a hair low beside them.
-            .alignmentGuide(VerticalAlignment.center) { $0[VerticalAlignment.center] + Self.proseLift }
+            .alignmentGuide(VerticalAlignment.center) { $0[VerticalAlignment.center] + proseLift }
             Spacer(minLength: 4)
             HStack(spacing: 0) {
                 // Native heads run inside the lead's turn, so that turn is not stopped for
@@ -519,7 +520,7 @@ private struct QueueIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(.subheadline, weight: .semibold))
+                .font(.ui(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText.opacity(isEnabled ? 1 : 0.35))
                 .frame(width: 22, height: 22)
                 .contentShape(.rect)

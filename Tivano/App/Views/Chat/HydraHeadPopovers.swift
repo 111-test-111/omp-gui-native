@@ -20,7 +20,7 @@ struct HydraPopoverHeader: View {
                     HydraNameText(persona: persona, size: 14, weight: .semibold, color: Chrome.primaryText)
                     if let caption, !caption.isEmpty {
                         Text(verbatim: Chrome.localized(caption))
-                            .font(.system(.subheadline, weight: .medium))
+                            .font(.ui(.subheadline, weight: .medium))
                             .foregroundStyle(captionColor)
                             .monospacedDigit()
                             .lineLimit(1)
@@ -28,7 +28,7 @@ struct HydraPopoverHeader: View {
                 }
                 if let title, !title.isEmpty {
                     Text(title)
-                        .font(.system(.callout))
+                        .font(.ui(.callout))
                         .foregroundStyle(Chrome.primaryText.opacity(0.85))
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
@@ -79,7 +79,7 @@ struct HydraHeadReportPopover: View {
                 Group {
                     if blocks.isEmpty {
                         Text("No report yet.")
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .foregroundStyle(Chrome.secondaryText)
                     } else {
                         VStack(alignment: .leading, spacing: 10) {
@@ -88,8 +88,8 @@ struct HydraHeadReportPopover: View {
                                     .equatable()
                             }
                         }
-                        .font(.system(.callout))
-                        .environment(\.markdownPointSize, 12)
+                        .font(.ui(.callout))
+                        .environment(\.markdownPointSize, TypeScale.shared.content(12))
                         .environment(\.markdownDimmed, false)
                         .textSelection(.enabled)
                     }
@@ -155,8 +155,8 @@ struct HydraBriefPopover: View {
                                 .equatable()
                         }
                     }
-                    .font(.system(.callout))
-                    .environment(\.markdownPointSize, 12)
+                    .font(.ui(.callout))
+                    .environment(\.markdownPointSize, TypeScale.shared.content(12))
                     .environment(\.markdownDimmed, false)
                     .textSelection(.enabled)
                 }

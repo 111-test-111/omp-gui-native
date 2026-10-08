@@ -711,10 +711,10 @@ struct SidebarView: View {
         if results.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
                 Text("No results")
-                    .font(.system(.body, weight: .semibold))
+                    .font(.ui(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText.opacity(0.92))
                 Text("Try a thread title or a project name.")
-                    .font(.system(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
             .padding(.horizontal, 8)
@@ -934,7 +934,7 @@ private struct ArchiveThreadPopover: View {
         PopoverMenu {
             VStack(alignment: .leading, spacing: 9) {
                 Text("Archive \(Text(verbatim: "\u{201C}\(thread.title)\u{201D}").fontWeight(.semibold))?")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .lineLimit(2)
                     .truncationMode(.tail)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1021,7 +1021,7 @@ private struct RenameThreadPopover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Rename thread")
-                .font(.system(.body, weight: .semibold))
+                .font(.ui(.body, weight: .semibold))
             TextField("Title", text: $text)
                 .textFieldStyle(.roundedBorder)
                 .focused($isFocused)
@@ -1146,7 +1146,7 @@ private struct ProjectRow: View {
                     }
                 } else if !project.isExpanded, count > 0 {
                     Text(verbatim: "\(count)")
-                        .font(.system(.subheadline).monospacedDigit())
+                        .font(.ui(.subheadline).monospacedDigit())
                         .foregroundStyle(Chrome.secondaryText)
                         .padding(.trailing, 4)
                 }
@@ -1379,7 +1379,7 @@ private struct SidebarHelperRow: View, Equatable {
                         HydraGlyph(persona: head.persona, size: ThreadRowMetrics.headGlyphSize, status: head.status)
                     }
                     Text(verbatim: thread.title)
-                        .font(.system(.callout, weight: isSelected || thread.hasUnread ? .medium : .regular))
+                        .font(.ui(.callout, weight: isSelected || thread.hasUnread ? .medium : .regular))
                         .foregroundStyle(Chrome.primaryText.opacity(isSelected ? 0.96 : 0.8))
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -1538,7 +1538,7 @@ private struct HeadCardsRow: View {
                         withAnimation(.snappy(duration: 0.18)) { showsAllHeads.toggle() }
                     } label: {
                         Image(systemName: showsAllHeads ? "chevron.up" : "chevron.down")
-                            .font(.system(.caption2, weight: .semibold))
+                            .font(.ui(.caption2, weight: .semibold))
                             .foregroundStyle(Chrome.secondaryText)
                             .frame(width: ThreadRowMetrics.headGlyphSize, height: ThreadRowMetrics.headGlyphSize)
                             .contentShape(Rectangle())
@@ -1610,7 +1610,7 @@ private struct HelperStubRow: View {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 8, weight: .bold))
                     Text(verbatim: count == 1 ? Chrome.localized(isHeads ? "1 head" : "1 helper") : String(format: Chrome.localized(isHeads ? "%d heads" : "%d helpers"), count))
-                        .font(.system(.subheadline))
+                        .font(.ui(.subheadline))
                     Spacer(minLength: 4)
                     if working {
                         MiniSpinner(cellSize: 2.4)
@@ -2054,16 +2054,16 @@ private struct ThreadRowFace<Badge: View>: View {
             }
             VStack(alignment: .leading, spacing: 3) {
                 Text(verbatim: thread.title)
-                    .font(.system(size: isSettled ? 12 : 13, weight: !isSettled && (isSelected || thread.hasUnread) ? .medium : .regular))
+                    .font(.ui(size: isSettled ? 12 : 13, weight: !isSettled && (isSelected || thread.hasUnread) ? .medium : .regular))
                     .foregroundStyle(Chrome.primaryText.opacity(Self.titleOpacity(isSettled: isSettled, isSelected: isSelected)))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if let projectName, !isSettled {
                     HStack(spacing: 4) {
                         Image(systemName: thread.worktreePath == nil ? "folder" : "arrow.triangle.branch")
-                            .font(.system(.footnote))
+                            .font(.ui(.footnote))
                         Text(verbatim: mergeStage ?? projectName)
-                            .font(.system(.callout))
+                            .font(.ui(.callout))
                             .lineLimit(1)
                     }
                     .foregroundStyle(Chrome.secondaryText)
@@ -2357,7 +2357,7 @@ private struct ActivityHeader: View {
 
     var body: some View {
         Text(verbatim: Chrome.localized(title))
-            .font(.system(.callout, weight: .semibold))
+            .font(.ui(.callout, weight: .semibold))
             .foregroundStyle(Chrome.secondaryText)
             .padding(.horizontal, Chrome.rowHorizontalPadding)
             .padding(.top, isFirst ? 2 : 14)
@@ -2383,15 +2383,15 @@ private struct SettledHeader: View {
         } label: {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 Image(systemName: "chevron.right")
-                    .font(.system(.caption2, weight: .semibold))
+                    .font(.ui(.caption2, weight: .semibold))
                     .rotationEffect(.degrees(collapsed ? 0 : 90))
                     .animation(Chrome.panelSlide, value: collapsed)
                 Text(verbatim: Chrome.localized("Settled"))
-                    .font(.system(.callout, weight: .semibold))
+                    .font(.ui(.callout, weight: .semibold))
                 // Update the digits without a separate roll while the whole header moves.
                 // Keep the inherited layout animation so the count travels with the title.
                 Text(verbatim: "\(count)")
-                    .font(.system(.callout))
+                    .font(.ui(.callout))
                     .monospacedDigit()
                     .opacity(0.8)
                     .fixedSize()
@@ -2422,7 +2422,7 @@ private struct ActivityStatus: View {
         let runtime = model.existingRuntime(for: thread.id)
         if !(runtime?.approvals.isEmpty ?? true) || !(runtime?.questions.isEmpty ?? true) {
             Image(systemName: "hand.raised.fill")
-                .font(.system(.subheadline))
+                .font(.ui(.subheadline))
                 .foregroundStyle(Chrome.warning)
         } else if runtime?.isRunning == true || runtime?.isHydraMerging == true || runtime?.hasWorkingHelpers == true {
             MiniSpinner(cellSize: 2.4)
@@ -2700,7 +2700,7 @@ private struct RelativeTimeLabel: View {
 
     var body: some View {
         Text(verbatim: RelativeTime.short(date, now: MinuteClock.shared.now))
-            .font(.system(.subheadline).monospacedDigit())
+            .font(.ui(.subheadline).monospacedDigit())
             .foregroundStyle(Chrome.secondaryText.opacity(0.8))
             .padding(.trailing, 4)
     }
