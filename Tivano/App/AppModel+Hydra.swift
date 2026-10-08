@@ -395,6 +395,7 @@ extension AppModel {
         project: String? = nil,
         profile: String? = nil
     ) -> ChatThread? {
+        guard ensureThreadEditable(parentID) else { return nil }
         guard let parent = thread(parentID) else { return nil }
         // A lead with no heads left starts the roster over. The count would otherwise
         // climb for the life of the chat, and a lead that has sent out twenty-five heads
@@ -494,6 +495,8 @@ extension AppModel {
 
     /// Gives a Tivano-run head its copy of the checkout, then its brief.
     private func startTivanoHead(_ id: UUID, attachments: [Attachment], brief: @Sendable (HydraPersona, HydraPrompts.Workplace) -> String) async {
+        guard beginSharedThreadJob(id) else { return }
+        defer { endSharedThreadJob(id) }
         guard let head = thread(id), let info = head.hydra, let parentID = head.parentThreadID, let lead = thread(parentID),
               let checkout = hydraCheckout(of: head, lead: lead) else { return }
         // A head on another provider than its lead, with no model chosen for it, runs that
@@ -757,6 +760,8 @@ extension AppModel {
     /// is editing this very turn waits for the lead to come to rest first (see
     /// `waitForSettledCheckout`); the others do not wait for it.
     private func landHydraHead(_ id: UUID) async -> HydraLanding {
+        guard beginSharedThreadJob(id) else { return HydraLanding() }
+        defer { endSharedThreadJob(id) }
         guard let parentID = thread(id)?.parentThreadID else { return HydraLanding() }
         var landing = HydraLanding()
         let prepared: HydraPatch
@@ -989,7 +994,7 @@ extension AppModel {
               let project = project(head.projectID) else { return }
         // A head back at work keeps its copy: `git worktree remove --force` on the folder
         // its tools are writing into would take the work with it.
-        guard existingRuntime(for: id)?.isRunning != true else { return }
+        guard existingRuntime(for: id)?.isRunning != true, beginSharedThreadJob(id) else { return }
         // Work that never landed lives only in the copy, and the head's report points the
         // lead at it. It is kept as a patch before the folder goes.
         let unlanded = info.status != .completed || info.landing == nil
@@ -1003,6 +1008,7 @@ extension AppModel {
         }
         updateHydraHead(id) { $0.baseTree = nil }
         Task {
+            defer { self.endSharedThreadJob(id) }
             if unlanded, let base { await self.keepHydraCopyAsPatch(id, name: name, copy: copy, base: base) }
             try? await Git(project.path).removeWorktree(at: copy)
         }
