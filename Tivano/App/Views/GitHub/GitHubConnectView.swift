@@ -50,8 +50,9 @@ struct GitHubConnectView: View {
                     HStack(spacing: 8) {
                         SecureField("Personal access token", text: $token)
                             .textFieldStyle(.plain)
+                            .focusEffectDisabled()
                             .padding(8)
-                            .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 8))
+                            .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                         Button("Connect") {
                             let value = token
                             Task {
@@ -72,7 +73,7 @@ struct GitHubConnectView: View {
                 }
             }
             if let error = connection.errorMessage {
-                Text(verbatim: error).font(.caption).foregroundStyle(.red)
+                Text(verbatim: error).font(.caption).foregroundStyle(Chrome.danger)
             }
         }
         .font(.system(.callout))
