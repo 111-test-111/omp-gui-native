@@ -69,8 +69,9 @@ struct GitHubClonePanelView: View {
             }
             TextField("Search your repositories or paste a URL", text: $search)
                 .textFieldStyle(.plain)
+                .focusEffectDisabled()
                 .padding(8)
-                .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 8))
+                .background(Chrome.overlay(0.06), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .focused($searchFocused)
             // The panel sizes itself once when it opens, so this region keeps one height
             // whether it shows the list, the sign-in steps or an error.
@@ -103,7 +104,7 @@ struct GitHubClonePanelView: View {
                     Spacer(minLength: 0)
                 }
                 if let cloneError {
-                    Text(verbatim: cloneError).font(.caption).foregroundStyle(.red).lineLimit(3)
+                    Text(verbatim: cloneError).font(.caption).foregroundStyle(Chrome.danger).lineLimit(3)
                 }
             }
             .frame(height: 320, alignment: .topLeading)
@@ -146,7 +147,7 @@ struct GitHubClonePanelView: View {
         }
         .padding(8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(selectedFullName == fullName ? Chrome.accent.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+        .background(selectedFullName == fullName ? Chrome.accent.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture(count: 2) { selectedFullName = fullName; clone(fullName) }
         .onTapGesture { selectedFullName = fullName }
