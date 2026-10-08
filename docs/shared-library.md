@@ -12,10 +12,10 @@ The first Dev launch can seed missing preferences from Release/the upstream
 bundle domain; later preference changes are independent. CLI logins remain in
 those providers' own locations.
 
-This is an intentionally shared live store, **not a mirror**. `sync_dev_data.sh`
-is now a no-op compatibility entry point; the old `rsync --delete` behavior and
-`TIVANO_DEV_SYNC` have been retired. Changing/deleting a session or credential in
-one edition affects the other. The owner has accepted that risk.
+This is an intentionally shared live store, **not a mirror**. There is no data-sync
+helper; the old `rsync --delete` behavior and `TIVANO_DEV_SYNC` have been retired.
+Changing or deleting a session or credential in one edition affects the other.
+
 
 ## Concurrent editions
 

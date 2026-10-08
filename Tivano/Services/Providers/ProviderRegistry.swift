@@ -364,6 +364,7 @@ final class ProviderRegistry {
     }
 
     func refresh(_ provider: ProviderKind) async {
+        guard !CaptureRun.isEnabled else { return }
         var status = statuses[provider] ?? ProviderStatus()
         status.isChecking = true
         statuses[provider] = status
@@ -536,6 +537,7 @@ final class ProviderRegistry {
     }
 
     func loadCatalog(_ provider: ProviderKind, force: Bool = false) async {
+        guard !CaptureRun.isEnabled else { return }
         guard !loadingCatalogs.contains(provider) else { return }
         guard force || !attemptedCatalogs.contains(provider) else { return }
         if provider.isAPIKeyBased {
@@ -683,6 +685,7 @@ final class ProviderRegistry {
     /// Reads the provider's plan limits, at most once a minute after a successful read unless forced.
     /// The read runs on its own task, so closing the popover that asked for it cannot cancel it.
     func refreshPlanLimits(_ provider: ProviderKind, force: Bool = false) {
+        guard !CaptureRun.isEnabled else { return }
         guard PlanLimitsReader.exposesLimits(provider) else { return }
         guard !loadingLimits.contains(provider) else { if force { forcedLimitReads.insert(provider) }; return }
         if !force, let fetched = limitsFetchedAt[provider], Date.now.timeIntervalSince(fetched) < 60 { return }

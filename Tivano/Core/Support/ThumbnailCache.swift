@@ -16,8 +16,6 @@ actor ThumbnailCache {
     private var thumbnails = RecentCache<String, Thumbnail>(limit: 120, costLimit: 32 * 1_024 * 1_024)
     /// Decodes under way, by key, for later callers to join.
     private var inFlight: [String: Task<Thumbnail?, Never>] = [:]
-    /// How many decodes have started, for tests of the sharing.
-    private(set) var decodes = 0
 
     func thumbnail(for path: String, pointSize: CGFloat, fillingSquare: Bool = false) async -> Thumbnail? {
         guard !Task.isCancelled else { return nil }
@@ -28,7 +26,6 @@ actor ThumbnailCache {
         if let pending = inFlight[key] {
             task = pending
         } else {
-            decodes += 1
             task = Task.detached(priority: .userInitiated) { Self.decode(path, pixels: pixels, fillingSquare: fillingSquare) }
             inFlight[key] = task
         }

@@ -434,9 +434,6 @@ struct HydraReportRow: View {
     }
 }
 
-/// The finished heads the block names, in the order it draws them: one small pill
-/// each, the report one tap away. The heads still at work get no pill here: the
-/// floating panel already shows them, and a row saying the same thing was noise.
 struct BackgroundTasksWorkingRow: View {
     let descriptions: [String]
 
@@ -2526,8 +2523,6 @@ struct TurnEndRow: View {
     }
 }
 
-/// A finished turn, collapsed to nothing more than its header, its final response
-/// and its file summary. The chevron re-opens the turn's full steps.
 /// The quiet round control on a finished turn's line (revert, changes): a flat overlay
 /// disc with a secondary glyph that comes up to full under the pointer. Solid accent
 /// discs here shouted from every turn of every chat.
@@ -2560,7 +2555,7 @@ struct TurnFinishedBlock: View {
     /// Whether the turn can be reverted right now. Decided by the timeline, which reads
     /// the provider and the turn list once for every row.
     let canUndo: Bool
-    /// Whether the timeline reads chronologically (`chronologicalTimeline`): the turn
+    /// Whether the timeline reads chronologically: the turn
     /// opens on its full steps in arrival order and the chevron folds to the answer,
     /// rather than opening to the steps from the folded answer.
     let chronological: Bool

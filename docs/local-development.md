@@ -77,3 +77,18 @@ permission test was performed by that build-only check.
 
 Source: [Apple TN2206 — macOS Code Signing In Depth](https://developer.apple.com/library/archive/technotes/tn2206/_index.html),
 particularly Code Designated Requirement and Self-signed Identities.
+
+## Contributor credits
+
+Release credits identify maintainers by GitHub username. Private historical email
+identities must be supplied outside source control, either with repeated local
+`git config --local --add tivano.maintainerEmail <email>` entries or the
+comma-separated `TIVANO_MAINTAINER_EMAILS` environment variable. Other contributors
+using GitHub noreply addresses remain eligible for credit.
+
+## Onboarding screenshots
+
+Run `python3 scripts/tour_captures.py` explicitly to build and launch an isolated
+Debug capture instance. It uses mock conversations, independent storage/defaults
+and a generated backdrop from existing theme colors. It does not read the desktop
+wallpaper or Keychain. Capture flags are disabled in Release builds.

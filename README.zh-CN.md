@@ -20,7 +20,7 @@ Tivano 是一阵风——科莫湖上清晨的微风。图标里，它吹起一�
 
 ## 功能
 
-Tivano 驱动你本机已安装并登录的编码 Agent，用你自己的订阅：Codex、Claude、Cursor、OpenCode、Grok、Antigravity、Copilot、Command Code、Pi、DeepSeek、Z.ai 与 Meta。
+Tivano 驱动你本机已安装并登录的编码 Agent，用你自己的订阅：Codex、Claude、Cursor、OpenCode、Grok、Antigravity、Copilot、Command Code、Pi、DeepSeek、Z.ai、Meta 与 Devin。
 
 - 玻璃质感侧栏管理项目与线程，支持搜索、置顶与归档沉降。
 - 流式对话，完整呈现推理过程、工具调用、计划与行内审批。
@@ -38,7 +38,7 @@ Tivano 驱动你本机已安装并登录的编码 Agent，用你自己的订阅�
 
 - 运行 macOS 26 及以上版本的 Apple silicon Mac
 - 至少安装并登录一个提供商——`codex login`、`claude auth login`、`copilot login`、`cmd login`，或 `pi` 后执行 `/login`
-- Git；如需创建 PR，另需 `gh` 或 `glab`
+- Git；GitHub PR 使用 `gh`，GitLab MR 使用 `glab`
 
 ## 构建
 

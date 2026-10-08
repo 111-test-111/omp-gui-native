@@ -67,17 +67,7 @@
         }
       }
     },
-    "The other edition is landing work in this repository. Try again when it finishes.": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "另一个版本正在将改动合入此仓库。请在完成后重试。"
-          }
-        }
-      }
-    },
+
     "Older parts of this chat couldn't be read. Tivano kept the files in %@.": {
       "extractionState": "manual",
       "localizations": {
@@ -485,17 +475,7 @@
         }
       }
     },
-    "The shared library could not be opened. Close the other edition before switching. If both are closed, check the library's permissions and available disk space.\n\n%@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法打开共享资料库。切换前请先关闭另一版本。若两版都已关闭，请检查资料库权限和可用磁盘空间。\n\n%@"
-          }
-        }
-      }
-    },
+
     " and " : {
       "extractionState" : "manual",
       "localizations" : {

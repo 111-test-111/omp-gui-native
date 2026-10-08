@@ -20,7 +20,7 @@ Tivano is a wind — a gentle morning breeze off Lake Como. In the icon, that wi
 
 ## What it does
 
-Tivano drives the coding agents you already have installed and signed in, on your own subscriptions: Codex, Claude, Cursor, OpenCode, Grok, Antigravity, Copilot, Command Code, Pi, DeepSeek, Z.ai and Meta.
+Tivano drives the coding agents you already have installed and signed in, on your own subscriptions: Codex, Claude, Cursor, OpenCode, Grok, Antigravity, Copilot, Command Code, Pi, DeepSeek, Z.ai, Meta and Devin.
 
 - Projects and threads in a glass sidebar, with search, pinning and settling.
 - Streaming conversations with reasoning, tool calls, plans and inline approvals.
@@ -38,7 +38,7 @@ Remote access, mobile apps, cloud sync, telemetry and a web client are left out 
 
 - A Mac with Apple silicon running macOS 26 or later
 - At least one provider installed and signed in — `codex login`, `claude auth login`, `copilot login`, `cmd login`, or `pi` then `/login`
-- Git, plus `gh` or `glab` for pull requests
+- Git, plus `gh` for GitHub pull requests or `glab` for GitLab merge requests
 
 ## Build
 

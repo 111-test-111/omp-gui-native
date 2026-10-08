@@ -181,8 +181,8 @@ struct HydraSettingsPage: View {
                 }
                 ChromeRowDivider()
                 ChromeRow(title: "Permanent deletion", detail: "Disabled. Codex deletion also deletes descendant sessions, without an atomic safeguard against newly active work. Claude Code and Antigravity have no verified deletion operation for these connected sessions.") {
-                    Button("Delete…", role: .destructive) {}
-                        .disabled(true)
+                    Text("Unavailable")
+                        .foregroundStyle(Chrome.secondaryText)
                 }
             }
             Text("These controls affect Codex's local CLI/app session history, independently of Tivano's sidebar. They do not manage conversations on provider websites. Heads with descendants or an unconfirmed idle state are not archived. Changing this setting never sweeps existing history.")
