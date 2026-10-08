@@ -63,6 +63,7 @@ struct SpinnerCell {
 struct WorkingSpinner: View {
     var cellSize: CGFloat = 3.5
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     /// Phase = distance from bottom-center, so the wave travels upward.
     static let cells: [SpinnerCell] = (0..<3).flatMap { row in
@@ -75,8 +76,14 @@ struct WorkingSpinner: View {
 
     var body: some View {
         // The theme is read here, so a theme change reaches the cells at once.
-        SpinnerCells(cells: Self.cells, columns: 3, cellSize: cellSize, animated: !reduceMotion, theme: ThemeManager.current)
-            .accessibilityHidden(true)
+        Group {
+            if performanceMode {
+                StillSpinnerCells(cells: Self.cells, columns: 3, cellSize: cellSize, tints: GradientSpin.rowTints(accent: Chrome.accentNSColor))
+            } else {
+                SpinnerCells(cells: Self.cells, columns: 3, cellSize: cellSize, animated: !reduceMotion, theme: ThemeManager.current)
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -87,6 +94,7 @@ struct MiniSpinner: View {
     /// renderers, which cannot capture AppKit views: the archive ghost is rendered this way.
     var isStill = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     private static let ring: [(row: Int, column: Int)] = [
         (0, 0), (0, 1), (1, 1), (2, 1), (2, 0), (1, 0),
@@ -101,7 +109,7 @@ struct MiniSpinner: View {
 
     var body: some View {
         Group {
-            if isStill {
+            if isStill || performanceMode {
                 StillSpinnerCells(cells: Self.cells, columns: 2, cellSize: cellSize, tints: GradientSpin.rowTints(accent: Chrome.accentNSColor))
             } else {
                 SpinnerCells(cells: Self.cells, columns: 2, cellSize: cellSize, animated: !reduceMotion, theme: ThemeManager.current)
@@ -183,6 +191,8 @@ final class SpinnerLayerView: NSView {
         // has to reach them here: a row that never re-renders (a thread working away in
         // the sidebar) would otherwise keep the old theme's colours.
         NotificationCenter.default.addObserver(self, selector: #selector(themeDidChange), name: ThemeManager.didChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive), name: NSApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidResignActive), name: NSApplication.didResignActiveNotification, object: nil)
     }
 
     @available(*, unavailable)
@@ -238,9 +248,24 @@ final class SpinnerLayerView: NSView {
         // A layer that left the window loses nothing, but one that joins it late (a row
         // built off screen) needs its animation running from the shared clock, and its
         // tints resolved for the window's appearance.
-        guard window != nil else { return }
-        applyTints()
-        installAnimations()
+        if window != nil {
+            applyTints()
+            installAnimations()
+        } else {
+            for layer in cellLayers {
+                layer.removeAnimation(forKey: Self.animationKey)
+            }
+        }
+    }
+
+    @objc private func applicationDidBecomeActive() {
+        if window != nil { installAnimations() }
+    }
+
+    @objc private func applicationDidResignActive() {
+        for layer in cellLayers {
+            layer.removeAnimation(forKey: Self.animationKey)
+        }
     }
 
     override func viewDidChangeEffectiveAppearance() {

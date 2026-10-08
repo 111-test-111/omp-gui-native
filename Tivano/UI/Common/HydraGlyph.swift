@@ -16,10 +16,11 @@ struct HydraGlyph: View {
     var status: HydraHeadInfo.Status?
 
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
         ZStack {
-            if isRunning {
+            if isRunning && !performanceMode {
                 HydraBreathRing(color: NSColor(persona.color.opacity(0.55)).cgColor, lineWidth: 1.5)
                     .frame(width: size, height: size)
                     .allowsHitTesting(false)

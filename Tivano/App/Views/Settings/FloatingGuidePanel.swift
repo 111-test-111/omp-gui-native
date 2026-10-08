@@ -7,6 +7,7 @@ import SwiftUI
 class FloatingGuidePanel {
     private(set) var panel: NSPanel?
     private var escapeMonitor: Any?
+    private var performanceModeObserver: NSObjectProtocol? = nil
     private let width: CGFloat
 
     init(width: CGFloat) {
@@ -14,8 +15,10 @@ class FloatingGuidePanel {
     }
 
     func present(_ content: some View) {
+        observePerformanceModeChanges()
         let height = NSHostingView(rootView: content.frame(width: width)).fittingSize.height.rounded(.up)
         let panel = self.panel ?? makePanel()
+        panel.hasShadow = !(CaptureRun.defaults ?? .standard).bool(forKey: "performanceMode")
         panel.contentViewController = NSHostingController(rootView: content)
         panel.setContentSize(NSSize(width: width, height: max(height, 100)))
         if let visible = NSScreen.main?.visibleFrame {
@@ -45,7 +48,6 @@ class FloatingGuidePanel {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
         // No traffic lights: the panel closes from its own xmark and on Escape, and the
         // close button sat over the content in a corner that has no title bar to hold it.
         for button in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
@@ -53,6 +55,21 @@ class FloatingGuidePanel {
         }
         self.panel = panel
         return panel
+    }
+
+    private func observePerformanceModeChanges() {
+        guard performanceModeObserver == nil else { return }
+        performanceModeObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshShadow() }
+        }
+    }
+
+    private func refreshShadow() {
+        panel?.hasShadow = !(CaptureRun.defaults ?? .standard).bool(forKey: "performanceMode")
     }
 
     private func startEscapeMonitor() {

@@ -3,6 +3,7 @@ import SwiftUI
 struct ApprovalCard: View {
     let request: ApprovalRequest
     let runtime: ThreadRuntime
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -49,18 +50,57 @@ struct ApprovalCard: View {
                 let ownsShortcut = request.id == runtime.approvals.first?.id
                 ForEach(request.options.reversed()) { option in
                     if option.role == .approve {
-                        Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
-                            .buttonStyle(.glassProminent)
-                            .keyboardShortcut(ownsShortcut ? KeyboardShortcut(.return, modifiers: .command) : nil)
+                        if performanceMode {
+                            Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
+                                .buttonStyle(.borderedProminent)
+                                .keyboardShortcut(ownsShortcut ? KeyboardShortcut(.return, modifiers: .command) : nil)
+                        } else {
+                            Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
+                                .buttonStyle(.glassProminent)
+                                .keyboardShortcut(ownsShortcut ? KeyboardShortcut(.return, modifiers: .command) : nil)
+                        }
                     } else {
-                        Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
-                            .buttonStyle(.glass)
+                        if performanceMode {
+                            Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
+                                .buttonStyle(.bordered)
+                        } else {
+                            Button(Chrome.localized(option.title)) { runtime.resolve(request, option: option) }
+                                .buttonStyle(.glass)
+                        }
                     }
                 }
             }
         }
         .padding(16)
-        // The same hue as the card's symbol, so a theme recolours the whole card together.
-        .glassEffect(.regular.tint(Chrome.warning.opacity(0.1)), in: .rect(cornerRadius: 20, style: .continuous))
+        .modifier(RequestCardSurface())
+    }
+}
+
+private struct RequestCardSurface: ViewModifier {
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
+    @Environment(\.colorScheme) private var colorScheme
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 20, style: .continuous)
+        if !performanceMode {
+            content
+                .glassEffect(.regular.tint(Chrome.warning.opacity(0.1)), in: shape)
+                .background {
+                    shape
+                        .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+                        .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+                }
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.warning.opacity(0.25), lineWidth: 1)
+                }
+        } else {
+            content
+                .background(shape.fill(Color(nsColor: .controlBackgroundColor)))
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.warning.opacity(0.25), lineWidth: 1)
+                }
+        }
     }
 }

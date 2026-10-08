@@ -79,6 +79,30 @@ struct UserMessageRow: View {
     /// timeline, which reads the provider and the turn list once for every row.
     let canRevert: Bool
 
+    @Environment(\.revealTimelineEnd) private var revealBox
+    @Environment(\.timelineBlockID) private var blockID
+    @State private var fallbackExpanded = false
+    private var promptExpanded: Bool {
+        get { revealBox?.presentation.prompts[entry.id] ?? fallbackExpanded }
+        nonmutating set {
+            if let revealBox { revealBox.presentation.prompts[entry.id] = newValue }
+            else { fallbackExpanded = newValue }
+        }
+    }
+
+    private func promptPreview(_ text: String) -> String {
+        if let cached = revealBox?.presentation.previews[entry.id] { return cached }
+        let lines = text.split(separator: "\n", maxSplits: 8, omittingEmptySubsequences: false)
+        let firstLines = lines.prefix(8).joined(separator: "\n")
+        var preview = String(firstLines.prefix(600))
+        if preview.count < firstLines.count, let boundary = preview.lastIndex(where: { $0.isWhitespace }) {
+            preview = String(preview[..<boundary])
+        }
+        if preview != text { preview = preview.trimmingCharacters(in: .whitespacesAndNewlines) + "…" }
+        revealBox?.presentation.previews[entry.id] = preview
+        return preview
+    }
+
     @State private var isHovering = false
     @State private var isConfirmingRevert = false
     /// Carries the edit-from-here intent out of the context menu without retaining the row.
@@ -101,6 +125,7 @@ struct UserMessageRow: View {
                     AttachmentStrip(attachments: message.attachments)
                 }
                 let parts = ReplyQuote.peel(message.text)
+                let preview = promptPreview(parts.body)
                 if !parts.quotes.isEmpty {
                     // The quotes the message led with, as the chips the chat box showed them in,
                     // so a reply reads as a reply and the bubble keeps only the typed words.
@@ -130,13 +155,23 @@ struct UserMessageRow: View {
                     // The user's own words render like the answers do: a domain types as a link
                     // with its favicon in front. `hugsContent` keeps the bubble hugging its text
                     // instead of filling the row.
-                    InlineText(parts.body, hugsContent: true)
+                    InlineText(promptExpanded ? parts.body : preview, hugsContent: true)
                         .textSelection(.enabled)
                         .padding(.leading, 14)
                         // The tail hangs past the body; the text keeps its inset from the body.
                         .padding(.trailing, 14 + UserBubble.tail)
                         .padding(.vertical, 9)
                         .background(.tint.opacity(0.14), in: UserBubble())
+                }
+                if preview != parts.body {
+                    Button(Chrome.localized(promptExpanded ? "Show less" : "Show more")) {
+                        revealBox?.disclosure(blockID, false)
+                        promptExpanded.toggle()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.chat(.callout))
+                    .foregroundStyle(.secondary)
+                    .padding(.trailing, UserBubble.tail)
                 }
                 HStack(spacing: 2) {
                     if canRevert, let turnID = entry.turnID {
@@ -402,6 +437,27 @@ struct HydraReportRow: View {
 /// The finished heads the block names, in the order it draws them: one small pill
 /// each, the report one tap away. The heads still at work get no pill here: the
 /// floating panel already shows them, and a row saying the same thing was noise.
+struct BackgroundTasksWorkingRow: View {
+    let descriptions: [String]
+
+    private var label: String {
+        let first = descriptions.first ?? Chrome.localized("a background command")
+        return descriptions.count > 1
+            ? String(format: Chrome.localized("Waiting on a background task: %@ and %lld more"), first, descriptions.count - 1)
+            : String(format: Chrome.localized("Waiting on a background task: %@"), first)
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            MiniSpinner(cellSize: 2.4)
+            Text(verbatim: label)
+                .font(.chat(.callout))
+                .foregroundStyle(Chrome.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 struct HydraHeadsWorkingRow: View {
     @Environment(AppModel.self) private var model
     let heads: [Int]
@@ -464,7 +520,7 @@ private struct FinishedHeadPill: View {
         } label: {
             HStack(spacing: 8) {
                 HydraGlyph(persona: head.persona, size: 18, status: head.status)
-                (Text(verbatim: outcome.before) + HydraNameStyle.text(head.persona, base: Chrome.primaryText.opacity(0.75)) + Text(verbatim: outcome.after))
+                Text("\(Text(verbatim: outcome.before))\(HydraNameStyle.text(head.persona, base: Chrome.primaryText.opacity(0.75)))\(Text(verbatim: outcome.after))")
                     .font(.chat(.callout, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -491,13 +547,14 @@ private struct FinishedHeadPill: View {
 /// A shimmer sweeping across the content on a loop: a narrow bright band sliding
 /// left to right, masked to the content itself. Still when reduced motion is on.
 private struct HydraShimmer: ViewModifier {
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     @State private var width: CGFloat = 0
 
     /// One pass of the band, from off the left edge to off the right.
     private static let sweep: TimeInterval = 1.8
 
     func body(content: Content) -> some View {
-        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion || performanceMode {
             content
         } else {
             // The band lives in a layer the size of the text and is masked to the text
@@ -661,6 +718,7 @@ private struct HydraReportPopover: View {
 struct HydraDelegationBlock: View {
     let json: String
     var sent = false
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
         let reading = Self.reading(of: json)
@@ -707,7 +765,7 @@ struct HydraDelegationBlock: View {
         .background(.tint.opacity(0.1), in: RoundedRectangle(cornerRadius: TimelineMetrics.pillRadius, style: .continuous))
         .overlay {
             // Out: one wave of the accent flows through the card, as through the heads panel.
-            if sent {
+            if !performanceMode, sent {
                 DotFieldSweep(tint: Chrome.accentNSColor)
                     .clipShape(RoundedRectangle(cornerRadius: TimelineMetrics.pillRadius, style: .continuous))
                     .transition(.opacity)
@@ -2507,7 +2565,24 @@ struct TurnFinishedBlock: View {
     /// rather than opening to the steps from the folded answer.
     let chronological: Bool
 
-    @State private var isExpanded: Bool
+    @Environment(\.timelineBlockID) private var blockID
+    @State private var fallbackExpanded: Bool
+    private var isExpanded: Bool {
+        get { revealBox?.presentation.finished[turnID] ?? fallbackExpanded }
+        nonmutating set {
+            if let revealBox { revealBox.presentation.finished[turnID] = newValue }
+            else { fallbackExpanded = newValue }
+        }
+    }
+    @State private var stepLimit = 60
+
+    /// The paging row's words: the next page, or what is left when less than a page is.
+    static func earlierStepsLabel(hidden: Int) -> String {
+        let next = min(60, hidden)
+        return next == hidden
+            ? (hidden == 1 ? Chrome.localized("Show 1 earlier step") : String(format: Chrome.localized("Show %lld earlier steps"), hidden))
+            : String(format: Chrome.localized("Show %lld earlier steps (%lld hidden)"), next, hidden)
+    }
 
     init(runtime: ThreadRuntime, turnID: UUID, summary: TurnSummary, userEntries: [TimelineEntry], content: [TimelineEntry], workingDirectory: String?, canUndo: Bool, chronological: Bool) {
         self.runtime = runtime
@@ -2518,7 +2593,7 @@ struct TurnFinishedBlock: View {
         self.workingDirectory = workingDirectory
         self.canUndo = canUndo
         self.chronological = chronological
-        _isExpanded = State(initialValue: chronological)
+        _fallbackExpanded = State(initialValue: chronological)
     }
     @Environment(\.revealTimelineEnd) private var revealBox
     /// What the body last derived from the turn, keyed on its entries' identities and the
@@ -2531,6 +2606,7 @@ struct TurnFinishedBlock: View {
     private struct DerivedKey: Equatable {
         var ids: [ObjectIdentifier]
         var expanded: Bool
+        var stepLimit: Int
     }
 
     @State private var legacyChanges: FileChangeSummary?
@@ -2538,27 +2614,21 @@ struct TurnFinishedBlock: View {
     /// Everything the body derives from the turn's content, gathered in one pass per
     /// render instead of a filter per use.
     private struct Derived {
-        /// Every reply with something to read, narration included, in order.
-        var assistantEntries: [TimelineEntry] = []
-        /// The turn's conclusive answer: the replies that follow its last tool call.
-        /// Prose between tool calls narrates work the collapsed turn doesn't show, and
-        /// stays with the steps behind the chevron. A turn that ended on a tool (stopped
-        /// or failed mid-work) keeps the last words it said rather than showing nothing.
-        var answerEntries: [TimelineEntry] = []
-        var collapsedPlans: [TimelineEntry] = []
-        /// Errors and warnings stay visible even when collapsed, so a failed turn
-        /// never hides what went wrong. Plain info notices stay in the expanded view.
-        var collapsedNotices: [TimelineEntry] = []
+        /// What the turn said, in order and folded or not: every reply with something to
+        /// read (the heads a lead sent out are drawn in its reply), its plans, and its
+        /// errors and warnings, so a failed turn never hides what went wrong. The chevron
+        /// opens the steps alone; plain info notices stay with them.
+        var conversation: [TimelineEntry] = []
         var hasEdits = false
         var hasResponse = false
         /// The heads the turn sent out, always shown below the final response, folded or not.
         var headEntries: [TimelineEntry] = []
-        /// The turn's full steps, built only while they are showing. The heads are not
-        /// among them: they have their list of their own below the response.
+        /// The turn's steps, built only while they are showing. Neither the conversation
+        /// nor the heads are among them: both stay in view below.
         var detailGroups: [TimelineGroup] = []
 
         @MainActor
-        init(content: [TimelineEntry], expanded: Bool) {
+        init(content: [TimelineEntry], expanded: Bool, stepLimit: Int) {
             for entry in content {
                 switch entry.kind {
                 case .assistant:
@@ -2567,20 +2637,14 @@ struct TurnFinishedBlock: View {
                     // a second copy of every reply in the turn on every render of the block.
                     guard case .assistant(let message) = entry.item.content,
                           message.text.contains(where: { !$0.isWhitespace }) else { continue }
-                    assistantEntries.append(entry)
-                    answerEntries.append(entry)
-                    hasResponse = true
+                    conversation.append(entry)
                 case .plan:
-                    collapsedPlans.append(entry)
+                    conversation.append(entry)
                 case .notice:
                     if case .notice(let notice) = entry.item.content, notice.level != .info {
-                        collapsedNotices.append(entry)
+                        conversation.append(entry)
                     }
                 case .tool:
-                    // Reaching for a tool ends the answer so far: whatever the model says
-                    // next is about the work, until it stops calling tools and concludes.
-                    // Plans, notices and checklists don't interrupt it.
-                    answerEntries.removeAll(keepingCapacity: true)
                     guard case .tool(let call) = entry.item.content else { continue }
                     if call.kind == .agent { headEntries.append(entry) }
                     if !call.edits.isEmpty { hasEdits = true }
@@ -2588,35 +2652,39 @@ struct TurnFinishedBlock: View {
                     break
                 }
             }
-            if answerEntries.isEmpty, let last = assistantEntries.last { answerEntries = [last] }
-            if !collapsedPlans.isEmpty || !collapsedNotices.isEmpty { hasResponse = true }
+            hasResponse = !conversation.isEmpty
             if expanded {
-                detailGroups = TimelineGroup.build(content, showReasoning: false).filter {
-                    if case .heads = $0 { return false }
-                    return true
+                let shown = Set(conversation.map(ObjectIdentifier.init))
+                detailGroups = TimelineGroup.build(Array(content.suffix(stepLimit)), showReasoning: false).filter {
+                    switch $0 {
+                    case .heads: false
+                    case .single(let entry): !shown.contains(ObjectIdentifier(entry)) && entry.kind != .assistant
+                    case .work: true
+                    }
                 }
             }
         }
     }
 
     var body: some View {
-        let key = DerivedKey(ids: content.map(ObjectIdentifier.init), expanded: isExpanded)
-        let derived = (self.derived?.key == key ? self.derived?.value : nil) ?? Derived(content: content, expanded: isExpanded)
+        let key = DerivedKey(ids: content.map(ObjectIdentifier.init), expanded: isExpanded, stepLimit: stepLimit)
+        let derived = (self.derived?.key == key ? self.derived?.value : nil) ?? Derived(content: content, expanded: isExpanded, stepLimit: stepLimit)
         let showsHeads = !derived.headEntries.isEmpty
         // The files as the turn's own diff saw them, or as an older turn's were worked out
         // once (see the task below).
         let changes = summary.changes ?? legacyChanges
         let hasFiles = changes?.files.isEmpty == false
-        let showsBody = showsHeads || hasFiles || (isExpanded ? !derived.detailGroups.isEmpty : derived.hasResponse)
+        let showsSteps = isExpanded && !derived.detailGroups.isEmpty
+        let showsBody = showsHeads || hasFiles || derived.hasResponse || showsSteps
         VStack(alignment: .leading, spacing: 0) {
             ForEach(userEntries) { entry in
                 UserMessageRow(entry: entry, runtime: runtime, canRevert: canUndo)
                     .padding(.bottom, TimelineMetrics.rowSpacing)
             }
             Button {
+                revealBox?.disclosure(blockID, false)
                 withAnimation(.snappy(duration: 0.24)) {
                     isExpanded.toggle()
-                    if isExpanded { revealBox?.action() }
                 }
             } label: {
                 HStack(spacing: 6) {
@@ -2631,6 +2699,7 @@ struct TurnFinishedBlock: View {
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)
+            .onAppear { stepLimit = revealBox?.stepLimits[turnID] ?? 60 }
             .help(Text(verbatim: Chrome.localized(isExpanded ? "Hide this turn's steps" : "Show this turn's steps")))
             .accessibilityLabel(Text(verbatim: Chrome.localized(isExpanded ? "Hide this turn's steps" : "Show this turn's steps")))
 
@@ -2641,8 +2710,16 @@ struct TurnFinishedBlock: View {
                     // row gap apart with the rule in between.
                     .padding(.vertical, TimelineMetrics.rowSpacing / 2)
 
-                if isExpanded {
+                if showsSteps {
                 VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
+                    if content.count > stepLimit {
+                        Button(Self.earlierStepsLabel(hidden: content.count - stepLimit)) {
+                            stepLimit += 60
+                            revealBox?.stepLimits[turnID] = stepLimit
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                    }
                     ForEach(derived.detailGroups) { group in
                         switch group {
                         case .single(let entry):
@@ -2674,19 +2751,19 @@ struct TurnFinishedBlock: View {
                         .fill(.quaternary.opacity(0.32))
                 }
                 .padding(.bottom, derived.hasResponse || showsHeads ? TimelineMetrics.rowSpacing : 0)
-            } else if derived.hasResponse {
+            }
+            if derived.hasResponse {
                 VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
-                    ForEach(derived.answerEntries) { entry in
-                        if case .assistant(let message) = entry.item.content, !message.text.isEmpty {
-                            // The answer of a folded turn: the same menu as a reply row.
+                    ForEach(derived.conversation) { entry in
+                        switch entry.item.content {
+                        case .assistant(let message):
+                            // A reply of a finished turn: the same menu as a reply row.
                             FoldedAnswerView(text: message.text, runtime: runtime)
+                        case .plan:
+                            PlanCard(entry: entry, runtime: runtime)
+                        default:
+                            NoticeRow(entry: entry)
                         }
-                    }
-                    ForEach(derived.collapsedPlans) { entry in
-                        PlanCard(entry: entry, runtime: runtime)
-                    }
-                    ForEach(derived.collapsedNotices) { entry in
-                        NoticeRow(entry: entry)
                     }
                 }
                 .padding(.bottom, TimelineMetrics.rowSpacing)

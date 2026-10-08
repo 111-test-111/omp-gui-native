@@ -10,6 +10,7 @@ struct SidebarView: View {
     var dismiss: (() -> Void)? = nil
 
     @State private var search = ""
+    @State private var isAddingProject = false
     @State private var renaming: ChatThread?
     @State private var renameText = ""
     /// The thread whose delete popover is open, by id: the popover's binding compares two
@@ -162,8 +163,21 @@ struct SidebarView: View {
             }
 
             VStack(alignment: .leading, spacing: 1) {
-                SidebarRow(title: "Add project", action: { addProject() }) {
+                SidebarRow(title: "Add project", action: { isAddingProject.toggle() }) {
                     SidebarIconBadge { SidebarSymbol("plus") }
+                }
+                .popover(isPresented: $isAddingProject, arrowEdge: .bottom) {
+                    PopoverMenu {
+                        PopoverItem("Choose a folder…", symbol: "folder") {
+                            isAddingProject = false
+                            addProject()
+                        }
+                        PopoverDivider()
+                        PopoverItem("Clone from GitHub…", leading: AnyView(Image("mcp-github").resizable().scaledToFit().frame(width: 12, height: 12))) {
+                            isAddingProject = false
+                            GitHubClonePanel.shared.present(model: model)
+                        }
+                    }
                 }
                 SidebarRow(title: "Settings", action: { WindowManager.shared.showSettings() }) {
                     SidebarIconBadge { SidebarSymbol("gear", scale: 1.15) }
@@ -336,8 +350,9 @@ struct SidebarView: View {
             ActivityHeader(title: title, isFirst: isFirst)
         case .settledHeader(let count, let isFirst):
             SettledHeader(count: count, isFirst: isFirst)
+                .padding(.leading, item.isNested ? ThreadRowMetrics.folderIndent : 0)
         case .thread(let thread, let projectName, let projectIcon, let peers, let hasHelpers):
-            reorderableRow(thread, projectName: projectName, projectIcon: projectIcon, peers: peers, hasHelpers: hasHelpers)
+            reorderableRow(thread, projectName: projectName, projectIcon: projectIcon, peers: peers, hasHelpers: hasHelpers, isNested: item.isNested)
                 .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(Self.listSpace)) }) { frame in
                     rowHeights.note(item.id, frame.height)
                     // A settled row keeps its place among the settled; there is nothing to reorder.
@@ -365,14 +380,17 @@ struct SidebarView: View {
                     }
                 }
             ).equatable()))
+            .padding(.leading, item.isNested ? ThreadRowMetrics.folderIndent : 0)
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { rowHeights.note(item.id, $0) }
             .modifier(RidesWithDraggedParent(parentID: thread.parentThreadID, drag: drag))
         case .headCards(let parent, let heads):
             HeadCardsRow(parentSnapshot: parent, headSnapshots: heads, menuRequests: menuRequests, onFold: { fold(parent.id) })
+                .padding(.leading, item.isNested ? ThreadRowMetrics.folderIndent : 0)
                 .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { rowHeights.note(item.id, $0) }
                 .modifier(RidesWithDraggedParent(parentID: parent.id, drag: drag))
         case .helperStub(let parent, let helpers):
             HelperStubRow(parentSnapshot: parent, helperSnapshots: helpers) { fold(parent.id) }
+                .padding(.leading, item.isNested ? ThreadRowMetrics.folderIndent : 0)
                 .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { rowHeights.note(item.id, $0) }
                 .modifier(RidesWithDraggedParent(parentID: parent.id, drag: drag))
         }
@@ -455,20 +473,20 @@ struct SidebarView: View {
 
     /// The helpers under a thread: one small row each, or a single line naming them while
     /// they are folded away.
-    private func helperItems(under thread: ChatThread, helpers: [ChatThread]) -> [SidebarItem] {
+    private func helperItems(under thread: ChatThread, helpers: [ChatThread], isNested: Bool = false) -> [SidebarItem] {
         // A settled thread is one small line; what it spawned comes back when it reopens.
         guard !thread.isSettled, !helpers.isEmpty else { return [] }
         if thread.foldsHelpers {
-            return [SidebarItem(id: "helpers-\(thread.id)", kind: .helperStub(parent: thread, helpers: helpers))]
+            return [SidebarItem(id: "helpers-\(thread.id)", kind: .helperStub(parent: thread, helpers: helpers), isNested: isNested)]
         }
         let plain = helpers.filter { !$0.isHydraHead }
         let heads = Self.orderedHeads(helpers.filter(\.isHydraHead))
         let showsHeads = !heads.isEmpty && !(model.settings.hydraAutoHidesIdleHeads && !hasRunningHead(heads))
         var items = plain.map { helper in
-            SidebarItem(id: helper.id.uuidString, kind: .helper(helper, isLast: helper.id == plain.last?.id && !showsHeads))
+            SidebarItem(id: helper.id.uuidString, kind: .helper(helper, isLast: helper.id == plain.last?.id && !showsHeads), isNested: isNested)
         }
         if showsHeads {
-            items.append(SidebarItem(id: "heads-\(thread.id)", kind: .headCards(parent: thread, heads: heads)))
+            items.append(SidebarItem(id: "heads-\(thread.id)", kind: .headCards(parent: thread, heads: heads), isNested: isNested))
         }
         return items
     }
@@ -540,7 +558,7 @@ struct SidebarView: View {
                     }
                     let settledCount = orderedThreads.count(where: \.isSettled)
                     if settledCount > 0 {
-                        items.append(SidebarItem(id: "settled-header-\(project.id)", kind: .settledHeader(count: settledCount, isFirst: false)))
+                        items.append(SidebarItem(id: "settled-header-\(project.id)", kind: .settledHeader(count: settledCount, isFirst: false), isNested: true))
                     }
                     if collapsed { break }
                 }
@@ -548,9 +566,10 @@ struct SidebarView: View {
                 let own = helpers[thread.id] ?? []
                 items.append(SidebarItem(
                     id: SidebarItem.id(for: thread),
-                    kind: .thread(thread, projectName: nil, projectIcon: nil, peers: nil, hasHelpers: !thread.isSettled && !own.isEmpty)
+                    kind: .thread(thread, projectName: nil, projectIcon: nil, peers: nil, hasHelpers: !thread.isSettled && !own.isEmpty),
+                    isNested: true
                 ))
-                items.append(contentsOf: helperItems(under: thread, helpers: own))
+                items.append(contentsOf: helperItems(under: thread, helpers: own, isNested: true))
             }
         }
         return items
@@ -559,9 +578,9 @@ struct SidebarView: View {
     // MARK: Activity layout
 
     private func activityItems(helpers: [UUID: [ChatThread]]) -> [SidebarItem] {
-        let shown = model.threads.filter { !$0.isArchived && !$0.isInPanel }
-        // A helper whose parent is here sits under it (see helperItems); one whose parent is
-        // gone or archived stands on its own.
+        let shown = model.threads.filter(\.isStandaloneListCandidate)
+        // An ordinary helper whose parent is here sits under it (see helperItems); one
+        // whose parent is gone or archived stands on its own. Heads only sit under leads.
         let shownIDs = Set(shown.map(\.id))
         let active = shown.filter { $0.parentThreadID.map { !shownIDs.contains($0) } ?? true }
         // A settled thread stays among the settled whatever it is up to.
@@ -622,11 +641,10 @@ struct SidebarView: View {
     /// A thread's project mark in the activity layout. In the icon style the slot in front
     /// of the title belongs to the project — the mark picked for it, or the folder mark
     /// until one is — so no thread wears a provider badge there and the thread's own state
-    /// reads at the back instead. In the project-name style a picked mark leads the title
-    /// and the project line below it drops (see `ThreadRowFace`); with none picked, the row
-    /// keeps the folder line exactly as it was.
+    /// reads at the back instead. The project-name style shows no marks at all: every row
+    /// carries the folder line with the project's name, whether a mark was picked or not.
     private func activityMark(_ project: Project?, compact: Bool) -> ProjectIcon? {
-        guard compact else { return project?.icon }
+        guard compact else { return nil }
         return project?.icon ?? .symbol("folder.fill")
     }
 
@@ -709,7 +727,7 @@ struct SidebarView: View {
                 ProjectRow(snapshot: result.project, count: result.count, togglesExpansion: false)
                 // Keyed like the main list, so a thread settled from here changes rows too.
                 ForEach(result.threads, id: \.sidebarItemID) { thread in
-                    threadRow(thread, projectName: nil, projectIcon: nil, hasHelpers: !thread.isSettled && !(helpers[thread.id] ?? []).isEmpty)
+                    threadRow(thread, projectName: nil, projectIcon: nil, hasHelpers: !thread.isSettled && !(helpers[thread.id] ?? []).isEmpty, isNested: true)
                 }
             }
         }
@@ -754,9 +772,9 @@ struct SidebarView: View {
     /// layout, within its group in the activity layout. The list's one gesture drives it
     /// (see `body`), ahead of the row's own click, so a drag never selects the thread on
     /// release; a plain click still does. The row only lifts and follows here.
-    private func reorderableRow(_ thread: ChatThread, projectName: String?, projectIcon: ProjectIcon?, peers: [UUID]?, hasHelpers: Bool) -> some View {
+    private func reorderableRow(_ thread: ChatThread, projectName: String?, projectIcon: ProjectIcon?, peers: [UUID]?, hasHelpers: Bool, isNested: Bool = false) -> some View {
         let isDragged = drag.id == thread.id
-        return threadRow(thread, projectName: projectName, projectIcon: projectIcon, hasHelpers: hasHelpers, isDragged: isDragged)
+        return threadRow(thread, projectName: projectName, projectIcon: projectIcon, hasHelpers: hasHelpers, isDragged: isDragged, isNested: isNested)
             .offset(y: isDragged ? drag.visualOffset : 0)
             .zIndex(isDragged ? 1 : 0)
     }
@@ -867,7 +885,7 @@ struct SidebarView: View {
         }
     }
 
-    private func threadRow(_ thread: ChatThread, projectName: String?, projectIcon: ProjectIcon?, hasHelpers: Bool, isDragged: Bool = false) -> some View {
+    private func threadRow(_ thread: ChatThread, projectName: String?, projectIcon: ProjectIcon?, hasHelpers: Bool, isDragged: Bool = false, isNested: Bool = false) -> some View {
         // A thread with helpers under it gets the fold button; a settled one shows none.
         // `.equatable()` skips the parent's re-evaluation for rows whose value inputs did
         // not change; the row still observes the model's per-thread cells inside its body.
@@ -894,6 +912,7 @@ struct SidebarView: View {
                 }
             }
         ).equatable())))
+        .padding(.leading, isNested ? ThreadRowMetrics.folderIndent : 0)
     }
 }
 
@@ -1049,6 +1068,7 @@ private struct SidebarItem: Identifiable {
 
     let id: String
     let kind: Kind
+    var isNested: Bool = false
 
     static func id(for thread: ChatThread) -> String {
         thread.sidebarItemID
@@ -1270,6 +1290,8 @@ private struct ProjectPairMenuItems: View {
 }
 
 private enum ThreadRowMetrics {
+    /// Indentation for thread rows and helpers under their project folder.
+    static let folderIndent: CGFloat = 12
     static let detailedVerticalPadding: CGFloat = 7
     /// A two-line activity row: title, project line and their padding.
     static let detailedHeight: CGFloat = 48
@@ -1571,7 +1593,7 @@ private struct HelperStubRow: View {
         let count = helpers.count
         let working = helpers.contains { helper in
             let runtime = model.existingRuntime(for: helper.id)
-            return runtime?.isRunning == true || runtime?.isHydraMerging == true
+            return runtime?.isRunning == true || runtime?.isHydraMerging == true || !(runtime?.backgroundTasks.isEmpty ?? true)
         }
         // A team of heads is called that; merges alone stay "helpers".
         let isHeads = helpers.allSatisfy(\.isHydraHead)
@@ -1689,9 +1711,8 @@ private struct SidebarThreadRow: View, Equatable {
     private var thread: ChatThread { model.thread(snapshot.id) ?? snapshot }
     /// The project shown under the title in the activity layout; nil in the project layout.
     let projectName: String?
-    /// The project's mark: the folder or the picked emoji or symbol. In the icon style it
-    /// holds the slot in front of the title; in the project-name style it leads the title
-    /// once a mark has been picked, and the project line below drops.
+    /// The project's mark in the icon style: the folder or the picked emoji or symbol, in
+    /// the slot in front of the title. Nil in the project-name style and the project layout.
     let projectIcon: ProjectIcon?
     /// Carries rename/delete intents out of the AppKit menu without retaining row state.
     /// Held strongly: the box is the list's, not the row's, so holding it pins no row
@@ -1711,6 +1732,7 @@ private struct SidebarThreadRow: View, Equatable {
     /// The check was just clicked: it pops green as the row takes off.
     @State private var isSettling = false
     @State private var windowFrame = FrameHolder()
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
         // Through the thread's own cell (see `AppModel.isSelected`): a selection change
@@ -1839,7 +1861,7 @@ private struct SidebarThreadRow: View, Equatable {
             if isDragged {
                 shape
                     .fill(Chrome.overlay(0.12))
-                    .shadow(color: .black.opacity(0.28), radius: 10, y: 4)
+                    .shadow(color: .black.opacity(performanceMode ? 0 : 0.28), radius: performanceMode ? 0 : 10, y: performanceMode ? 0 : 4)
             }
         }
         .scaleEffect(isDragged ? 1.02 : 1)
@@ -2031,25 +2053,12 @@ private struct ThreadRowFace<Badge: View>: View {
                 .transition(.opacity)
             }
             VStack(alignment: .leading, spacing: 3) {
-                // A project with a picked icon leads the title with it and drops the project
-                // line below; without one the row is exactly as it was.
-                if isDetailed, let projectIcon {
-                    HStack(spacing: 6) {
-                        ProjectIconMark(icon: projectIcon, size: 14)
-                        Text(verbatim: thread.title)
-                            .font(.system(size: isSettled ? 12 : 13, weight: !isSettled && (isSelected || thread.hasUnread) ? .medium : .regular))
-                            .foregroundStyle(Chrome.primaryText.opacity(Self.titleOpacity(isSettled: isSettled, isSelected: isSelected)))
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                    }
-                } else {
-                    Text(verbatim: thread.title)
-                        .font(.system(size: isSettled ? 12 : 13, weight: !isSettled && (isSelected || thread.hasUnread) ? .medium : .regular))
-                        .foregroundStyle(Chrome.primaryText.opacity(Self.titleOpacity(isSettled: isSettled, isSelected: isSelected)))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-                if let projectName, !isSettled, projectIcon == nil {
+                Text(verbatim: thread.title)
+                    .font(.system(size: isSettled ? 12 : 13, weight: !isSettled && (isSelected || thread.hasUnread) ? .medium : .regular))
+                    .foregroundStyle(Chrome.primaryText.opacity(Self.titleOpacity(isSettled: isSettled, isSelected: isSelected)))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                if let projectName, !isSettled {
                     HStack(spacing: 4) {
                         Image(systemName: thread.worktreePath == nil ? "folder" : "arrow.triangle.branch")
                             .font(.system(.footnote))
@@ -2087,7 +2096,7 @@ private struct ThreadGhostBadge: View {
     init(thread: ChatThread, runtime: ThreadRuntime?) {
         self.thread = thread
         needsInput = !(runtime?.approvals.isEmpty ?? true) || !(runtime?.questions.isEmpty ?? true)
-        isRunning = runtime?.isRunning == true || runtime?.isHydraMerging == true || runtime?.hasWorkingHelpers == true
+        isRunning = runtime?.isRunning == true || runtime?.isHydraMerging == true || runtime?.hasWorkingHelpers == true || !(runtime?.backgroundTasks.isEmpty ?? true)
     }
 
     var body: some View {
@@ -2147,14 +2156,15 @@ private struct ThreadBadge: View {
         let runtime = model.existingRuntime(for: thread.id)
         let needsInput = !(runtime?.approvals.isEmpty ?? true) || !(runtime?.questions.isEmpty ?? true)
         let mergeStage = SidebarThreadRow.mergeStage(of: runtime)
-        let isRunning = runtime?.isRunning == true || mergeStage != nil || runtime?.hasWorkingHelpers == true
+        let backgroundCount = runtime?.backgroundTasks.count ?? 0
+        let isRunning = runtime?.isRunning == true || mergeStage != nil || runtime?.hasWorkingHelpers == true || backgroundCount > 0
         SidebarIconBadge {
             if needsInput {
                 SidebarSymbol("hand.raised.fill")
                     .foregroundStyle(Chrome.orange)
             } else if isRunning {
                 MiniSpinner(cellSize: 2.4)
-                    .help(mergeStage ?? "")
+                    .help(mergeStage ?? (runtime?.isRunning != true && backgroundCount > 0 ? (backgroundCount == 1 ? Chrome.localized("Waiting on a background task") : String(format: Chrome.localized("Waiting on %lld background tasks"), backgroundCount)) : ""))
             } else if thread.isPinned {
                 SidebarSymbol("pin.fill", scale: 0.9)
                     .foregroundStyle(Chrome.danger.opacity(0.85))
@@ -2417,6 +2427,9 @@ private struct ActivityStatus: View {
         } else if runtime?.isRunning == true || runtime?.isHydraMerging == true || runtime?.hasWorkingHelpers == true {
             MiniSpinner(cellSize: 2.4)
                 .help(SidebarThreadRow.mergeStage(of: runtime) ?? "")
+        } else if let count = runtime?.backgroundTasks.count, count > 0 {
+            MiniSpinner(cellSize: 2.4)
+                .help(Text(verbatim: count == 1 ? Chrome.localized("Waiting on a background task") : String(format: Chrome.localized("Waiting on %lld background tasks"), count)))
         } else if thread.hasUnread {
             Circle()
                 .fill(thread.lastStatus == .failed ? Chrome.danger : Chrome.accent)

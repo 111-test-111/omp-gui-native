@@ -335,13 +335,14 @@ private struct KeycapView: View {
     private static let keyTravel: CGFloat = 2
 
     private var isPressed: Bool { cap.phase == .pressed }
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
         label
             .frame(width: cap.isModifier ? Self.modifierWidth : nil, height: Self.height)
             .frame(minWidth: cap.isModifier ? nil : Self.keyMinWidth)
             .background { face }
-            .shadow(color: .black.opacity(0.45), radius: 1.5, x: 0, y: 1)
+            .shadow(color: .black.opacity(performanceMode ? 0 : 0.45), radius: performanceMode ? 0 : 1.5, x: 0, y: 1)
             .opacity(isPressed ? 1 : 0.36)
             .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isPressed)
             .accessibilityLabel(Text(verbatim: cap.name ?? cap.symbol))
@@ -470,13 +471,22 @@ private struct ShortcutRecordingPopoverContent: View {
 
 private struct ShortcutRecordingActionPillStyle: ButtonStyle {
     let isDestructive: Bool
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(isDestructive ? KeycapTint.rejectedColor : Chrome.primaryText)
-            .glassEffect(.regular.interactive(), in: Capsule(style: .continuous))
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .contentShape(Capsule(style: .continuous))
+        if performanceMode {
+            configuration.label
+                .foregroundStyle(isDestructive ? KeycapTint.rejectedColor : Chrome.primaryText)
+                .background(Capsule(style: .continuous).fill(Color(nsColor: .controlColor)))
+                .scaleEffect(configuration.isPressed ? 0.97 : 1)
+                .contentShape(Capsule(style: .continuous))
+        } else {
+            configuration.label
+                .foregroundStyle(isDestructive ? KeycapTint.rejectedColor : Chrome.primaryText)
+                .glassEffect(.regular.interactive(), in: Capsule(style: .continuous))
+                .scaleEffect(configuration.isPressed ? 0.97 : 1)
+                .contentShape(Capsule(style: .continuous))
+        }
     }
 }
 

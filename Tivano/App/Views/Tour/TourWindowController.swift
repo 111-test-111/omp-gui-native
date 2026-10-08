@@ -12,8 +12,17 @@ final class TourWindowController {
 
     private var window: NSWindow?
     private var windowDelegate: WindowDelegate?
+    private var performanceModeObserver: NSObjectProtocol?
 
-    init() {}
+    init() {
+        performanceModeObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshShadow() }
+        }
+    }
 
     @discardableResult
     func present(
@@ -25,6 +34,7 @@ final class TourWindowController {
         onClose: (() -> Void)? = nil
     ) -> NSWindow {
         if let existing = window {
+            refreshShadow()
             existing.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return existing
@@ -82,7 +92,8 @@ final class TourWindowController {
         window.isOpaque = false
         window.backgroundColor = .clear
         // AppKit shapes this shadow to the window's alpha, so it follows the card's rounded shape.
-        window.hasShadow = true
+        self.window = window
+        refreshShadow()
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.level = .floating
@@ -110,8 +121,11 @@ final class TourWindowController {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
 
-        self.window = window
         return window
+    }
+
+    private func refreshShadow() {
+        window?.hasShadow = !(CaptureRun.defaults ?? .standard).bool(forKey: "performanceMode")
     }
 
     private static func maxBottomPanelHeight(

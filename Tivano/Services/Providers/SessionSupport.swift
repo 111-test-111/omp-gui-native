@@ -122,3 +122,31 @@ struct StreamedTextTracker {
         currentThinkingID = nil
     }
 }
+
+struct SessionDeadlineError: LocalizedError {
+    let provider: String
+    let operation: String
+    let seconds: Int
+
+    var errorDescription: String? {
+        String(format: AppText.localized("%@ didn't answer %@ within %lld seconds"), provider, operation, seconds)
+    }
+}
+
+@MainActor
+func withDeadline<Value: Sendable>(
+    seconds: Int,
+    provider: String,
+    operation: String,
+    body: @escaping @MainActor @Sendable () async throws -> Value
+) async throws -> Value {
+    try await withThrowingTaskGroup(of: Value.self) { group in
+        group.addTask { try await body() }
+        group.addTask {
+            try await Task.sleep(for: .seconds(seconds))
+            throw SessionDeadlineError(provider: provider, operation: operation, seconds: seconds)
+        }
+        defer { group.cancelAll() }
+        return try await group.next()!
+    }
+}

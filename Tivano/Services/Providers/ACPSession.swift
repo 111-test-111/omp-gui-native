@@ -121,7 +121,7 @@ final class ACPSession: ProviderSession {
         self.connection = connection
         try connection.start()
 
-        let initialized = try await connection.request("initialize", [
+        let initialized = try await deadlineRequest(connection, "initialize", [
             "protocolVersion": 1,
             "clientCapabilities": clientCapabilities,
             "clientInfo": ["name": "tivano", "title": "Tivano", "version": .string(AppInfo.version)],
@@ -135,7 +135,7 @@ final class ACPSession: ProviderSession {
         do {
             session = try await openSession(connection)
         } catch let error as RPCError where error.message.localizedCaseInsensitiveContains("auth") && !authMethods.isEmpty {
-            _ = try await connection.request("authenticate", ["methodId": .string(authMethods[0])])
+            _ = try await deadlineRequest(connection, "authenticate", ["methodId": .string(authMethods[0])])
             session = try await openSession(connection)
         }
         applySessionState(session)
@@ -211,12 +211,33 @@ final class ACPSession: ProviderSession {
     }
 
     func resolveApproval(_ requestID: String, optionID: String) {
-        guard let id = pendingPermissions.removeValue(forKey: requestID) else { return }
-        connection?.respond(to: id, result: ["outcome": ["outcome": "selected", "optionId": .string(optionID)]])
-        onEvent?(.requestResolved(id: requestID))
+        resolveApproval(requestID, optionID: optionID, delivered: { _ in })
+    }
+
+    func resolveApproval(_ requestID: String, optionID: String, delivered: @escaping @MainActor (Bool) -> Void) {
+        guard !isStopping, let connection, !connection.isClosed, let id = pendingPermissions[requestID] else {
+            delivered(false)
+            return
+        }
+        connection.respond(to: id, result: ["outcome": ["outcome": "selected", "optionId": .string(optionID)]]) { [weak self] succeeded in
+            if succeeded, let self, self.pendingPermissions.removeValue(forKey: requestID) != nil {
+                self.onEvent?(.requestResolved(id: requestID))
+            }
+            delivered(succeeded)
+        }
     }
 
     func answerQuestion(_ requestID: String, answers: [String: [String]]) {}
+
+    func answerQuestion(_ requestID: String, answers: [String: [String]], delivered: @escaping @MainActor (Bool) -> Void) {
+        delivered(false)
+    }
+
+    func stopAndWait(timeout: TimeInterval) async {
+        let connection = connection
+        stop()
+        await connection?.closeAndWait(timeout: timeout)
+    }
 
     func stop() {
         isStopping = true
@@ -248,22 +269,29 @@ final class ACPSession: ProviderSession {
 
     // MARK: - Session state
 
+    private func deadlineRequest(_ connection: JSONRPCConnection, _ method: String, _ params: JSONValue) async throws -> JSONValue {
+        try await withDeadline(seconds: 45, provider: configuration.provider.displayName, operation: method) {
+            try await connection.request(method, params)
+        }
+    }
+
     private func openSession(_ connection: JSONRPCConnection) async throws -> JSONValue {
         // The connected servers ride into every new session through ACP's own field,
         // HTTP ones directly where the agent says it speaks HTTP MCP, else through `mcp-remote`.
         let base: [String: JSONValue] = ["cwd": .string(workingDirectory), "mcpServers": MCPProviderConfig.acpServers(allowsHTTP: supportsHTTPMCP)]
-        if let resumeID = configuration.resumeID, canLoadSessions {
+        if let resumeID = configuration.resumeID {
+            guard canLoadSessions else {
+                throw ProviderError.failed(AppText.localized("This ACP agent cannot resume the original session."))
+            }
             var params = base
             params["sessionId"] = .string(resumeID)
             isReplaying = true
-            let result = try? await connection.request("session/load", .object(params))
-            isReplaying = false
-            if let result {
-                sessionID = resumeID
-                return result
-            }
+            defer { isReplaying = false }
+            let result = try await deadlineRequest(connection, "session/load", .object(params))
+            sessionID = resumeID
+            return result
         }
-        let result = try await connection.request("session/new", .object(base))
+        let result = try await deadlineRequest(connection, "session/new", .object(base))
         sessionID = result["sessionId"]?.string
         return result
     }
@@ -605,11 +633,15 @@ final class ACPSession: ProviderSession {
         guard promptActive else { return }
         promptActive = false
         todoToolCallIDs.removeAll()
-        for (key, id) in pendingPermissions {
-            connection?.respond(to: id, result: ["outcome": ["outcome": "cancelled"]])
-            onEvent?(.requestResolved(id: key))
+        if let connection, !connection.isClosed {
+            for (key, id) in pendingPermissions {
+                connection.respond(to: id, result: ["outcome": ["outcome": "cancelled"]]) { [weak self] succeeded in
+                    if succeeded, let self, self.pendingPermissions.removeValue(forKey: key) != nil {
+                        self.onEvent?(.requestResolved(id: key))
+                    }
+                }
+            }
         }
-        pendingPermissions.removeAll()
         if cancelRequested || stopReason == "cancelled" {
             onEvent?(.turnCompleted(status: .interrupted, error: nil))
         } else if let error {

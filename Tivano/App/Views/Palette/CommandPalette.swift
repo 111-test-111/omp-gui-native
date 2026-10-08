@@ -94,7 +94,7 @@ struct CommandPalette: View {
                 }
             }
             .frame(width: 600)
-            .glassEffect(.regular, in: .rect(cornerRadius: 24, style: .continuous))
+            .modifier(PaletteSurface())
             .padding(.top, 72)
         }
         .onAppear { isFocused = true }
@@ -160,6 +160,9 @@ struct CommandPalette: View {
             Item(id: "add-project", title: Chrome.localized("Add project"), symbol: "folder.badge.plus", shortcut: ShortcutStore.label(for: .addProject)) {
                 model.chooseProjectFolder()
             },
+            Item(id: "clone-github", title: Chrome.localized("Clone from GitHub"), symbol: "arrow.down.circle", shortcut: nil) {
+                GitHubClonePanel.shared.present(model: model)
+            },
         ]
         if let threadID = model.selectedThreadID {
             let runtime = model.runtime(for: threadID)
@@ -179,7 +182,7 @@ struct CommandPalette: View {
 
         let matchingActions = needle.isEmpty ? actions : actions.filter { $0.title.lowercased().contains(needle) }
         let threads = model.threads
-            .filter { !$0.isArchived && !$0.isInPanel && (needle.isEmpty || $0.title.lowercased().contains(needle)) }
+            .filter { $0.isStandaloneListCandidate && (needle.isEmpty || $0.title.lowercased().contains(needle)) }
             .sorted { $0.updatedAt > $1.updatedAt }
             .prefix(needle.isEmpty ? 6 : 10)
             .map { thread in
@@ -207,5 +210,19 @@ struct CommandPalette: View {
 
     private func close() {
         model.isCommandPalettePresented = false
+    }
+}
+
+private struct PaletteSurface: ViewModifier {
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
+
+    func body(content: Content) -> some View {
+        if !performanceMode {
+            content.glassEffect(.regular, in: .rect(cornerRadius: 24, style: .continuous))
+        } else {
+            content
+                .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color(nsColor: .windowBackgroundColor)))
+                .clipShape(.rect(cornerRadius: 24, style: .continuous))
+        }
     }
 }

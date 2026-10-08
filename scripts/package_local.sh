@@ -34,10 +34,16 @@ for edition in "${EDITIONS[@]}"; do
   derived="build.noindex/$edition"
   mkdir -p "$derived"
   echo "Building $name $display with the fixed local identity..."
+  # Judge scrolling/animation in optimized Dev packages; Xcode Debug stays -Onone.
+  optimization=()
+  if [ "$edition" = dev ]; then
+    optimization=(SWIFT_OPTIMIZATION_LEVEL=-O SWIFT_COMPILATION_MODE=wholemodule)
+  fi
   # Overrides are LOCAL ONLY. The public Release configuration retains Developer ID.
   if ! xcodebuild -project Tivano.xcodeproj -scheme Tivano -configuration "$config" \
     -destination 'platform=macOS' -derivedDataPath "$derived" -skipPackagePluginValidation \
     CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$HASH" ENABLE_HARDENED_RUNTIME=NO \
+    ${optimization[@]+"${optimization[@]}"} \
     build > "$derived/build.log" 2>&1; then
     grep -E 'error:|BUILD FAILED' "$derived/build.log" | tail -30 || true
     exit 1

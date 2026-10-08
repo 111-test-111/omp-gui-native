@@ -43,6 +43,10 @@ struct SessionConfiguration: Sendable {
     /// The thread is a Hydra head that Tivano runs: the session paces it, so a head
     /// that keeps reading without ever changing anything is told to act.
     var isHydraHead = false
+    /// Only a new Tivano-owned head, or the exact persisted session it created.
+    var managesCodexHeadHistory = false
+    var codexHistoryArchived = false
+    var codexHistoryDirectory: String? = nil
     var antiSlopEnabled = true
 }
 
@@ -82,6 +86,8 @@ struct AgentSpawn: Sendable {
 enum ProviderEvent: Sendable {
     case sessionReady(sessionID: String)
     case turnStarted(providerTurnID: String?)
+    /// Descriptions of background commands or monitors still running during or after a turn; empty when none remain.
+    case backgroundTasks([String])
     case messageDelta(id: String, text: String)
     case messageCompleted(id: String, text: String)
     case reasoningDelta(id: String, text: String)
@@ -144,13 +150,28 @@ protocol ProviderSession: AnyObject {
     func interrupt() async
     func resolveApproval(_ requestID: String, optionID: String)
     func answerQuestion(_ requestID: String, answers: [String: [String]])
+    func resolveApproval(_ requestID: String, optionID: String, delivered: @escaping @MainActor (Bool) -> Void)
+    func answerQuestion(_ requestID: String, answers: [String: [String]], delivered: @escaping @MainActor (Bool) -> Void)
     func compact() async throws
+    func stopAndWait(timeout: TimeInterval) async
     func stop()
     /// Stops a head running inside the session. Returns whether the provider could.
     func stopAgent(_ id: String) async -> Bool
 }
 
 extension ProviderSession {
+    func resolveApproval(_ requestID: String, optionID: String, delivered: @escaping @MainActor (Bool) -> Void) {
+        resolveApproval(requestID, optionID: optionID)
+        delivered(true)
+    }
+
+    func answerQuestion(_ requestID: String, answers: [String: [String]], delivered: @escaping @MainActor (Bool) -> Void) {
+        answerQuestion(requestID, answers: answers)
+        delivered(true)
+    }
+
+    func stopAndWait(timeout: TimeInterval) async { stop() }
+
     func stopAgent(_ id: String) async -> Bool { false }
 }
 

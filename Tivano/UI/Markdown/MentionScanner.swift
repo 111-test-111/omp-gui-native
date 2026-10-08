@@ -5,7 +5,16 @@ enum MentionScanner {
     /// Longest name first, so 'Hank 2' beats 'Hank'; a name inside a longer word or beside
     /// a digit doesn't count.
     nonisolated static func matches<Value>(in text: String, candidates: [Value], name: (Value) -> String) -> [(range: Range<String.Index>, value: Value)] {
-        let ordered = candidates.sorted { name($0).count > name($1).count }
+        // A byte search for each name first: most paragraphs name no head at all, and the
+        // character walk below, against every name of a Hydra chat's roster at every
+        // position, was most of what laying out a reply cost while scrolling.
+        let bytes = text.utf8
+        let present = candidates.filter { candidate in
+            let candidateName = name(candidate)
+            return !candidateName.isEmpty && bytes.firstRange(of: candidateName.utf8) != nil
+        }
+        guard !present.isEmpty else { return [] }
+        let ordered = present.sorted { name($0).count > name($1).count }
         var out: [(range: Range<String.Index>, value: Value)] = []
         var i = text.startIndex
         while i < text.endIndex {

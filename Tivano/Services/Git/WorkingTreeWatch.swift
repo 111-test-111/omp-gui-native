@@ -57,7 +57,8 @@ final class WorkingTreeWatch: Sendable {
         var snapshot: Snapshot?
         /// A capture under way and the generation it started at, for a caller at the same
         /// generation to share instead of walking the tree again.
-        var capture: (generation: UInt64, task: Task<String?, Never>)?
+        var capture: (generation: UInt64, id: UInt64, task: Task<String?, Never>)?
+        var capturesStarted: UInt64 = 0
         var stream: Stream?
         /// Callers waiting for a cookie's event, resumed by `note` when it lands or by
         /// their own timeout, whichever removes them first.
@@ -114,7 +115,7 @@ final class WorkingTreeWatch: Sendable {
     private let gitPrefix: String
     private let cookiePrefix: String
     /// Their lengths, once: a build reports thousands of paths per callback.
-    private let rootPrefixBytes: Int
+    private let rootPrefixCharacters: Int
     private let cookiePrefixCharacters: Int
     /// The index the captures build on, kept between them so a capture walks only what changed.
     private let scratch = FileManager.default.temporaryDirectory.appendingPathComponent("tivano-index-\(UUID().uuidString)")
@@ -134,7 +135,7 @@ final class WorkingTreeWatch: Sendable {
         rootPrefix = root + "/"
         gitPrefix = gitRoot + "/"
         cookiePrefix = gitRoot + "/tivano-sync-"
-        rootPrefixBytes = rootPrefix.utf8.count
+        rootPrefixCharacters = rootPrefix.count
         cookiePrefixCharacters = cookiePrefix.count
         var context = FSEventStreamContext(
             version: 0, info: Unmanaged.passUnretained(self).toOpaque(), retain: nil, release: nil, copyDescription: nil
@@ -197,11 +198,15 @@ final class WorkingTreeWatch: Sendable {
             changed = true
             // The directory holding what changed, relative to the root, or the entry itself
             // when it sits at the root; a change to the root, or outside it, means the whole tree.
-            guard path.hasPrefix(rootPrefix), path.utf8.count > rootPrefixBytes else {
+            guard path.hasPrefix(rootPrefix) else {
                 everything = true
                 continue
             }
-            let relative = path[rootPrefix.endIndex...]
+            let relative = path.dropFirst(rootPrefixCharacters)
+            guard !relative.isEmpty else {
+                everything = true
+                continue
+            }
             directories.append(String(relative.lastIndex(of: "/").map { relative[..<$0] } ?? relative))
         }
         guard changed || cookie > 0 else { return }
@@ -307,8 +312,25 @@ final class WorkingTreeWatch: Sendable {
                 // in a fresh set, for the capture after this one.
                 let paths = state.snapshot?.index == index ? state.changed.map(Self.pathspecs) : nil
                 state.changed = []
-                let task = Task.detached(priority: .utility) { [scratch] in try? await capture(scratch, paths) }
-                state.capture = (generation, task)
+                state.capturesStarted += 1
+                let id = state.capturesStarted
+                // The capture clears itself from the state before it finishes. Left to the
+                // owner, a caller awaiting the finished task looped straight back to it
+                // without suspending: on the main actor the owner never ran again to clear
+                // it, and the app froze.
+                let task = Task.detached(priority: .utility) { [scratch, self] in
+                    let tree = try? await capture(scratch, paths)
+                    self.state.withLock { state in
+                        if state.capture?.id == id { state.capture = nil }
+                        if let tree {
+                            state.snapshot = Snapshot(tree: tree, generation: generation, index: index, commit: nil)
+                        } else {
+                            state.changed = nil
+                        }
+                    }
+                    return tree
+                }
+                state.capture = (generation, id, task)
                 return .own(task)
             }
             switch lookup {
@@ -321,16 +343,7 @@ final class WorkingTreeWatch: Sendable {
             case .wait(let task):
                 _ = await task.value
             case .own(let task):
-                let tree = await task.value
-                state.withLock { state in
-                    if state.capture?.task == task { state.capture = nil }
-                    if let tree {
-                        state.snapshot = Snapshot(tree: tree, generation: generation, index: index, commit: nil)
-                    } else {
-                        state.changed = nil
-                    }
-                }
-                guard let tree else { throw CocoaError(.fileReadUnknown) }
+                guard let tree = await task.value else { throw CocoaError(.fileReadUnknown) }
                 return tree
             }
         }

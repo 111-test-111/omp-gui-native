@@ -725,6 +725,7 @@ struct EffortSlider: View {
     let accessibilityTitle: String
 
     @State private var dragX: CGFloat?
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     private var look: TrackLook {
         let isMax = count > 1 && index == count - 1
@@ -758,7 +759,7 @@ struct EffortSlider: View {
                     .fill(look.fill)
                     .frame(width: x + inset, height: Self.trackHeight)
                     .overlay(alignment: .leading) {
-                        if look.kind != .plain || look.pair != nil {
+                        if !performanceMode && (look.kind != .plain || look.pair != nil) {
                             TrackEffect(look: look)
                                 .frame(width: x + inset, height: Self.trackHeight)
                                 .clipShape(Capsule(style: .continuous))
@@ -779,17 +780,27 @@ struct EffortSlider: View {
                 // disc beneath the lens rather than a shadow on it, because a shadow that
                 // changes colour and radius on glass makes the lens flash as the look changes.
                 ZStack {
-                    Circle()
-                        .fill(look.glow)
-                        .blur(radius: look.kind == .plain ? 4 : 8)
-                        .offset(y: 1)
-                    Circle()
-                        .fill(.clear)
-                        .glassEffect(.regular.tint(Color.white.opacity(look.isLightFill ? 0.55 : 0.32)).interactive(), in: Circle())
-                        // On a white fill the lens needs an edge to read against it.
-                        .overlay {
-                            Circle().strokeBorder(Color.black.opacity(look.isLightFill ? 0.14 : 0), lineWidth: 1)
-                        }
+                    if !performanceMode {
+                        Circle()
+                            .fill(look.glow)
+                            .blur(radius: look.kind == .plain ? 4 : 8)
+                            .offset(y: 1)
+                    }
+                    if !performanceMode {
+                        Circle()
+                            .fill(.clear)
+                            .glassEffect(.regular.tint(Color.white.opacity(look.isLightFill ? 0.55 : 0.32)).interactive(), in: Circle())
+                            // On a white fill the lens needs an edge to read against it.
+                            .overlay {
+                                Circle().strokeBorder(Color.black.opacity(look.isLightFill ? 0.14 : 0), lineWidth: 1)
+                            }
+                    } else {
+                        Circle()
+                            .fill(Color(nsColor: .controlColor))
+                            .overlay {
+                                Circle().strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                            }
+                    }
                 }
                 .frame(width: Self.thumbSize, height: Self.thumbSize)
                 .scaleEffect(dragX == nil ? 1 : 1.06)
@@ -1038,37 +1049,42 @@ struct TrackLook: Hashable {
 /// per frame was most of what a frame cost.
 struct TrackEffect: View {
     let look: TrackLook
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var startedAt = Date.now
     @State private var traits = TraitCache()
 
     var body: some View {
-        let kind = look.kind
-        let spark = look.spark
-        let pair = look.pair
-        let paused = reduceMotion || !FrontMonitor.shared.isVisible
-        TimelineView(.animation(minimumInterval: 1.0 / (kind == .supercharged && pair == nil ? 30 : 60), paused: paused)) { timeline in
-            let time = timeline.date.timeIntervalSince(startedAt)
-            Canvas { context, size in
-                guard size.width > 8 else { return }
-                if let pair {
-                    Self.drawFusion(context, size: size, time: time, lead: look.brand.fillColor, heads: pair.colors)
-                }
-                let traits = traits.traits(width: Double(size.width))
-                if kind == .supercharged || kind == .fusion {
-                    Self.drawParticles(context, size: size, time: time, color: spark, particles: traits.particles)
-                }
-                if kind == .fast || kind == .fusion {
-                    Self.drawStreaks(context, size: size, time: time, streaks: traits.streaks)
-                    Self.drawBolts(context, size: size, time: time)
-                }
-                if kind == .fusion {
-                    Self.drawSheen(context, size: size, time: time, color: spark)
+        if performanceMode {
+            EmptyView()
+        } else {
+            let kind = look.kind
+            let spark = look.spark
+            let pair = look.pair
+            let paused = reduceMotion || !FrontMonitor.shared.isVisible
+            TimelineView(.animation(minimumInterval: 1.0 / (kind == .supercharged && pair == nil ? 30 : 60), paused: paused)) { timeline in
+                let time = timeline.date.timeIntervalSince(startedAt)
+                Canvas { context, size in
+                    guard size.width > 8 else { return }
+                    if let pair {
+                        Self.drawFusion(context, size: size, time: time, lead: look.brand.fillColor, heads: pair.colors)
+                    }
+                    let traits = traits.traits(width: Double(size.width))
+                    if kind == .supercharged || kind == .fusion {
+                        Self.drawParticles(context, size: size, time: time, color: spark, particles: traits.particles)
+                    }
+                    if kind == .fast || kind == .fusion {
+                        Self.drawStreaks(context, size: size, time: time, streaks: traits.streaks)
+                        Self.drawBolts(context, size: size, time: time)
+                    }
+                    if kind == .fusion {
+                        Self.drawSheen(context, size: size, time: time, color: spark)
+                    }
                 }
             }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
         }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 
     struct Particle: Equatable {

@@ -176,6 +176,7 @@ private struct ChromeGlassSurface: ViewModifier {
     var isInteractive = true
     @Environment(\.isOnGlassPanel) private var isOnGlassPanel
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     @State private var isHovered = false
 
     func body(content: Content) -> some View {
@@ -189,12 +190,12 @@ private struct ChromeGlassSurface: ViewModifier {
 
     @ViewBuilder
     private func surface<S: InsettableShape>(_ content: Content, in shape: S) -> some View {
-        if isOnGlassPanel {
+        if isOnGlassPanel || performanceMode {
             content
                 .background(shape.fill(Chrome.panelControlFill(isDark: colorScheme == .dark, hovered: isHovered)))
                 .contentShape(shape)
                 .onHover { isHovered = $0 }
-                .animation(Chrome.hover, value: isHovered)
+                .animation(performanceMode ? nil : Chrome.hover, value: isHovered)
         } else if isInteractive {
             content.glassEffect(.regular.tint(Chrome.glassTint.opacity(0.3)).interactive(), in: shape)
         } else {
@@ -208,7 +209,8 @@ private struct DetailSheetModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         // Square: the window's own clip rounds the sheet's outer corners with everything
-        // else, so the sheet never draws a corner of its own inside the window's.
+        // else, so the sheet never draws a corner of its own inside the window's. Flat
+        // fills, so performance mode keeps them.
         content
             .background {
                 Rectangle().fill(colorScheme == .dark ? Color.black.opacity(0.22) : Color.white.opacity(0.3))
@@ -220,6 +222,7 @@ private struct DetailSheetModifier: ViewModifier {
 /// One shaped surface for the whole window: glass or a solid fill, a legibility tint and a hairline.
 struct WindowBackdrop: View {
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     /// The backdrop setting, 0 for bare glass and 1 for a solid base.
     let opacity: Double
     /// The user's wallpaper, painted edge to edge at the transparency setting's own opacity; nil for the stock glass.
@@ -233,62 +236,64 @@ struct WindowBackdrop: View {
         return t <= 0.5 ? stock * (t / 0.5) : stock + (1 - stock) * ((t - 0.5) / 0.5)
     }
 
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous)
+    }
+
+    private var solidBackdrop: some View {
+        shape.fill(colorScheme == .dark ? Color.black : Color.white)
+            .overlay { shape.fill(Chrome.glassTint.opacity(0.12)) }
+            .overlay { shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1) }
+    }
+
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous)
         let isDark = colorScheme == .dark
-        // At the solid end of the slider the scrim covers the glass completely, and a
-        // Liquid Glass surface the size of the window is a full-window sample on every
-        // frame anything over it moves. There it draws as a plain fill instead; the
-        // scrim, the tint and the hairline stay exactly as they are.
         let isSolid = opacity >= 0.98
-        Group {
-            if let wallpaper {
-                // The picture rides over the desktop rather than in place of it: the
-                // transparency setting is the picture's own opacity, so a clear window
-                // shows the desktop through the picture and a solid one shows the picture
-                // alone. No scrim in this branch: the scrim is the window's base colour,
-                // and the picture is what that base is when one is set.
-                shape.fill(.clear)
-                    .overlay {
-                        Image(nsImage: wallpaper)
-                            .resizable()
-                            .interpolation(.high)
-                            .aspectRatio(contentMode: .fill)
-                            .opacity(opacity)
-                    }
-                    .clipShape(shape)
-                    .overlay {
-                        if !isSolid {
-                            shape
-                                .fill(.clear)
-                                .glassEffect(in: shape)
+        if performanceMode || (isSolid && wallpaper == nil) {
+            solidBackdrop
+        } else {
+            Group {
+                if let wallpaper {
+                    // The picture's opacity follows the transparency slider, with no scrim.
+                    shape.fill(.clear)
+                        .overlay {
+                            Image(nsImage: wallpaper)
+                                .resizable()
+                                .interpolation(.high)
+                                .aspectRatio(contentMode: .fill)
+                                .opacity(opacity)
                         }
-                    }
-                    .transition(.opacity)
-            } else if isSolid {
-                shape.fill(isDark ? Color.black : Color.white)
-            } else {
-                shape
-                    .fill(.clear)
-                    .glassEffect(in: shape)
-                    .overlay {
-                        shape
-                            .fill(isDark ? Color.black : Color.white)
-                            .opacity(Self.scrim(for: opacity, isDark: isDark))
-                    }
+                        .clipShape(shape)
+                        .overlay {
+                            if !isSolid {
+                                shape
+                                    .fill(.clear)
+                                    .glassEffect(in: shape)
+                            }
+                        }
+                        .transition(.opacity)
+                } else {
+                    shape
+                        .fill(.clear)
+                        .glassEffect(in: shape)
+                        .overlay {
+                            shape
+                                .fill(isDark ? Color.black : Color.white)
+                                .opacity(Self.scrim(for: opacity, isDark: isDark))
+                        }
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: wallpaper != nil)
+            .overlay {
+                shape.fill(Chrome.glassTint.opacity(0.12))
+            }
+            // The hairline sits on the glass as well as on the solid fill.
+            .overlay {
+                shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: wallpaper != nil)
-        .overlay {
-            shape.fill(Chrome.glassTint.opacity(0.12))
-        }
-        // The hairline sits on the glass as well as on the solid fill, the way the
-        // settings window draws its edge: on a clear window the glass rim alone reads as
-        // a second line outside the curve.
-        .overlay {
-            shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1)
-        }
     }
+
 }
 
 // No pressed feedback, while retaining Button semantics for keyboard and accessibility.

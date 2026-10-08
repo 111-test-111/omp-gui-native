@@ -14,6 +14,22 @@ private struct StoredContinuation: Decodable {
     var continuation: Continuation?
 }
 
+struct StoredTurn: Codable, Sendable {
+    var turn: TurnRecord
+    var items: [TimelineItem]
+    var itemPositions: [String: Double]
+}
+
+private struct StoredTurnFile: Codable {
+    // Keep the head's previous revision until the replacement head commits.
+    var revisions: [String: StoredTurn] = [:]
+}
+
+struct ThreadSave: Sendable {
+    var head: ThreadDocument
+    var dirtyTurns: [UUID: StoredTurn]
+}
+
 /// Where the app keeps its library, thread histories and attachments.
 enum Storage {
     static let root: URL = StoragePaths.root
@@ -48,7 +64,7 @@ enum Storage {
         StoragePaths.directory(name)
     }
 
-    static func loadLibrary() -> Library {
+    nonisolated static func loadLibrary() -> Library {
         guard let data = try? Data(contentsOf: libraryURL) else { return Library() }
         return (try? JSONDecoder.storage.decode(Library.self, from: data)) ?? Library()
     }
@@ -61,14 +77,93 @@ enum Storage {
     /// The document as the runtime wants it: a save queued for it has landed first, blank
     /// thinking blocks are gone and model prose is clean of em dashes, so the prefetch
     /// worker does that work rather than the click that opens the thread.
+    nonisolated static func turnsURL(_ id: UUID) -> URL {
+        threadsDirectory.appendingPathComponent("\(id.uuidString).turns", isDirectory: true)
+    }
+
+    nonisolated static func turnURL(_ threadID: UUID, _ turnID: UUID) -> URL {
+        turnsURL(threadID).appendingPathComponent("\(turnID.uuidString).json")
+    }
+
     nonisolated static func readDocument(_ id: UUID) -> (document: ThreadDocument, cost: Int)? {
-        DiskWriter.shared.waitForQueuedWrites()
-        guard let data = try? Data(contentsOf: threadURL(id)) else { return nil }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        guard var document = try? decoder.decode(ThreadDocument.self, from: data) else { return nil }
-        document.items = document.items.filter { !$0.isEmptyReasoning }.map(\.cleanedOfEmDashes)
-        return (document, data.count)
+        readDocument(id, recentOnly: false)
+    }
+
+    nonisolated static func readRecentDocument(_ id: UUID) -> (document: ThreadDocument, cost: Int)? {
+        readDocument(id, recentOnly: true)
+    }
+
+    private nonisolated static func readDocument(_ id: UUID, recentOnly: Bool) -> (document: ThreadDocument, cost: Int)? {
+        DiskWriter.shared.readSynchronously {
+            guard let data = try? Data(contentsOf: threadURL(id)),
+                  var document = try? JSONDecoder.storage.decode(ThreadDocument.self, from: data) else { return nil }
+            var cost = data.count
+            if let index = document.turnIndex {
+                let count = max(0, 6 - document.turns.count)
+                let requested = recentOnly ? Array(index.suffix(count)) : index
+                guard let stored = readTurnsUnlocked(id, references: requested) else { return nil }
+                document.items = stored.document.items + document.items
+                document.turns = stored.document.turns + document.turns
+                document.itemPositions = (document.itemPositions ?? [:]).merging(stored.document.itemPositions ?? [:]) { _, new in new }
+                cost += stored.cost
+                sortItems(&document)
+            }
+            document.items = document.items.filter { !$0.isEmptyReasoning }.map(\.cleanedOfEmDashes)
+            return (document, cost)
+        }
+    }
+
+    nonisolated static func readTurns(_ id: UUID, references: [ThreadTurnReference]) -> (document: ThreadDocument, cost: Int)? {
+        DiskWriter.shared.readSynchronously { readTurnsUnlocked(id, references: references) }
+    }
+
+    /// Puts a thread's files that would not read somewhere a save can never reach: moved
+    /// when nothing of the thread could be read, copied when only older turns failed (the
+    /// newer ones are in use, and the next save prunes what its head no longer lists).
+    /// Returns the folder, or nil when there was nothing to keep or it could not be made.
+    nonisolated static func setAside(_ id: UUID, moving: Bool) -> URL? {
+        DiskWriter.shared.readSynchronously {
+            let manager = FileManager.default
+            let sources = [threadURL(id), turnsURL(id)].filter { manager.fileExists(atPath: $0.path) }
+            guard !sources.isEmpty else { return nil }
+            let stamp = ISO8601DateFormatter().string(from: .now).replacingOccurrences(of: ":", with: "-")
+            let folder = threadsDirectory.appendingPathComponent("Unreadable", isDirectory: true)
+                .appendingPathComponent("\(id.uuidString) \(stamp)", isDirectory: true)
+            do {
+                try manager.createDirectory(at: folder, withIntermediateDirectories: true)
+                for source in sources {
+                    let target = folder.appendingPathComponent(source.lastPathComponent)
+                    if moving { try manager.moveItem(at: source, to: target) } else { try manager.copyItem(at: source, to: target) }
+                }
+                return folder
+            } catch {
+                NSLog("Tivano could not set aside %@: %@", id.uuidString, error.localizedDescription)
+                return nil
+            }
+        }
+    }
+
+    private nonisolated static func readTurnsUnlocked(_ id: UUID, references: [ThreadTurnReference]) -> (document: ThreadDocument, cost: Int)? {
+        var document = ThreadDocument(threadID: id)
+        document.turnIndex = references
+        document.itemPositions = [:]
+        var cost = 0
+        for reference in references {
+            guard let data = try? Data(contentsOf: turnURL(id, reference.id)),
+                  let file = try? JSONDecoder.storage.decode(StoredTurnFile.self, from: data),
+                  let stored = file.revisions[String(reference.revision)], stored.turn.id == reference.id else { return nil }
+            document.turns.append(stored.turn)
+            document.items += stored.items.filter { !$0.isEmptyReasoning }.map(\.cleanedOfEmDashes)
+            document.itemPositions?.merge(stored.itemPositions) { _, new in new }
+            cost += data.count
+        }
+        sortItems(&document)
+        return (document, cost)
+    }
+
+    private nonisolated static func sortItems(_ document: inout ThreadDocument) {
+        let positions = document.itemPositions ?? [:]
+        document.items.sort { (positions[$0.id] ?? 0) < (positions[$1.id] ?? 0) }
     }
 
     static func deleteDocument(_ id: UUID) {
@@ -81,7 +176,7 @@ enum Storage {
     static func deleteDocuments(_ ids: [UUID]) {
         guard !ids.isEmpty else { return }
         for id in ids { DocumentPrefetch.shared.forget(id) }
-        DiskWriter.shared.removeSynchronously(ids.map(threadURL))
+        DiskWriter.shared.removeSynchronously(ids.flatMap { [threadURL($0), turnsURL($0)] })
     }
 
     /// Copies a file into app storage so a message keeps its attachment after the original moves.
@@ -111,10 +206,10 @@ enum Storage {
         await Task.detached(priority: .utility) {
             let fileManager = FileManager.default
             guard let names = try? fileManager.contentsOfDirectory(atPath: attachments.path), !names.isEmpty,
-                  let documents = try? fileManager.contentsOfDirectory(atPath: threads.path) else { return }
+                  let documents = fileManager.enumerator(at: threads, includingPropertiesForKeys: nil)?.allObjects as? [URL] else { return }
             var referenced = Set<String>()
-            for document in documents where document.hasSuffix(".json") {
-                guard let data = try? Data(contentsOf: threads.appendingPathComponent(document)) else { continue }
+            for document in documents where document.pathExtension == "json" {
+                guard let data = try? Data(contentsOf: document) else { continue }
                 let text = String(decoding: data, as: UTF8.self)
                 // The encoder writes the path's slashes as `\/`.
                 for match in text.matches(of: #/attachments\\?\/([0-9A-Fa-f-]{36}\.[A-Za-z0-9]+)/#) {
@@ -256,7 +351,7 @@ final class DocumentPrefetch: Sendable {
         limit: Int = 12,
         costLimit: Int = 16 * 1_024 * 1_024,
         pendingLimit: Int = 24,
-        load: @escaping @Sendable (UUID) -> (document: ThreadDocument, cost: Int)? = Storage.readDocument
+        load: @escaping @Sendable (UUID) -> (document: ThreadDocument, cost: Int)? = Storage.readRecentDocument
     ) {
         state = Mutex(State(ready: RecentCache(limit: limit, costLimit: costLimit)))
         self.pendingLimit = max(1, pendingLimit)
@@ -331,7 +426,21 @@ final class DiskWriter: Sendable {
     /// The newest snapshot waiting per file. A save queued behind a slow write is replaced
     /// by the next one for the same file, so a backlog never encodes and writes documents
     /// that are already stale when their turn comes.
-    private let pending = Mutex<[URL: any Encodable & Sendable]>([:])
+    private struct PendingWrite: Sendable {
+        var value: any Encodable & Sendable
+        var completions: [@Sendable (Bool) -> Void]
+    }
+    private let pending = Mutex<[URL: PendingWrite]>([:])
+    private struct PendingThread: Sendable {
+        var snapshot: ThreadSave
+        var completions: [@Sendable (Bool) -> Void]
+    }
+    private let pendingThreads = Mutex<[URL: PendingThread]>([:])
+    private let errors = Mutex<[URL: String]>([:])
+
+    func lastWriteError(of url: URL) -> String? {
+        errors.withLock { $0[url] }
+    }
     /// The size of the last write per file, so a caller can space its saves by it.
     private let sizes = Mutex<[URL: Int]>([:])
 
@@ -340,21 +449,129 @@ final class DiskWriter: Sendable {
     }
 
     func encodeAndWrite<Value: Encodable & Sendable>(_ value: Value, to url: URL) {
+        encodeAndWrite(value, to: url, completion: { _ in })
+    }
+
+    func encodeAndWrite<Value: Encodable & Sendable>(_ value: Value, to url: URL, completion: @escaping @Sendable (Bool) -> Void) {
         let queued = pending.withLock { pending in
-            let queued = pending[url] != nil
-            pending[url] = value
-            return queued
+            let previous = pending[url]
+            pending[url] = PendingWrite(value: value, completions: (previous?.completions ?? []) + [completion])
+            return previous != nil
         }
         guard !queued else { return }
         queue.async { [self] in
-            guard let value = pending.withLock({ $0.removeValue(forKey: url) }) else { return }
-            if let size = Self.write(value, to: url) { sizes.withLock { $0[url] = size } }
+            guard let write = pending.withLock({ $0.removeValue(forKey: url) }) else { return }
+            let size = self.write(write.value, to: url)
+            if let size { sizes.withLock { $0[url] = size } }
+            for completion in write.completions { completion(size != nil) }
+        }
+    }
+
+    func writeThread(_ snapshot: ThreadSave, completion: @escaping @Sendable (Bool) -> Void) {
+        let url = Storage.threadURL(snapshot.head.threadID)
+        DocumentPrefetch.shared.forget(snapshot.head.threadID)
+        let queued = pendingThreads.withLock { pending in
+            let previous = pending[url]
+            var newest = snapshot
+            newest.dirtyTurns = (previous?.snapshot.dirtyTurns ?? [:]).merging(snapshot.dirtyTurns) { _, new in new }
+            pending[url] = PendingThread(snapshot: newest, completions: (previous?.completions ?? []) + [completion])
+            return previous != nil
+        }
+        guard !queued else { return }
+        queue.async { [self] in
+            guard let pending = pendingThreads.withLock({ $0.removeValue(forKey: url) }) else { return }
+            let success = writeThread(pending.snapshot)
+            for completion in pending.completions { completion(success) }
+        }
+    }
+
+    @discardableResult
+    func writeThreadSynchronously(_ snapshot: ThreadSave) -> Bool {
+        let url = Storage.threadURL(snapshot.head.threadID)
+        let completions = pendingThreads.withLock { $0.removeValue(forKey: url)?.completions ?? [] }
+        DocumentPrefetch.shared.forget(snapshot.head.threadID)
+        return queue.sync {
+            let success = writeThread(snapshot)
+            for completion in completions { completion(success) }
+            return success
+        }
+    }
+
+    private func writeThread(_ snapshot: ThreadSave) -> Bool {
+        let head = snapshot.head
+        let url = Storage.threadURL(head.threadID)
+        do {
+            let directory = Storage.turnsURL(head.threadID)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let index = head.turnIndex ?? []
+            var needsPruning = Set<UUID>()
+            for reference in index {
+                let turnURL = Storage.turnURL(head.threadID, reference.id)
+                if let turn = snapshot.dirtyTurns[reference.id] {
+                    var file = StoredTurnFile()
+                    if FileManager.default.fileExists(atPath: turnURL.path) {
+                        file = try JSONDecoder.storage.decode(StoredTurnFile.self, from: Data(contentsOf: turnURL))
+                    }
+                    file.revisions[String(reference.revision)] = turn
+                    if file.revisions.count > 1 { needsPruning.insert(reference.id) }
+                    try JSONEncoder.storage.encode(file).write(to: turnURL, options: .atomic)
+                } else if !FileManager.default.fileExists(atPath: turnURL.path) {
+                    throw CocoaError(.fileNoSuchFile)
+                }
+            }
+            let data = try JSONEncoder.storage.encode(head)
+            try data.write(to: url, options: .atomic)
+            sizes.withLock { $0[url] = data.count }
+            errors.withLock { $0[url] = nil }
+            let live = Set(index.map { "\($0.id.uuidString).json" })
+            for file in (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? [] where !live.contains(file.lastPathComponent) {
+                try? FileManager.default.removeItem(at: file)
+            }
+            // Cleanup is optional: failure leaves extra recovery revisions, never a broken head.
+            for reference in index where needsPruning.contains(reference.id) {
+                guard let turn = snapshot.dirtyTurns[reference.id] else { continue }
+                let file = StoredTurnFile(revisions: [String(reference.revision): turn])
+                if let data = try? JSONEncoder.storage.encode(file) {
+                    try? data.write(to: Storage.turnURL(head.threadID, reference.id), options: .atomic)
+                }
+            }
+            return true
+        } catch {
+            errors.withLock { $0[url] = error.localizedDescription }
+            return false
         }
     }
 
     func writeSynchronously<Value: Encodable & Sendable>(_ value: Value, to url: URL) {
-        pending.withLock { $0[url] = nil }
-        queue.sync { Self.write(value, to: url) }
+        let completions = pending.withLock { $0.removeValue(forKey: url)?.completions ?? [] }
+        queue.sync {
+            let size = write(value, to: url)
+            if let size { sizes.withLock { $0[url] = size } }
+            for completion in completions { completion(size != nil) }
+        }
+    }
+
+    /// A provider-history action must not proceed if its recovery state cannot save.
+    /// Awaited rather than run with `queue.sync`: the caller is the main actor, and a
+    /// whole-library write queued behind other documents would hold the app still.
+    func writeOrThrow<Value: Encodable & Sendable>(_ value: Value, to url: URL) async throws {
+        let completions = pending.withLock { $0.removeValue(forKey: url)?.completions ?? [] }
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            queue.async { [self] in
+                do {
+                    let data = try JSONEncoder.storage.encode(value)
+                    try data.write(to: url, options: .atomic)
+                    sizes.withLock { $0[url] = data.count }
+                    errors.withLock { $0[url] = nil }
+                    for completion in completions { completion(true) }
+                    continuation.resume()
+                } catch {
+                    errors.withLock { $0[url] = error.localizedDescription }
+                    for completion in completions { completion(false) }
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
 
     func removeSynchronously(_ url: URL) {
@@ -362,12 +579,21 @@ final class DiskWriter: Sendable {
     }
 
     func removeSynchronously(_ urls: [URL]) {
-        pending.withLock { pending in
-            for url in urls { pending[url] = nil }
+        let threadCompletions = pendingThreads.withLock { pending in
+            urls.flatMap { pending.removeValue(forKey: $0)?.completions ?? [] }
+        }
+        let completions = pending.withLock { pending in
+            urls.flatMap { pending.removeValue(forKey: $0)?.completions ?? [] }
         }
         queue.sync {
             for url in urls { try? FileManager.default.removeItem(at: url) }
+            for completion in threadCompletions { completion(false) }
+            for completion in completions { completion(false) }
         }
+    }
+
+    func readSynchronously<Value>(_ read: () -> Value) -> Value {
+        queue.sync(execute: read)
     }
 
     /// Returns once every write queued so far has landed, so a read that follows sees them.
@@ -376,12 +602,14 @@ final class DiskWriter: Sendable {
     }
 
     @discardableResult
-    private static func write(_ value: any Encodable, to url: URL) -> Int? {
-        guard let data = try? JSONEncoder.storage.encode(value) else { return nil }
+    private func write(_ value: any Encodable, to url: URL) -> Int? {
         do {
+            let data = try JSONEncoder.storage.encode(value)
             try data.write(to: url, options: .atomic)
+            errors.withLock { $0[url] = nil }
             return data.count
         } catch {
+            errors.withLock { $0[url] = error.localizedDescription }
             NSLog("Tivano could not save %@: %@", url.lastPathComponent, error.localizedDescription)
             return nil
         }

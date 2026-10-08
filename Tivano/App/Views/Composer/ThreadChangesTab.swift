@@ -4,7 +4,7 @@ import SwiftUI
 /// The thread's changes as a small tab rising from the top of the chat box. The composer draws
 /// over its lower edge, so it reads as part of the box. Clicking it opens the changes popover.
 struct ThreadChangesTab: View {
-    static let overlap: CGFloat = 14
+    static let overlap: CGFloat = 6
 
     let stats: FileChangeSummary
     /// Receives the tab's own view, so the popover can anchor to it.
@@ -35,12 +35,42 @@ struct ThreadChangesTab: View {
         }
         .buttonStyle(.plain)
         .focusable(false)
-        .glassEffect(.regular.interactive(), in: shape)
+        .modifier(ThreadChangesTabSurface())
         .background {
             AttachmentAnchorCapture(onResolve: anchor)
         }
         .fixedSize()
         .help(Text(verbatim: String(format: Chrome.localized("Show this thread's changes%@"), ShortcutStore.hint(for: .toggleChanges))))
         .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("%d files changed, %d added, %d removed"), stats.files.count, stats.additions, stats.deletions)))
+    }
+}
+
+private struct ThreadChangesTabSurface: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
+
+    func body(content: Content) -> some View {
+        let shape = UnevenRoundedRectangle(topLeadingRadius: 12, topTrailingRadius: 12, style: .continuous)
+        let isDark = colorScheme == .dark
+        if !performanceMode {
+            content
+                .glassEffect(.regular.interactive(), in: shape)
+                .background {
+                    shape
+                        .fill(Color(nsColor: .controlBackgroundColor).opacity(0.92))
+                        .background(shape.fill(Color(nsColor: .windowBackgroundColor)))
+                }
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
+        } else {
+            content
+                .background(shape.fill(Color(nsColor: .controlBackgroundColor)))
+                .clipShape(shape)
+                .overlay {
+                    shape.strokeBorder(Chrome.overlay(isDark ? 0.14 : 0.08), lineWidth: 1)
+                }
+        }
     }
 }

@@ -15,6 +15,7 @@ struct HydraPanel: View {
     @Environment(AppModel.self) private var model
     @Environment(WindowLiveResize.self) private var liveResize
     @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     let runtime: ThreadRuntime
     let heads: [ChatThread]
     let size: CGSize
@@ -71,7 +72,7 @@ struct HydraPanel: View {
         .animation(liveResize.isActive ? nil : Chrome.panelSlide, value: selected?.id)
         .overlay {
             // Done: one wave of the head's colour flows through the whole panel.
-            if let hold, let head = heads.first(where: { $0.id == hold.id }) {
+            if !performanceMode, let hold, let head = heads.first(where: { $0.id == hold.id }) {
                 DotFieldSweep(tint: NSColor((head.hydra?.persona ?? HydraRoster.persona(at: 0)).color))
                     .clipShape(shape)
                     .transition(.opacity)
@@ -100,12 +101,17 @@ struct HydraPanel: View {
             // The helper panel's recipe: one glass surface, a scrim for the text over
             // whatever the panel floats above, and the theme's tint.
             let isDark = colorScheme == .dark
-            shape
-                .fill(.clear)
-                .glassEffect(.regular, in: shape)
-                .overlay {
-                    shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
-                }
+            if !performanceMode {
+                shape
+                    .fill(.clear)
+                    .glassEffect(.regular, in: shape)
+                    .overlay {
+                        shape.fill(Chrome.glassTint.opacity(isDark ? 0.22 : 0.16))
+                    }
+            } else {
+                shape
+                    .fill(Color(nsColor: .windowBackgroundColor))
+            }
         }
         // Glass supplies the edge (as in `WindowBackdrop`): a hairline on top of it
         // read as a second ring around the panel whenever its window was key.
@@ -117,7 +123,7 @@ struct HydraPanel: View {
             let isDark = colorScheme == .dark
             shape
                 .fill((isDark ? Color.black : Color.white).opacity(isDark ? 0.3 : 0.34))
-                .shadow(color: .black.opacity(isDark ? 1 : 0.65), radius: 28, y: 10)
+                .shadow(color: performanceMode ? .clear : .black.opacity(isDark ? 1 : 0.65), radius: performanceMode ? 0 : 28, y: performanceMode ? 0 : 10)
         }
     }
 

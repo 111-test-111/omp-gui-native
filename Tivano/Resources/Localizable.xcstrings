@@ -1,6 +1,336 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Older parts of this chat couldn't be read. Tivano kept the files in %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此聊天的较早部分无法读取。Tivano 已将文件保存在 %@。"
+          }
+        }
+      }
+    },
+    "This chat's history couldn't be read. Tivano kept the files in %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此聊天的历史记录无法读取。Tivano 已将文件保存在 %@。"
+          }
+        }
+      }
+    },
+    "%@ couldn't pick this conversation back up (%@). It starts a new one here, without the messages above.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 无法恢复此对话（%@）。将在此开始新对话，不包含上面的消息。"
+          }
+        }
+      }
+    },
+    "This head's Codex session history is archived. Its Tivano transcript is kept; a follow-up restores the same Codex session.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 head 的 Codex 会话历史已归档。Tivano 聊天记录仍保留；后续消息会恢复同一个 Codex 会话。"
+          }
+        }
+      }
+    },
+    "Codex history archive was not confirmed: %@ No deletion was requested.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能确认 Codex 历史归档：%@ 未请求删除任何记录。"
+          }
+        }
+      }
+    },
+    "the provider": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提供方"
+          }
+        }
+      }
+    },
+    "Your answer didn't reach %@: its session had already closed. Send a message to carry on.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的回答未送达 %@：其会话已关闭。发送消息以继续。"
+          }
+        }
+      }
+    },
+    "Recovered how the last turn ended from Codex.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已从 Codex 恢复上一轮的结束状态。"
+          }
+        }
+      }
+    },
+    "The agent": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能体"
+          }
+        }
+      }
+    },
+    "%@ picked the work back up after a background task finished.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后台任务完成后，%@ 已继续工作。"
+          }
+        }
+      }
+    },
+    "the disk write failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘写入失败"
+          }
+        }
+      }
+    },
+    "Tivano couldn't save this chat to disk (%@). It keeps trying.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tivano 无法将此聊天保存到磁盘（%@）。将继续重试。"
+          }
+        }
+      }
+    },
+    "The head is no longer eligible for archiving.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 head 已不符合归档条件。"
+          }
+        }
+      }
+    },
+    "Codex history stays visible because this head has descendants or their state could not be confirmed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 head 有派生会话，或无法确认其状态，因此 Codex 历史仍保持可见。"
+          }
+        }
+      }
+    },
+    "Codex history stays visible because the head is active or its idle state could not be confirmed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 head 仍在活动，或无法确认其空闲状态，因此 Codex 历史仍保持可见。"
+          }
+        }
+      }
+    },
+    "Codex did not confirm that this exact head was archived. Its state will be reconciled before a follow-up.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 未确认此 head 已归档。后续消息发送前将核对其状态。"
+          }
+        }
+      }
+    },
+    "Codex could not restore the original head's history.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 无法恢复原 head 的历史记录。"
+          }
+        }
+      }
+    },
+    "Codex did not report its archived sessions. The head's history was kept.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 未返回已归档的会话。此 head 的历史记录已保留。"
+          }
+        }
+      }
+    },
+    "Codex did not confirm restoration of the original head.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 未确认已恢复原 head。"
+          }
+        }
+      }
+    },
+    "Codex history could not be reconciled within the page limit. No replacement session was created.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在分页上限内无法核对 Codex 历史。未创建替代会话。"
+          }
+        }
+      }
+    },
+    "Provider history changes require a persistent library.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改提供方历史需要可持久保存的资料库。"
+          }
+        }
+      }
+    },
+    "The agent sent a message over 16 MB": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能体发送的消息超过 16 MB"
+          }
+        }
+      }
+    },
+    "The agent input queue exceeded 32 MB or the connection closed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能体输入队列超过 32 MB，或连接已关闭。"
+          }
+        }
+      }
+    },
+    "Writing to the agent failed: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "向智能体写入失败：%@"
+          }
+        }
+      }
+    },
+    "The agent output backlog exceeded 256 MB.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能体输出积压超过 256 MB。"
+          }
+        }
+      }
+    },
+    "Timed out running %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行 %@ 超时。"
+          }
+        }
+      }
+    },
+    "This ACP agent cannot resume the original session.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 ACP 智能体无法恢复原会话。"
+          }
+        }
+      }
+    },
+    "%@ didn't answer %@ within %lld seconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 未响应 %@，已等待 %lld 秒"
+          }
+        }
+      }
+    },
+    "git clone failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "git clone 失败"
+          }
+        }
+      }
+    },
+    "%@ Retrying.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 正在重试。"
+          }
+        }
+      }
+    },
     "A native home for your coding agents, built in Swift with Liquid Glass. A fork of Droppy Code by Jordy Spruit (Droppy)." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12933,6 +13263,831 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@”不是有效的变量名：只能包含字母、数字、`_`、`-` 和 `.`，且以字母或 `_` 开头。"
+          }
+        }
+      }
+    },
+    "@%@, saved in your Keychain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@，已保存在你的钥匙串中"
+          }
+        }
+      }
+    },
+    "@%@, using the GitHub CLI login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "@%@，使用 GitHub CLI 登录"
+          }
+        }
+      }
+    },
+    "a background command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一条后台命令"
+          }
+        }
+      }
+    },
+    "Add a project" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加项目"
+          }
+        }
+      }
+    },
+    "Auto-archive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动归档"
+          }
+        }
+      }
+    },
+    "Checking GitHub connection…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在检查 GitHub 连接…"
+          }
+        }
+      }
+    },
+    "Choose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择"
+          }
+        }
+      }
+    },
+    "Choose a folder…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择文件夹…"
+          }
+        }
+      }
+    },
+    "Choose a model or Hydra pair below, then send a message to continue." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在下方选择模型或 Hydra 组合，然后发送消息以继续。"
+          }
+        }
+      }
+    },
+    "Claude Code and Antigravity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code 和 Antigravity"
+          }
+        }
+      }
+    },
+    "Clone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆"
+          }
+        }
+      }
+    },
+    "Clone %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆 %@"
+          }
+        }
+      }
+    },
+    "Clone a repository" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆仓库"
+          }
+        }
+      }
+    },
+    "Clone from GitHub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 GitHub 克隆"
+          }
+        }
+      }
+    },
+    "Clone from GitHub…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 GitHub 克隆…"
+          }
+        }
+      }
+    },
+    "Clone into" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆到"
+          }
+        }
+      }
+    },
+    "Clone one of your repositories and start a thread in it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆你的某个仓库，并在其中开始一个对话。"
+          }
+        }
+      }
+    },
+    "Clone your repositories and let agents push and open pull requests." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆你的仓库，并让智能体推送代码、创建拉取请求。"
+          }
+        }
+      }
+    },
+    "Clone…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "克隆…"
+          }
+        }
+      }
+    },
+    "Cloning…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在克隆…"
+          }
+        }
+      }
+    },
+    "Codex local session history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codex 本地会话历史"
+          }
+        }
+      }
+    },
+    "Connect GitHub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接 GitHub"
+          }
+        }
+      }
+    },
+    "Connecting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在连接…"
+          }
+        }
+      }
+    },
+    "Context carried over; some messages were shortened or omitted." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已带入上下文；部分消息已被缩短或省略。"
+          }
+        }
+      }
+    },
+    "Continuing from %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接续自 %@"
+          }
+        }
+      }
+    },
+    "Continuing from “%@”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接续自“%@”"
+          }
+        }
+      }
+    },
+    "Copy code" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制代码"
+          }
+        }
+      }
+    },
+    "Create a token on GitHub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 GitHub 上创建令牌"
+          }
+        }
+      }
+    },
+    "Delete…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除…"
+          }
+        }
+      }
+    },
+    "Disable window transparency, blurs, glows and background effects for lowest GPU usage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭窗口透明度、模糊、光晕和背景效果，以最大程度降低 GPU 占用"
+          }
+        }
+      }
+    },
+    "Disabled. Codex deletion also deletes descendant sessions, without an atomic safeguard against newly active work. Claude Code and Antigravity have no verified deletion operation for these connected sessions." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已禁用。Codex 的删除操作还会删除其后代会话，且没有针对新近活跃工作的原子性保护。Claude Code 和 Antigravity 对这些已连接的会话没有经过验证的删除操作。"
+          }
+        }
+      }
+    },
+    "Enter this code on GitHub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 GitHub 上输入此代码"
+          }
+        }
+      }
+    },
+    "For new delegated Tivano-run Codex heads after successful completion. Archived sessions keep their IDs and resume on the next message. Lead chats, native heads, older sessions and heads with user follow-ups stay visible." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "适用于由 Tivano 运行、新委派的 Codex 子智能体，在成功完成之后生效。已归档的会话保留其 ID，并在下一条消息时恢复。主导对话、原生子智能体、较早的会话，以及收到用户后续消息的子智能体仍保持可见。"
+          }
+        }
+      }
+    },
+    "GitHub answered %lld: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub 返回了 %lld：%@"
+          }
+        }
+      }
+    },
+    "GitHub did not accept that token." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub 未接受该令牌。"
+          }
+        }
+      }
+    },
+    "GitHub did not accept the sign-in." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub 未接受此次登录。"
+          }
+        }
+      }
+    },
+    "GitHub sent an answer Tivano could not read." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub 返回了 Tivano 无法读取的响应。"
+          }
+        }
+      }
+    },
+    "Keep visible" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持可见"
+          }
+        }
+      }
+    },
+    "Keep visible. Their connected streaming CLIs do not expose a verified archive operation that preserves resume history." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持可见。它们所连接的流式 CLI 未提供可验证的、能保留恢复历史的归档操作。"
+          }
+        }
+      }
+    },
+    "Large diff, %lld lines. Show it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "差异较大，共 %lld 行。点击显示"
+          }
+        }
+      }
+    },
+    "Loading diff…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载差异…"
+          }
+        }
+      }
+    },
+    "Loading remaining lines…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载剩余行…"
+          }
+        }
+      }
+    },
+    "Loading your repositories…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载你的仓库…"
+          }
+        }
+      }
+    },
+    "No repositories match." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有匹配的仓库。"
+          }
+        }
+      }
+    },
+    "Open GitHub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 GitHub"
+          }
+        }
+      }
+    },
+    "Open original chat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开原对话"
+          }
+        }
+      }
+    },
+    "Performance Mode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "性能模式"
+          }
+        }
+      }
+    },
+    "Permanent deletion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永久删除"
+          }
+        }
+      }
+    },
+    "Pick a repository. It is cloned into your folder and opens as a project." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择一个仓库，它会被克隆到你的文件夹中，并作为项目打开。"
+          }
+        }
+      }
+    },
+    "Play haptic feedback when hovering over timeline ticks and progress bars" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "悬停在时间线刻度和进度条上时播放触感反馈"
+          }
+        }
+      }
+    },
+    "Provider history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务商历史记录"
+          }
+        }
+      }
+    },
+    "Search your repositories or paste a URL" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索你的仓库，或粘贴 URL"
+          }
+        }
+      }
+    },
+    "Show %lld earlier steps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示 %lld 个更早的步骤"
+          }
+        }
+      }
+    },
+    "Show %lld earlier steps (%lld hidden)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示 %lld 个更早的步骤（共 %lld 个已隐藏）"
+          }
+        }
+      }
+    },
+    "Show 1 earlier step" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示 1 个更早的步骤"
+          }
+        }
+      }
+    },
+    "Show more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展开"
+          }
+        }
+      }
+    },
+    "Sign in with GitHub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 GitHub 登录"
+          }
+        }
+      }
+    },
+    "Soft" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "柔和"
+          }
+        }
+      }
+    },
+    "Strong" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "强烈"
+          }
+        }
+      }
+    },
+    "That repository was not found, or your account cannot see it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到该仓库，或你的账户无权查看。"
+          }
+        }
+      }
+    },
+    "The code expired. Try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码已过期，请重试。"
+          }
+        }
+      }
+    },
+    "The GitHub CLI is not signed in. Run gh auth login first." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub CLI 尚未登录。请先运行 gh auth login。"
+          }
+        }
+      }
+    },
+    "The sign-in was cancelled on GitHub." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在 GitHub 上取消登录。"
+          }
+        }
+      }
+    },
+    "These controls affect Codex's local CLI/app session history, independently of Tivano's sidebar. They do not manage conversations on provider websites. Heads with descendants or an unconfirmed idle state are not archived. Changing this setting never sweeps existing history." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些设置影响 Codex 本地 CLI/应用的会话历史，与 Tivano 的侧边栏相互独立。它们不会管理服务商网站上的对话。有后代会话或空闲状态未得到确认的子智能体不会被归档。更改此设置不会清理已有的历史记录。"
+          }
+        }
+      }
+    },
+    "Timeline haptics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间线触感反馈"
+          }
+        }
+      }
+    },
+    "Unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用"
+          }
+        }
+      }
+    },
+    "Use a token…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用令牌…"
+          }
+        }
+      }
+    },
+    "Use GitHub CLI login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 GitHub CLI 登录"
+          }
+        }
+      }
+    },
+    "Waiting for GitHub…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待 GitHub…"
+          }
+        }
+      }
+    },
+    "Waiting on %lld background tasks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待 %lld 项后台任务"
+          }
+        }
+      }
+    },
+    "Waiting on a background task" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待一项后台任务"
+          }
+        }
+      }
+    },
+    "Waiting on a background task: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待后台任务：%@"
+          }
+        }
+      }
+    },
+    "Waiting on a background task: %@ and %lld more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待后台任务：%@，另有 %lld 项"
+          }
+        }
+      }
+    },
+    "You can also paste a public repository URL above." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你也可以在上方粘贴公开仓库的 URL。"
+          }
+        }
+      }
+    },
+    "Your GitHub sign-in expired. Connect again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 GitHub 登录已过期，请重新连接。"
           }
         }
       }

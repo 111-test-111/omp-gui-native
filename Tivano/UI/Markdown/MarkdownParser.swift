@@ -28,6 +28,15 @@ enum MarkdownParser {
         var blocks: [MarkdownBlock]
         var stable: Int
         var restart: Int
+        var openFence: OpenFence? = nil
+    }
+
+    struct OpenFence: Equatable, Sendable {
+        var marker: String
+        var language: String?
+        var completed: String
+        var completedLines: Int
+        var partial: String
     }
 
     static func parse(_ text: String) -> [MarkdownBlock] {
@@ -37,6 +46,36 @@ enum MarkdownParser {
     /// The parse of `text` given `previous`, the parse of an earlier text. When `text` merely
     /// extends it, the stable blocks are reused and only the tail is parsed.
     static func parse(_ text: String, extending previous: (text: String, parse: Parse)?) -> Parse {
+        if let previous, var fence = previous.parse.openFence,
+           text.utf8.count > previous.text.utf8.count,
+           text.utf8.starts(with: previous.text.utf8) {
+            let start = text.utf8.index(text.utf8.startIndex, offsetBy: previous.text.utf8.count)
+            let added = String(decoding: text.utf8[start...], as: UTF8.self)
+            let pieces = (fence.partial + added).components(separatedBy: "\n")
+            var closed = false
+            for (index, raw) in pieces.enumerated() {
+                let line = raw.hasSuffix("\r") ? String(raw.dropLast()) : raw
+                let candidate = trimmed(line)
+                if candidate.hasPrefix(fence.marker), candidate.allSatisfy({ $0 == fence.marker.first }) {
+                    closed = true
+                    break
+                }
+                if index < pieces.count - 1 {
+                    if fence.completedLines > 0 { fence.completed += "\n" }
+                    fence.completed += line
+                    fence.completedLines += 1
+                }
+            }
+            if !closed {
+                fence.partial = pieces.last ?? ""
+                let partial = fence.partial.hasSuffix("\r") ? String(fence.partial.dropLast()) : fence.partial
+                let code = fence.completed + (fence.completedLines > 0 ? "\n" : "") + partial
+                var result = previous.parse
+                result.blocks[result.blocks.count - 1] = .code(language: fence.language, code: code)
+                result.openFence = fence
+                return result
+            }
+        }
         guard let previous, previous.parse.stable > 0,
               text.utf8.count > previous.text.utf8.count, text.utf8.starts(with: previous.text.utf8) else {
             return parse(text[...])
@@ -46,7 +85,8 @@ enum MarkdownParser {
         return Parse(
             blocks: Array(previous.parse.blocks[..<previous.parse.stable]) + tail.blocks,
             stable: previous.parse.stable + tail.stable,
-            restart: restart + tail.restart
+            restart: restart + tail.restart,
+            openFence: tail.openFence
         )
     }
 
@@ -65,10 +105,25 @@ enum MarkdownParser {
         let parsed = parse(lines[...])
         // The last block that starts at least two lines above the last line: the decisions
         // that end everything before it never read the line still being written.
-        guard let stable = parsed.blockLines.lastIndex(where: { $0 <= lines.count - 3 }) else {
-            return Parse(blocks: parsed.blocks, stable: 0, restart: 0)
+        var openFence: OpenFence?
+        if let opening = parsed.blockLines.last, let lastBlock = parsed.blocks.last, case .code(let language, _) = lastBlock,
+           opening + 1 < lines.count, let marker = fenceMarker(trimmed(lines[opening])) {
+            let body = lines[(opening + 1)...]
+            let hasClosure = body.contains { line in
+                let candidate = trimmed(line)
+                return candidate.hasPrefix(marker) && candidate.allSatisfy { $0 == marker.first }
+            }
+            if !hasClosure {
+                let rawPartial = String(decoding: pieces.last ?? utf8[utf8.endIndex...], as: UTF8.self)
+                openFence = OpenFence(marker: marker, language: language,
+                    completed: body.dropLast().joined(separator: "\n"),
+                    completedLines: body.count - 1, partial: rawPartial)
+            }
         }
-        return Parse(blocks: parsed.blocks, stable: stable, restart: starts[parsed.blockLines[stable]])
+        guard let stable = parsed.blockLines.lastIndex(where: { $0 <= lines.count - 3 }) else {
+            return Parse(blocks: parsed.blocks, stable: 0, restart: 0, openFence: openFence)
+        }
+        return Parse(blocks: parsed.blocks, stable: stable, restart: starts[parsed.blockLines[stable]], openFence: openFence)
     }
 
     /// Quotes and list items nest by recursion, one level per `>` or indent step, which model

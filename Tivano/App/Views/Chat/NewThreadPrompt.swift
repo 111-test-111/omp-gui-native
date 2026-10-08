@@ -63,6 +63,12 @@ struct NewThreadPrompt: View {
                 guard let added = model.addProjectsFromPanel() else { return }
                 move(to: added)
             }
+            PopoverItem("Clone from GitHub…", leading: AnyView(Image("mcp-github").resizable().scaledToFit().frame(width: 12, height: 12))) {
+                isChoosingProject = false
+                GitHubClonePanel.shared.present(model: model) { project in
+                    move(to: project)
+                }
+            }
         }
     }
 

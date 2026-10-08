@@ -11,11 +11,16 @@ import SwiftUI
 /// and no drawing on the main thread, however long a turn runs.
 struct ComposerWorkingDots: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     var body: some View {
-        DotFieldLayerView.Representable(color: Chrome.accentNSColor, animated: !reduceMotion)
-            .accessibilityHidden(true)
-            .allowsHitTesting(false)
+        if performanceMode {
+            EmptyView()
+        } else {
+            DotFieldLayerView.Representable(color: Chrome.accentNSColor, animated: !reduceMotion)
+                .accessibilityHidden(true)
+                .allowsHitTesting(false)
+        }
     }
 }
 
@@ -57,6 +62,7 @@ final class DotFieldLayerView: NSView {
     private let rows = CAReplicatorLayer()
     private let columns = CAReplicatorLayer()
     private let dot = CALayer()
+    private let waveMask = CAGradientLayer()
     private var color: NSColor = .controlAccentColor
     private var animated = true
     private var laidOutSize: CGSize = .zero
@@ -69,15 +75,10 @@ final class DotFieldLayerView: NSView {
     /// The field never grows past this many rows however tall the pill gets, so a
     /// five-line draft does not multiply the layers the render server composites.
     private static let maxRows = 3
-    /// One pulse per dot; the column delay spreads it into a travelling wave.
     private static let period: Double = 2.2
-    private static let columnDelay: Double = 0.045
-    private static let rowDelay: Double = 0.09
     private static let animationKey = "pulse"
-    /// The sweep's single pulse, and the delay between its columns: a wave that crosses a
-    /// panel of 400 points in about a second.
+    /// The sweep's single pulse: a wave that crosses a panel of 400 points in about a second.
     private static let sweepPeriod: Double = 0.8
-    private static let sweepColumnDelay: Double = 0.022
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -89,14 +90,24 @@ final class DotFieldLayerView: NSView {
         for replicator in [columns, rows] {
             replicator.actions = ["bounds": NSNull(), "position": NSNull(), "instanceCount": NSNull(), "instanceTransform": NSNull()]
         }
+        waveMask.startPoint = CGPoint(x: 0, y: 0.5)
+        waveMask.endPoint = CGPoint(x: 1, y: 0.5)
+        waveMask.actions = ["locations": NSNull(), "bounds": NSNull(), "position": NSNull(), "frame": NSNull()]
         columns.addSublayer(dot)
         rows.addSublayer(columns)
         layer?.addSublayer(rows)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive), name: NSApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidResignActive), name: NSApplication.didResignActiveNotification, object: nil)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         nil
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
@@ -112,7 +123,19 @@ final class DotFieldLayerView: NSView {
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        if window != nil {
+            installAnimation()
+        } else {
+            waveMask.removeAnimation(forKey: Self.animationKey)
+        }
+    }
+
+    @objc private func applicationDidBecomeActive() {
         if window != nil { installAnimation() }
+    }
+
+    @objc private func applicationDidResignActive() {
+        waveMask.removeAnimation(forKey: Self.animationKey)
     }
 
     override func viewDidChangeEffectiveAppearance() {
@@ -134,58 +157,52 @@ final class DotFieldLayerView: NSView {
         CATransaction.setDisableActions(true)
         rows.frame = bounds
         columns.frame = CGRect(x: 0, y: 0, width: size.width, height: Self.pitch)
+        waveMask.frame = bounds
         // The base dot sits at the bottom-left; columns march right and rows stack upward,
         // each row a little fainter, so the field dissolves before it reaches the text.
         dot.position = CGPoint(x: Self.pitch / 2, y: Self.pitch / 2)
         columns.instanceCount = columnCount
         columns.instanceTransform = CATransform3DMakeTranslation(Self.pitch, 0, 0)
-        columns.instanceDelay = sweeps ? Self.sweepColumnDelay : Self.columnDelay
+        columns.instanceDelay = 0
         rows.instanceCount = rowCount
         rows.instanceTransform = CATransform3DMakeTranslation(0, Self.pitch, 0)
-        // A sweep's rows move as one front, all the same, so the wave is a wall crossing
-        // the surface rather than the pill's fade-out upward.
-        rows.instanceDelay = sweeps ? 0 : Self.rowDelay
+        rows.instanceDelay = 0
         rows.instanceAlphaOffset = sweeps ? 0 : -Float(1) / Float(rowCount)
         CATransaction.commit()
+        if animated && window != nil {
+            installAnimation()
+        }
     }
 
     private func installAnimation() {
-        dot.removeAnimation(forKey: Self.animationKey)
-        guard animated else {
+        waveMask.removeAnimation(forKey: Self.animationKey)
+        guard animated, window != nil, bounds.width > 0 else {
             dot.opacity = sweeps ? 0 : 0.28
+            rows.mask = nil
             return
         }
-        if sweeps {
-            // Invisible before and after: the field only exists while the wave crosses it.
-            dot.opacity = 0
-            let sweep = CAKeyframeAnimation(keyPath: "opacity")
-            sweep.values = [0, 0.7, 0]
-            sweep.keyTimes = [0, 0.4, 1]
-            sweep.timingFunctions = [
-                CAMediaTimingFunction(name: .easeOut),
-                CAMediaTimingFunction(name: .easeIn),
-            ]
-            sweep.duration = Self.sweepPeriod
-            sweep.beginTime = dot.convertTime(CACurrentMediaTime(), from: nil)
-            // Kept once played: the replicated columns run it late by their delay, and
-            // would lose it the moment the base dot's own pass ended.
-            sweep.isRemovedOnCompletion = false
-            sweep.fillMode = .forwards
-            dot.add(sweep, forKey: Self.animationKey)
-            return
-        }
-        let animation = CAKeyframeAnimation(keyPath: "opacity")
-        animation.values = [0.08, 0.75, 0.08]
-        animation.keyTimes = [0, 0.35, 1]
-        animation.timingFunctions = [
-            CAMediaTimingFunction(name: .easeOut),
-            CAMediaTimingFunction(name: .easeIn),
+        let baseAlpha: CGFloat = sweeps ? 0 : 0.12
+        let peakAlpha: CGFloat = 0.82
+        waveMask.colors = [
+            NSColor.white.withAlphaComponent(baseAlpha).cgColor,
+            NSColor.white.withAlphaComponent(baseAlpha).cgColor,
+            NSColor.white.withAlphaComponent(peakAlpha).cgColor,
+            NSColor.white.withAlphaComponent(baseAlpha).cgColor,
+            NSColor.white.withAlphaComponent(baseAlpha).cgColor,
         ]
-        animation.duration = Self.period
-        animation.repeatCount = .infinity
-        // The shared clock, so every pill's field runs in step with the spinners.
-        animation.beginTime = dot.convertTime(1, from: nil)
-        animation.isRemovedOnCompletion = false
-        dot.add(animation, forKey: Self.animationKey)
+        rows.mask = waveMask
+        dot.opacity = 1.0
+        let band: Double = min(160, max(50, Double(bounds.width) * 0.35)) / Double(bounds.width)
+        let anim = CABasicAnimation(keyPath: "locations")
+        anim.fromValue = [-band, -band, -band / 2, 0.0, 0.0].map { NSNumber(value: $0) }
+        anim.toValue = [1.0, 1.0, 1.0 + band / 2, 1.0 + band, 1.0 + band].map { NSNumber(value: $0) }
+        anim.duration = sweeps ? Self.sweepPeriod : Self.period
+        anim.repeatCount = sweeps ? 1 : .infinity
+        anim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        anim.isRemovedOnCompletion = false
+        if !sweeps {
+            anim.beginTime = waveMask.convertTime(1, from: nil)
+        }
+        waveMask.add(anim, forKey: Self.animationKey)
     }
 }

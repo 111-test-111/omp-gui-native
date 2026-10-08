@@ -158,6 +158,7 @@ private struct RowGlideView: View {
     let canvas: CGSize
 
     @State private var hasStarted = false
+    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
 
     /// Where the check sits in a row, measured from the row's edge to the check's centre:
     /// beside the ellipsis at the trailing end while the thread is open, at the front once
@@ -169,6 +170,7 @@ private struct RowGlideView: View {
     var body: some View {
         let from = glide.from
         let to = glide.to
+        let perf = performanceMode
         let shape = RoundedRectangle(cornerRadius: Chrome.rowCornerRadius, style: .continuous)
         Color.clear
             .keyframeAnimator(initialValue: 0.0, trigger: hasStarted) { _, progress in
@@ -205,7 +207,7 @@ private struct RowGlideView: View {
                 .background {
                     shape
                         .fill(Chrome.overlay(fill))
-                        .shadow(color: .black.opacity(0.28 * lift), radius: 10, y: 4)
+                        .shadow(color: .black.opacity(perf ? 0 : 0.28 * lift), radius: perf ? 0 : 10, y: perf ? 0 : 4)
                 }
                 .position(x: frame.midX, y: frame.midY)
                 .overlay(alignment: .topLeading) {

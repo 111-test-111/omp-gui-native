@@ -328,6 +328,7 @@ private final class OutputCollector: Sendable {
 /// minimal PATH that cannot find provider CLIs, so this is captured once at launch.
 enum LoginEnvironment {
     private static let cached = Mutex<[String: String]?>(nil)
+    private static let overlay = Mutex<[String: String]>([:])
     /// The one read of the login shell. Launch starts it; anything that resolves a CLI before
     /// it lands waits on the same task, so a codex under nvm is never reported missing.
     private static let loading = Mutex<Task<Void, Never>?>(nil)
@@ -339,7 +340,13 @@ enum LoginEnvironment {
     ]
 
     static var current: [String: String] {
-        cached.withLock { $0 } ?? fallbackEnvironment
+        let base = cached.withLock { $0 } ?? fallbackEnvironment
+        return base.merging(overlay.withLock { $0 }) { _, new in new }
+    }
+
+    /// The overlay is how a connected GitHub account reaches every process the app starts.
+    static func setOverlay(_ values: [String: String]) {
+        overlay.withLock { $0 = values }
     }
 
     /// The process's own environment, for the moments before the login shell has answered:

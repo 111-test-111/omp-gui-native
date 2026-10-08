@@ -79,6 +79,8 @@ struct ThreadTimeline: View, Equatable {
     /// stack; only loading history or a jump moves the start. Nil until the thread anchors,
     /// when the newest `firstPaint` blocks are the window.
     @State private var windowStartID: String?
+    @State private var mountedRange: Range<Int>?
+    @State private var measurements = TimelineMeasurements()
     /// The runtime's unattended-turn token as this view last saw it (see
     /// `ThreadRuntime.autoStartedTurnToken`). Nil until the first turn this view sees
     /// start, so a view that appears mid-conversation reads its next turn as a send.
@@ -108,12 +110,16 @@ struct ThreadTimeline: View, Equatable {
         let earlier = since.map { cut in finished.filter { ($0.finishedAt ?? .distantPast) < cut } } ?? []
         let later = finished.filter { head in !earlier.contains { $0.index == head.index } }
         let pills = HeadPills(earlier: earlier.map(\.index), later: later.map(\.index))
+        // A backgrounded command still running after the turn ended: kept out of the cache,
+        // so the row comes and goes with the list.
+        let waiting: [DisplayBlock] = !runtime.isRunning && !runtime.isHydraMerging && !runtime.backgroundTasks.isEmpty
+            ? [.backgroundTasks(runtime.backgroundTasks)] : []
         let blocks = blockCache.blocks(
             for: entries,
             showReasoning: model.settings.showReasoning, isRunning: runtime.isRunning,
             hydraMergeID: runtime.isHydraMerging ? (runtime.hydraMergeNoteID ?? "hydra-merging") : nil,
             pills: pills
-        )
+        ) + waiting
         // Every head the chat ever sent out, not only those still in the panel: a head that
         // finished and left for the sidebar is still named in the prose above, and keeps its
         // glyph and colour there rather than falling back to plain text as it clears. With
@@ -130,15 +136,24 @@ struct ThreadTimeline: View, Equatable {
         // over the last.
         let hydraMentionTargets = Self.mentionTargets(for: headThreads)
         // A history still being read off the main thread is not an empty thread: the
-        // prompt for a new one would flash for the frames before it lands.
-        if runtime.isLoadingHistory {
+        // prompt for a new one would flash for the frames before it lands. Its newest
+        // turns land first and show while the older ones are read.
+        if runtime.isLoadingHistory && blocks.isEmpty {
             Color.clear
         } else if blocks.isEmpty && !runtime.isRunning {
-            NewThreadPrompt(threadID: runtime.threadID, projectName: projectName)
-                .onAppear {
-                    scrollChrome.update(travel: 0)
-                    scrollState.showsJumpButton = false
+            // A forwarded thread starts empty too, but it is not a new one: it explains
+            // where it came from before the reader picks anything.
+            Group {
+                if let continuation = runtime.continuation {
+                    continuationStart(continuation)
+                } else {
+                    NewThreadPrompt(threadID: runtime.threadID, projectName: projectName)
                 }
+            }
+            .onAppear {
+                scrollChrome.update(travel: 0)
+                scrollState.showsJumpButton = false
+            }
         } else {
             timeline(blocks, hydraMentionPersonas: hydraMentionPersonas, hydraMentionTargets: hydraMentionTargets)
         }
@@ -154,13 +169,56 @@ struct ThreadTimeline: View, Equatable {
         return targets
     }
 
+    /// What an empty forwarded thread shows before its first message: the source it
+    /// continues, the choice still to make, and the way back to the original. Never the
+    /// carried-over context itself, and never any of the source's transcript.
+    private func continuationStart(_ continuation: ThreadContinuation) -> some View {
+        VStack(spacing: 10) {
+            ContinuationSourceLabel(sourceTitle: continuation.sourceTitle)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Chrome.primaryText)
+            Text("Choose a model or Hydra pair below, then send a message to continue.")
+                .font(.system(size: 13))
+                .foregroundStyle(Chrome.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            if continuation.isTruncated {
+                Text("Context carried over; some messages were shortened or omitted.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Chrome.secondaryText.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            // The source may have been deleted since; the view still explains the
+            // continuation and the button is left out.
+            if model.thread(continuation.sourceThreadID) != nil {
+                Button("Open original chat") {
+                    model.selectedThreadID = continuation.sourceThreadID
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 13))
+                .foregroundStyle(Chrome.accent)
+                .padding(.top, 2)
+            }
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 40)
+        .frame(maxWidth: 520)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
     private func timeline(_ blocks: [DisplayBlock], hydraMentionPersonas: [HydraPersona], hydraMentionTargets: [String: HydraMentionTarget]) -> some View {
         // The window is anchored on identity rather than a fixed suffix, so a block
         // appended at the end never pushes one out the front in the same pass. Older
         // history still loads on demand; only this start moves.
         let startIndex = windowStartIndex(in: blocks)
         let hidden = startIndex
-        let visible = startIndex == 0 ? blocks : Array(blocks[startIndex...])
+        let range = mountedRange.map {
+            let lower = min(blocks.count, max(startIndex, $0.lowerBound))
+            return lower..<min(blocks.count, max(lower, $0.upperBound))
+        } ?? startIndex..<blocks.count
+        let visible = Array(blocks[range])
+        let topSpace = measurements.height(of: blocks[startIndex..<range.lowerBound])
+        let bottomSpace = measurements.height(of: blocks[range.upperBound..<blocks.count])
+        measurements.noteArrivals(blocks.map(\.id), questions: runtime.questions.map(\.id))
         // The turns a row may offer to revert. Read here, once, so a turn record changing
         // (checkpoints, diffs, anchors) re-runs this body alone; rows get a plain flag that
         // only changes when their own answer does.
@@ -174,7 +232,7 @@ struct ThreadTimeline: View, Equatable {
         // space, so the conversation stays centered exactly like the composer.
         // Ticks centre in the full column height, so the queue tab opening never moves them.
         return ZStack(alignment: .leading) {
-            timelineScroll(blocks: blocks, visible: visible, hidden: hidden, rewindable: rewindable)
+            timelineScroll(blocks: blocks, visible: visible, hidden: hidden, topSpace: topSpace, bottomSpace: bottomSpace, rewindable: rewindable)
             // The rail fades with the slide of the panel that takes its edge.
             ZStack {
                 if showsMinimap, blocks.count(where: \.hasUserMessage) > 1 {
@@ -222,6 +280,7 @@ struct ThreadTimeline: View, Equatable {
     /// exists. Jumping away from the latest unpins the follow behavior, so
     /// streaming text never yanks the reader back down.
     private func jump(to id: String, in blocks: [DisplayBlock], animated: Bool) {
+        tracking.noteUserNavigation()
         var needsExpand = false
         if let index = blocks.firstIndex(where: { $0.id == id }) {
             let firstVisible = windowStartIndex(in: blocks)
@@ -233,7 +292,16 @@ struct ThreadTimeline: View, Equatable {
             tracking.isPinnedToBottom = (id == blocks.last?.id)
             anchorsBottomOnGrowth = tracking.isPinnedToBottom || needsExpand
         }
-        let scroll = { @MainActor in position.scrollTo(id: id, anchor: .top) }
+        if let index = blocks.firstIndex(where: { $0.id == id }), !tracking.isPinnedToBottom {
+            // Unknown intervening rows must measure before they can become spacers.
+            mountedRange = measurements.window(around: index, in: blocks, start: windowStartIndex(in: blocks), viewport: viewportHeight)
+            needsExpand = true
+        } else { mountedRange = nil }
+        let generation = tracking.navigationGeneration
+        let scroll = { @MainActor in
+            guard generation == tracking.navigationGeneration else { return }
+            position.scrollTo(id: id, anchor: .top)
+        }
         if animated {
             if needsExpand {
                 DispatchQueue.main.async { withAnimation(.smooth(duration: 0.35)) { scroll() } }
@@ -251,6 +319,20 @@ struct ThreadTimeline: View, Equatable {
         }
     }
 
+    /// Puts a reader at the end back on it, unanimated, on the next run-loop turn. One snap
+    /// per turn, checked when it runs, so geometry that keeps changing cannot queue a scroll
+    /// per change.
+    private func scheduleBottomSnap() {
+        guard tracking.placementToken == nil, !tracking.bottomSnapPending else { return }
+        tracking.bottomSnapPending = true
+        let generation = tracking.navigationGeneration
+        DispatchQueue.main.async {
+            tracking.bottomSnapPending = false
+            guard tracking.placementToken == nil, generation == tracking.navigationGeneration, !tracking.isUserScrolling, abs(tracking.distanceFromBottom) > 1 else { return }
+            withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
+        }
+    }
+
     /// Brings more older blocks into the window: one page, or up to `count`. The bottom
     /// stays held while they land above the viewport, so what the reader is looking at
     /// does not move.
@@ -265,6 +347,7 @@ struct ThreadTimeline: View, Equatable {
         historyLoadPending = true
         anchorsBottomOnGrowth = true
         windowStartID = blocks[target].id
+        mountedRange = nil
     }
 
     /// The index of the first block the lazy window keeps. Anchored on identity, a block
@@ -331,22 +414,28 @@ struct ThreadTimeline: View, Equatable {
         )
         return DisplayBlockView(block: block, runtime: runtime, context: context)
             .equatable()
+            .environment(\.timelineBlockID, block.id)
+            .environment(\.timelineLiveAppearance, measurements.liveIDs.contains(block.id) && !measurements.materializedIDs.contains(block.id))
             .id(block.id)
             .onScrollVisibilityChange(threshold: 0.001) { isVisible in
                 tracking.setVisible(block.id, isVisible)
             }
             .onDisappear { tracking.setVisible(block.id, false) }
-            .transition(Self.transition(for: block))
+            .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named("timelineContent")) }) { frame in
+                measurements.record(block.id, frame: frame)
+            }
+            .transition(measurements.liveIDs.contains(block.id) && !measurements.materializedIDs.contains(block.id) ? Self.transition(for: block) : .identity)
+            .onAppear { measurements.materializedIDs.insert(block.id) }
     }
 
-    private func timelineScroll(blocks: [DisplayBlock], visible: [DisplayBlock], hidden: Int, rewindable: Set<UUID>) -> some View {
+    private func timelineScroll(blocks: [DisplayBlock], visible: [DisplayBlock], hidden: Int, topSpace: CGFloat, bottomSpace: CGFloat, rewindable: Set<UUID>) -> some View {
         // What the stack renders last: the newest question badge, or the newest block.
         // Its change is something arriving at the end of the conversation.
         let lastEntryID = runtime.questions.last.map { "question-" + $0.id } ?? visible.last?.id
         // The outline the rail resolves against, kept in step with what is laid out. Rows
         // coming and going is when the stack can lose its place; a look a beat from now
         // costs nothing and catches it whether or not any row says so.
-        if tracking.setOutline(visible.map { ($0.id, $0.hasUserMessage) }) {
+        if tracking.setOutline(blocks.map { ($0.id, $0.hasUserMessage) }) {
             tracking.armBlankWatch()
             // A new block at the end under a reader held there: the stack is told where
             // the viewport is, since the block may have landed below rows it built for
@@ -354,11 +443,21 @@ struct ThreadTimeline: View, Equatable {
             if tracking.isPinnedToBottom, !tracking.isArriving { tracking.armViewportRefresh() }
         }
         // This evaluation's own state behind the rows' reveal (see `revealEnd`).
+        revealBox.presentation = TimelinePresentationStore.entry(for: runtime.threadID)
+        revealBox.disclosure = anchorDisclosure
         revealBox.action = revealEnd
         revealBox.follow = followEnd
         return ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 Spacer(minLength: 0)
+                // A forwarded thread keeps saying where it came from, once, at the head of
+                // the conversation and outside the folds.
+                if let continuation = runtime.continuation {
+                    ContinuationSourceLabel(sourceTitle: continuation.sourceTitle)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Chrome.secondaryText)
+                        .padding(.bottom, TimelineMetrics.rowSpacing)
+                }
                 if hidden > 0 {
                     // Older history loads itself as the reader nears the top, a page at a
                     // time, so scrolling back never stops at a button; the pill is still
@@ -386,14 +485,16 @@ struct ThreadTimeline: View, Equatable {
                 // the run loop (release hangs of 16 s to 20 min, all in the lazy item
                 // phases). The window keeps the eager stack bounded instead.
                 VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
+                    if topSpace > 0 { Color.clear.frame(height: max(0, topSpace - TimelineMetrics.rowSpacing)) }
                     ForEach(visible) { block in
                         row(block, rewindable: rewindable)
                     }
+                    if bottomSpace > 0 { Color.clear.frame(height: max(0, bottomSpace - TimelineMetrics.rowSpacing)) }
                     // The agent's questions end the conversation as badges until they are answered.
                     ForEach(runtime.questions) { request in
                         QuestionBadgeRow(request: request, runtime: runtime)
                             .id("question-" + request.id)
-                            .transition(.softAppear)
+                            .transition(measurements.liveQuestions.contains(request.id) ? .softAppear : .identity)
                     }
                 }
                 .id(stackGeneration)
@@ -403,14 +504,18 @@ struct ThreadTimeline: View, Equatable {
                     .frame(height: 1)
                     .onScrollVisibilityChange(threshold: 0.01) { isVisible in
                         guard scrollState.showsJumpButton == isVisible else { return }
-                        withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
-                            scrollState.showsJumpButton = !isVisible
+                        DispatchQueue.main.async {
+                            guard scrollState.showsJumpButton == isVisible else { return }
+                            withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
+                                scrollState.showsJumpButton = !isVisible
+                            }
                         }
                     }
             }
             // The rows open their steps against this: an expansion at the end of the
             // conversation scrolls the timeline down to show what opened, in the tap's own
             // transaction, so the glide and the opening are one motion.
+            .coordinateSpace(name: "timelineContent")
             .environment(\.revealTimelineEnd, revealBox)
             // The same column as the composer, so messages line up with its edges.
             .frame(maxWidth: 820, alignment: .leading)
@@ -430,9 +535,15 @@ struct ThreadTimeline: View, Equatable {
         .id(runtime.threadID)
         // Torn down mid-scroll (a thread switch, a panel closed): the freeze lifts with it,
         // so the app never goes on hearing this timeline as scrolling.
-        .onDisappear { tracking.endActivity() }
+        .onDisappear {
+            capturePresentation(threadID: runtime.threadID)
+            tracking.placementTask?.cancel()
+            tracking.placementToken = nil
+            tracking.endActivity()
+        }
         // The thread opens at its end and stays there while its rows measure in.
         .onAppear { tracking.holdEnd(for: 1.5) }
+        .coordinateSpace(name: "timelineViewport")
         .scrollIndicators(.never)
         .scrollPosition($position)
         .defaultScrollAnchor(.bottom, for: .initialOffset)
@@ -447,7 +558,13 @@ struct ThreadTimeline: View, Equatable {
             let stepped = (height / Self.resizeStep).rounded(.down) * Self.resizeStep
             if stepped != viewportHeight { viewportHeight = stepped }
         }
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { paneWidth = $0 }
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) {
+            paneWidth = $0
+        }
+        .onChange(of: layoutWidth ?? min(860, paneWidth)) { _, width in
+            measurements.invalidate(width: width)
+            mountedRange = nil
+        }
         // No animation inside the timeline while the window is being dragged; a spring
         // restarted every frame is what made rows lag behind the window and land somewhere else.
         .transaction { transaction in if liveResize.isReshaping { transaction.animation = nil } }
@@ -513,6 +630,12 @@ struct ThreadTimeline: View, Equatable {
             let scrolled = tracking.isUserScrolling
                 || (!nudging && !tracking.isArriving && readerMoved
                     && new.containerHeight == old.containerHeight && !tracking.isCoasting)
+            if !nudging, readerMoved,
+               let event = NSApp.currentEvent, event.type == .scrollWheel || event.type == .leftMouseDragged {
+                tracking.noteUserNavigation()
+            }
+            guard tracking.placementToken == nil else { return }
+            updateMountedRange(in: blocks, offset: new.travel, height: new.containerHeight)
             let atRest = !tracking.isUserScrolling && !tracking.isCoasting
             if atRest, !scrolled {
                 // The content changed shape under a resting reader and an anchor moved the
@@ -551,9 +674,7 @@ struct ThreadTimeline: View, Equatable {
                 // here is applied mid-update, and the applied scroll re-enters the handler
                 // in the same display pass — an uncapped loop that keeps dirtying the
                 // window until AppKit's display-cycle watchdog kills the app.
-                DispatchQueue.main.async {
-                    withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
-                }
+                scheduleBottomSnap()
             } else if historyLoadPending, new.contentHeight > old.contentHeight {
                 // The history landed above the viewport with the bottom held; growth
                 // anchors by the reader's position again from here.
@@ -565,9 +686,7 @@ struct ThreadTimeline: View, Equatable {
                 // the viewport stayed at the top of the newly tall content, on the oldest
                 // rows. A reader at the end is put back on the end.
                 if tracking.isPinnedToBottom, new.distanceFromBottom > 1 {
-                    DispatchQueue.main.async {
-                        withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
-                    }
+                    scheduleBottomSnap()
                 }
             } else if scrolled {
                 // Only the reader's own scrolling decides whether the timeline follows new text.
@@ -587,12 +706,18 @@ struct ThreadTimeline: View, Equatable {
                 guard !liveResize.isActive else { return }
                 tracking.isPinnedToBottom = true
                 anchorsBottomOnGrowth = true
-                DispatchQueue.main.async {
-                    withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
-                }
+                scheduleBottomSnap()
             }
         }
-        .task(id: runtime.threadID) {
+        .task(id: ObjectIdentifier(scrollState)) {
+            // Restart after ChatView replaces its scroll state on a thread switch.
+            // Yield past that reset before restoring this timeline.
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            if restorePresentation(in: blocks) {
+                await warmMarkdown()
+                return
+            }
             // The first frame shows only the newest few blocks, so a thread opens at once;
             // the rest of the initial window lands a beat later, above the viewport, while
             // the reader is already looking at the end.
@@ -628,9 +753,7 @@ struct ThreadTimeline: View, Equatable {
                 // had all along. A reader at the end is put back on the end once that has
                 // laid out, and the stack is told where the viewport is either way.
                 if tracking.isPinnedToBottom {
-                    DispatchQueue.main.async {
-                        withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
-                    }
+                    scheduleBottomSnap()
                 }
                 tracking.armViewportRefresh()
                 tracking.armBlankWatch()
@@ -671,19 +794,27 @@ struct ThreadTimeline: View, Equatable {
             tracking.armViewportRefresh()
         }
         .onChange(of: scrollState.jumpRequest) {
+            tracking.noteUserNavigation()
             tracking.isPinnedToBottom = true
             anchorsBottomOnGrowth = true
-            withAnimation(.smooth(duration: 0.35)) { position.scrollTo(edge: .bottom) }
+            mountedRange = nil
+            let generation = tracking.navigationGeneration
+            DispatchQueue.main.async {
+                guard generation == tracking.navigationGeneration else { return }
+                tracking.animatedNavigation = true
+                withAnimation(.smooth(duration: 0.35)) { position.scrollTo(edge: .bottom) }
+            }
         }
         .onChange(of: scrollState.areaGrowthRequest) {
             // The composer area took height from the viewport's bottom edge: a reader at the
             // end keeps the end, snapped unanimated as the area grows, and a reader who
             // scrolled up to read is left exactly where they are. Mid-resize this waits for
             // the settle, like the geometry branch above.
-            guard !liveResize.isActive else { return }
+            guard !liveResize.isActive, tracking.placementToken == nil else { return }
             guard tracking.isPinnedToBottom || tracking.distanceFromBottom < 48 else { return }
             tracking.isPinnedToBottom = true
             anchorsBottomOnGrowth = true
+            guard abs(tracking.distanceFromBottom) > 1 else { return }
             withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
         }
         .onChange(of: lastEntryID) {
@@ -697,7 +828,7 @@ struct ThreadTimeline: View, Equatable {
             // inside an existing row stays with the pinned machinery above; this is for
             // new rows only. A reader whose pin flag went stale while they sat at the end
             // is followed by the distance they hold as well.
-            guard !historyLoadPending, !tracking.isUserScrolling else { return }
+            guard tracking.placementToken == nil, !historyLoadPending, !tracking.isUserScrolling else { return }
             let isQuestion = lastEntryID?.hasPrefix("question-") == true
             guard tracking.isPinnedToBottom || tracking.distanceFromBottom < 48 || isQuestion else { return }
             // A reader following a long run lets the oldest rows go, above the viewport, so
@@ -710,13 +841,97 @@ struct ThreadTimeline: View, Equatable {
             scrollState.showsJumpButton = false
             withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
         }
-        .onChange(of: runtime.threadID) {
+        .onChange(of: runtime.threadID) { oldID, _ in
+            capturePresentation(threadID: oldID)
+            tracking.placementTask?.cancel()
+            tracking.placementToken = nil
             // A new thread starts with a fresh window on its newest messages, and no
             // block from the old one is on screen any more.
             windowStartID = nil
+            mountedRange = nil
+            measurements = TimelineMeasurements()
             anchorsBottomOnGrowth = true
             historyLoadPending = false
             tracking.clearVisible()
+        }
+    }
+
+    private func capturePresentation(threadID: UUID) {
+        let entry = TimelinePresentationStore.entry(for: threadID)
+        let ids = measurements.blockIDs
+        entry.pinned = tracking.isPinnedToBottom
+        entry.windowStartID = windowStartID
+        entry.mountedIDs = mountedRange.map { Array(ids.dropFirst($0.lowerBound).prefix($0.count)) } ?? ids
+        entry.frames = measurements.frames
+        entry.width = measurements.width
+        if let id = ids.first(where: { measurements.viewportFrame($0, offset: tracking.offset).map { $0.maxY > 0 && $0.minY < viewportHeight } ?? false }),
+           let frame = measurements.viewportFrame(id, offset: tracking.offset) {
+            entry.anchorID = id
+            entry.anchorOffset = frame.minY
+        }
+    }
+
+    private func restorePresentation(in blocks: [DisplayBlock]) -> Bool {
+        let entry = TimelinePresentationStore.entry(for: runtime.threadID)
+        guard !entry.pinned, let id = entry.anchorID,
+              let index = blocks.firstIndex(where: { $0.id == id }) else { return false }
+        if measurements.width == entry.width { measurements.frames = entry.frames }
+        let savedIDs = Set(entry.mountedIDs)
+        let indices = blocks.indices.filter { savedIDs.contains(blocks[$0].id) }
+        let lower = min(index, indices.first ?? index)
+        let upper = max(index, indices.last ?? index) + 1
+        let savedStart = entry.windowStartID.flatMap { saved in blocks.firstIndex { $0.id == saved } } ?? index
+        let start = min(savedStart, lower)
+        windowStartID = blocks[start].id
+        // Unknown heights must lay out before they can stand in for offscreen rows.
+        let unknownBefore = (start..<lower).first { measurements.frames[blocks[$0].id] == nil }
+        let unknownAfter = (upper..<blocks.count).last { measurements.frames[blocks[$0].id] == nil }
+        mountedRange = (unknownBefore ?? lower)..<(unknownAfter.map { $0 + 1 } ?? upper)
+        keepAnchor(id, offset: entry.anchorOffset, scrollFirst: true)
+        return true
+    }
+
+    private func anchorDisclosure(_ id: String, followRunning: Bool) {
+        if followRunning, tracking.isPinnedToBottom {
+            revealBox.follow()
+            return
+        }
+        guard let frame = measurements.viewportFrame(id, offset: tracking.offset) else { return }
+        keepAnchor(id, offset: frame.minY, scrollFirst: false)
+    }
+
+    private func keepAnchor(_ id: String, offset: CGFloat, scrollFirst: Bool) {
+        tracking.placementTask?.cancel()
+        let token = UUID()
+        let generation = tracking.navigationGeneration
+        tracking.placementToken = token
+        tracking.isPinnedToBottom = false
+        anchorsBottomOnGrowth = false
+        historyLoadPending = false
+        tracking.placementTask = Task { @MainActor in
+            defer {
+                if tracking.placementToken == token { tracking.placementToken = nil }
+            }
+            await Task.yield()
+            guard !Task.isCancelled, generation == tracking.navigationGeneration else { return }
+            if scrollFirst {
+                withTransaction(Self.unanimated) { position.scrollTo(id: id, anchor: .top) }
+            }
+            // Keep the header fixed through the disclosure animation and deferred layout.
+            for _ in 0..<24 {
+                try? await Task.sleep(for: .milliseconds(25))
+                guard !Task.isCancelled, generation == tracking.navigationGeneration else { return }
+                guard let frame = measurements.viewportFrame(id, offset: tracking.offset),
+                      let scroll = tracking.probe?.enclosingScrollView else { continue }
+                let delta = frame.minY - offset
+                if abs(delta) > 0.5 {
+                    let clip = scroll.contentView
+                    let target = NSRect(origin: NSPoint(x: clip.bounds.minX, y: clip.bounds.minY + delta), size: clip.bounds.size)
+                    clip.scroll(to: clip.constrainBoundsRect(target).origin)
+                    scroll.reflectScrolledClipView(clip)
+                }
+            }
+            scrollState.showsJumpButton = tracking.distanceFromBottom >= 48
         }
     }
 
@@ -724,6 +939,41 @@ struct ThreadTimeline: View, Equatable {
     /// rows if they are not already, and (re)arms the watch that lifts the freeze once
     /// no frame has moved for 150ms. The flag, the timestamp and the watch all live on
     /// the tracking object, so noting a frame's movement writes no view state.
+    private func updateMountedRange(in blocks: [DisplayBlock], offset: CGFloat, height: CGFloat) {
+        // Only a window a jump or a restored place opened narrows the stack, and scrolling
+        // only ever widens it: evicting rows behind the reader and building them again on
+        // the way back was a stream of fresh text views mid-scroll, the worst of its jank.
+        guard let current = mountedRange else { return }
+        guard !tracking.isPinnedToBottom, height > 0 else {
+            mountedRange = nil
+            return
+        }
+        let start = windowStartIndex(in: blocks)
+        // Positions run from the measured heights, anchored on the first mounted row: a
+        // row behind a spacer keeps the frame it last laid out at, which history loading
+        // above it makes stale, and a window picked from that would mount the wrong rows.
+        let anchor = min(blocks.count, max(start, mountedRange?.lowerBound ?? start))
+        guard anchor < blocks.count, let anchorFrame = measurements.frames[blocks[anchor].id] else { return }
+        var top = anchorFrame.minY - measurements.height(of: blocks[start..<anchor])
+        var found: Int?
+        for candidate in start..<blocks.count {
+            guard let rowHeight = measurements.frames[blocks[candidate].id]?.height else { break }
+            if top + rowHeight >= offset && top <= offset + height {
+                found = candidate
+                break
+            }
+            top += rowHeight + TimelineMetrics.rowSpacing
+        }
+        guard let index = found else { return }
+        let window = measurements.window(around: index, in: blocks, start: start, viewport: height * 2)
+        let proposed = min(window.lowerBound, current.lowerBound)..<max(window.upperBound, current.upperBound)
+        if proposed.lowerBound <= start && proposed.upperBound >= blocks.count {
+            withTransaction(Self.unanimated) { mountedRange = nil }
+        } else if proposed != current {
+            withTransaction(Self.unanimated) { mountedRange = proposed }
+        }
+    }
+
     private func noteScrollMovement() {
         tracking.lastMovementAt = CACurrentMediaTime()
         guard !tracking.isReaderScrolling else { return }
@@ -768,6 +1018,7 @@ struct ThreadTimeline: View, Equatable {
     /// stays pinned there. Rows coming back on screen end the sequence wherever it is, and
     /// a fourth blank in a row is left alone.
     private func repairLayout() {
+        guard tracking.placementToken == nil else { return }
         guard viewportHeight > 0 else { return }
         guard !tracking.isUserScrolling, !tracking.isCoasting, !tracking.isReaderScrolling else {
             tracking.repairSkippedWhileScrolling = true
@@ -820,6 +1071,7 @@ struct ThreadTimeline: View, Equatable {
     /// away from it — `revealEnd`'s jump-button guard would swallow exactly this call,
     /// leaving the expanded thinking fixed while the reasoning streams past.
     private func followEnd() {
+        guard tracking.placementToken == nil else { return }
         tracking.isPinnedToBottom = true
         anchorsBottomOnGrowth = true
         position.scrollTo(edge: .bottom)
@@ -860,14 +1112,17 @@ struct ThreadTimeline: View, Equatable {
     /// is put back on the end after that, since the rows just built may have measured
     /// differently from what the stack had guessed.
     private func refreshViewport() {
+        guard tracking.placementToken == nil else { return }
         guard viewportHeight > 0, !tracking.isNudging else { return }
         guard !tracking.isUserScrolling, !tracking.isCoasting, !tracking.isReaderScrolling else {
             tracking.refreshSkippedWhileScrolling = true
             return
         }
         let pinned = tracking.isPinnedToBottom && tracking.distanceFromBottom <= 1
+        let generation = tracking.navigationGeneration
         if tracking.beginNudge() {
             tracking.restoreNudge {
+                guard generation == tracking.navigationGeneration else { return }
                 if pinned {
                     withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
                 }
@@ -877,7 +1132,9 @@ struct ThreadTimeline: View, Equatable {
             // and the end again once the stack has built for it.
             let y = tracking.offset
             withTransaction(Self.unanimated) { position.scrollTo(y: y - 1) }
+            let generation = tracking.navigationGeneration
             DispatchQueue.main.async {
+                guard generation == tracking.navigationGeneration else { return }
                 withTransaction(Self.unanimated) { position.scrollTo(edge: .bottom) }
             }
         } else if pinned, tracking.endUnseen, !tracking.isArriving {
@@ -905,6 +1162,24 @@ final class TimelineScrollTracking: ScrollActivityReporter {
     /// it, only the scroll closures, so a pin flip must never be able to re-render the
     /// timeline.
     @ObservationIgnored var isPinnedToBottom = true
+    @ObservationIgnored var navigationGeneration = 0
+    @ObservationIgnored var placementToken: UUID?
+    @ObservationIgnored var placementTask: Task<Void, Never>?
+    @ObservationIgnored var animatedNavigation = false
+
+    func noteUserNavigation() {
+        guard !isNudging else { return }
+        navigationGeneration += 1
+        placementTask?.cancel()
+        placementToken = nil
+        if animatedNavigation, let scrollView {
+            animatedNavigation = false
+            let clip = scrollView.contentView
+            clip.layer?.removeAllAnimations()
+            clip.scroll(to: clip.bounds.origin)
+            scrollView.reflectScrolledClipView(clip)
+        }
+    }
     /// True while the reader drags or flicks the timeline. Rows neither hover nor hit-test
     /// then: with the pointer resting over content that slides under it, SwiftUI otherwise
     /// re-hit-tests every row's hover region each frame and the rows flip their hover state
@@ -952,6 +1227,8 @@ final class TimelineScrollTracking: ScrollActivityReporter {
     /// How many repairs the current blank has had, so they escalate and then stop. Any
     /// row coming on screen starts the count over.
     @ObservationIgnored var blankRepairs = 0
+    /// A bottom snap is queued for the next run-loop turn (`ThreadTimeline.scheduleBottomSnap`).
+    @ObservationIgnored var bottomSnapPending = false
     /// Bumped when the timeline should look at its own layout (`ThreadTimeline.repairLayout`).
     private(set) var checkRequest = 0
     /// Bumped when the timeline should tell the lazy stack where the viewport is
@@ -1012,7 +1289,21 @@ final class TimelineScrollTracking: ScrollActivityReporter {
             // frame; the watch catches the case where nothing does.
             if showsNothing { armBlankWatch() }
         }
-        resolveActive()
+        scheduleResolveActive()
+    }
+
+    /// The active block is resolved a beat later and at most ten times a second. Written
+    /// from inside a row's visibility callback, every change forced a whole-window layout
+    /// in the middle of the scroll frame, and rows cross the edge many times a second.
+    @ObservationIgnored private var resolveActiveScheduled = false
+    private func scheduleResolveActive() {
+        guard !resolveActiveScheduled else { return }
+        resolveActiveScheduled = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self else { return }
+            self.resolveActiveScheduled = false
+            self.resolveActive()
+        }
     }
 
     func clearVisible() {
@@ -1091,6 +1382,8 @@ final class TimelineScrollTracking: ScrollActivityReporter {
     /// whose finger has not moved for 2s is taken as lost the same way. Three seconds is
     /// the ceiling on any phase. The layout gets checked once it is over.
     func notePhase(_ phase: ScrollPhase) {
+        if phase == .interacting { noteUserNavigation() }
+        if phase == .idle { animatedNavigation = false }
         isUserScrolling = phase == .interacting || phase == .decelerating
         isCoasting = phase == .decelerating || phase == .animating
         if isUserScrolling { drift = 0 }
@@ -1242,6 +1535,19 @@ final class TimelineScrollTracking: ScrollActivityReporter {
         let middle = onScreen[onScreen.count / 2].offset
         let resolved = outlineIDs[...middle].last { userBlockIDs.contains($0) }
         if resolved != activeBlockID { activeBlockID = resolved }
+    }
+}
+
+/// A continued thread's provenance, compact enough for both the empty first screen and the
+/// head of a populated timeline. The source's title and nothing else.
+private struct ContinuationSourceLabel: View {
+    let sourceTitle: String
+
+    var body: some View {
+        Text(verbatim: String(format: Chrome.localized("Continuing from “%@”"), sourceTitle))
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("Continuing from %@"), sourceTitle)))
     }
 }
 
@@ -1495,6 +1801,7 @@ enum DisplayBlock: Identifiable, Equatable {
     /// index in the order they went. Never built from the entries: the timeline appends
     /// it while any head works and drops it when the last one reports back.
     case headsWorking(heads: [Int], trailing: Bool)
+    case backgroundTasks([String])
 
     var id: String {
         switch self {
@@ -1503,6 +1810,7 @@ enum DisplayBlock: Identifiable, Equatable {
         case .working(let turnID, _): "working-\(turnID?.uuidString ?? "")"
         case .merging(let id): id
         case .headsWorking(_, let trailing): trailing ? "hydra-heads-working-tail" : "hydra-heads-working"
+        case .backgroundTasks: "background-tasks"
         }
     }
 
@@ -1511,7 +1819,7 @@ enum DisplayBlock: Identifiable, Equatable {
         switch self {
         case .turn(_, let turnID, _, _, _): turnID
         case .group(.single(let entry), _, _): entry.turnID
-        case .group(.work, _, _), .group(.heads, _, _), .working, .merging, .headsWorking: nil
+        case .group(.work, _, _), .group(.heads, _, _), .working, .merging, .headsWorking, .backgroundTasks: nil
         }
     }
 
@@ -1521,7 +1829,7 @@ enum DisplayBlock: Identifiable, Equatable {
         switch self {
         case .turn(_, _, let entries, _, _): entries.contains { $0.kind == .user }
         case .group(.single(let entry), _, _): entry.kind == .user
-        case .group(.work, _, _), .group(.heads, _, _), .working, .merging, .headsWorking: false
+        case .group(.work, _, _), .group(.heads, _, _), .working, .merging, .headsWorking, .backgroundTasks: false
         }
     }
 
@@ -1931,6 +2239,8 @@ private struct DisplayBlockView: View, Equatable {
                 EmptyView()
             case .headsWorking(let heads, _):
                 HydraHeadsWorkingRow(heads: heads, runtime: runtime)
+            case .backgroundTasks(let descriptions):
+                BackgroundTasksWorkingRow(descriptions: descriptions)
             }
         }
     }
@@ -1940,6 +2250,7 @@ private struct DisplayBlockView: View, Equatable {
 /// Only the finished turn chooses a final answer; predicting one from the last tool call
 /// lets narration escape the card until another call arrives to take it back.
 private struct TurnRunningBlock: View {
+    @Environment(\.timelineLiveAppearance) private var liveAppearance
     let runtime: ThreadRuntime
     let entries: [TimelineEntry]
     let showsWorking: Bool
@@ -1958,16 +2269,16 @@ private struct TurnRunningBlock: View {
         }
         var liveWork: [TimelineEntry] = []
         do {
-            // Chronological mode changes how the card opens, never where prose belongs.
-            // The prompt, a steer, a notice or a plan stay rows of their own.
+            // Only the tool steps go into the working card. What the agent says, with the
+            // heads it sends out in it, is the conversation and stays a row of its own, as
+            // do the prompt, a steer, a notice and a plan: behind the card's chevron a lead
+            // that was sending out heads read as nothing but "ran commands".
             var rows: [TimelineGroup] = []
             rows.reserveCapacity(groups.count)
             for group in groups {
                 switch group {
                 case .work(_, let entries, _):
                     liveWork.append(contentsOf: entries)
-                case .single(let entry) where entry.kind == .assistant:
-                    liveWork.append(entry)
                 default:
                     rows.append(group)
                 }
@@ -1980,12 +2291,12 @@ private struct TurnRunningBlock: View {
             ForEach(groups) { group in
                 TurnRow(group: group, runtime: runtime, context: context)
                     .equatable()
-                    .transition(ThreadTimeline.rowTransition)
+                    .transition(liveAppearance ? ThreadTimeline.rowTransition : .identity)
             }
             if let heads {
                 TurnRow(group: heads, runtime: runtime, context: context)
                     .equatable()
-                    .transition(ThreadTimeline.rowTransition)
+                    .transition(liveAppearance ? ThreadTimeline.rowTransition : .identity)
             }
             if showsWorking || !liveWork.isEmpty {
                 WorkingBlockView(
@@ -1995,7 +2306,7 @@ private struct TurnRunningBlock: View {
                     chronological: context.chronological,
                     earlierEntries: showsWorking ? nil : entries
                 )
-                    .transition(ThreadTimeline.rowTransition)
+                    .transition(liveAppearance ? ThreadTimeline.rowTransition : .identity)
             }
         }
     }
@@ -2073,6 +2384,7 @@ struct TimelineGroupView: View {
 /// breathing, the stave bar filling with the turn's steps, the time in its pill and the
 /// chevron opening the thinking and the run's steps beneath it.
 private struct WorkingIndicator: View {
+    @Environment(\.timelineLiveAppearance) private var liveAppearance
     let runtime: ThreadRuntime
     let startedAt: Date
     let seed: UInt64
@@ -2088,8 +2400,17 @@ private struct WorkingIndicator: View {
     var workingDirectory: String?
     @Environment(\.revealTimelineEnd) private var revealBox
     @State private var now = Date.now
-    @State private var isExpanded = false
+    @Environment(\.timelineBlockID) private var blockID
+    @State private var fallbackExpanded = false
+    private var isExpanded: Bool {
+        get { (turnEntries.first?.turnID).flatMap { revealBox?.presentation.working[$0] } ?? (chronological || fallbackExpanded) }
+        nonmutating set {
+            if let id = turnEntries.first?.turnID, let revealBox { revealBox.presentation.working[id] = newValue }
+            else { fallbackExpanded = newValue }
+        }
+    }
     @State private var showsAllSteps = false
+    @State private var stepLimit = 60
 
     /// The one motion for whatever changes on the line: the words, the chevron.
     private static let change = Animation.smooth(duration: 0.3)
@@ -2097,6 +2418,9 @@ private struct WorkingIndicator: View {
     private static let cardWidth: CGFloat = 380
 
     var body: some View {
+        let hiddenSteps = max(0, thinkingSteps.count + liveWork.count - stepLimit)
+        let visibleThinking = Array(thinkingSteps.dropFirst(min(hiddenSteps, thinkingSteps.count)))
+        let visibleWork = Array(liveWork.dropFirst(max(0, hiddenSteps - thinkingSteps.count)))
         let elapsed = now.timeIntervalSince(startedAt)
         let word = WorkingWords.word(seed: seed, elapsedSeconds: Int64(max(0, elapsed)))
         let isRunning = finishedAt == nil
@@ -2109,12 +2433,13 @@ private struct WorkingIndicator: View {
                 // Both directions run the one animation: the card closes with the glide it opens with.
                 if isExpanded {
                     withAnimation(.snappy(duration: 0.24)) {
+                        revealBox?.disclosure(blockID, false)
                         isExpanded = false
                     }
                 } else {
                     withAnimation(.snappy(duration: 0.24)) {
+                        revealBox?.disclosure(blockID, finishedAt == nil)
                         isExpanded = true
-                        revealBox?.follow()
                     }
                 }
             } label: {
@@ -2145,6 +2470,12 @@ private struct WorkingIndicator: View {
                 .padding(.trailing, showsCard ? 14 : TimelineMetrics.pillTrailing)
                 .padding(.vertical, showsCard ? 11 : TimelineMetrics.pillVertical)
                 .frame(width: showsCard ? Self.cardWidth : nil)
+                // The surface is the label's alone: the steps open as plain rows beneath
+                // it, so the card never grows around them.
+                .background {
+                    RoundedRectangle(cornerRadius: TimelineMetrics.pillRadius, style: .continuous)
+                        .fill(.quaternary.opacity(0.32))
+                }
                 .contentShape(RoundedRectangle(cornerRadius: TimelineMetrics.pillRadius, style: .continuous))
                 .geometryGroup()
             }
@@ -2154,9 +2485,17 @@ private struct WorkingIndicator: View {
 
             if isExpanded, canExpand {
                 VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
+                    if hiddenSteps > 0 {
+                        Button(TurnFinishedBlock.earlierStepsLabel(hidden: hiddenSteps)) {
+                            stepLimit += 60
+                            if let turnID = turnEntries.first?.turnID { revealBox?.stepLimits[turnID] = stepLimit }
+                        }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                    }
                     if !thinkingSteps.isEmpty {
                         VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
-                            ForEach(Array(thinkingSteps.enumerated()), id: \.offset) { _, step in
+                            ForEach(Array(visibleThinking.enumerated()), id: \.offset) { _, step in
                                 MarkdownView(text: step.text, isStreaming: step.isStreaming).equatable()
                             }
                         }
@@ -2164,26 +2503,20 @@ private struct WorkingIndicator: View {
                         .environment(\.markdownPointSize, 12)
                         .environment(\.markdownDimmed, true)
                         .padding(.leading, TimelineMetrics.iconWidth + TimelineMetrics.iconSpacing)
-                        .transition(.softAppear)
+                        .transition(liveAppearance ? .softAppear : .identity)
                     }
                     if !liveWork.isEmpty {
-                        WorkSteps(entries: liveWork, runtime: runtime, workingDirectory: workingDirectory, showsAll: $showsAllSteps)
-                            .transition(.softAppear)
+                        WorkSteps(entries: visibleWork, runtime: runtime, workingDirectory: workingDirectory, showsAll: $showsAllSteps)
+                            .transition(liveAppearance ? .softAppear : .identity)
                     }
                 }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 11)
             }
         }
-        .background {
-            RoundedRectangle(cornerRadius: TimelineMetrics.pillRadius, style: .continuous)
-                .fill(.quaternary.opacity(0.32))
-        }
+        .onChange(of: turnEntries.first?.turnID, initial: true) { _, id in stepLimit = id.flatMap { revealBox?.stepLimits[$0] } ?? 60 }
         .animation(Self.change, value: label)
         .animation(Self.change, value: canExpand)
         .font(.chat(.callout))
         .onChange(of: chronological, initial: true) { _, chronological in
-            isExpanded = chronological
             showsAllSteps = chronological
         }
         .task(id: FrontMonitor.shared.isVisible && isRunning) {
@@ -2214,15 +2547,21 @@ final class TimelineScrollState {
     /// that height from its bottom edge. Kept apart from `jumpRequest`, which the reader's
     /// own jump button fires: a growth must never move a reader who scrolled up to read.
     private(set) var areaGrowthRequest = 0
+    @ObservationIgnored private var growthPending = false
 
     func jumpToLatest() {
         jumpRequest += 1
     }
 
-    /// The composer area's height changed under the timeline. Only a reader who is at the
-    /// end is pulled to the new edge.
+    /// One request per run-loop turn, so a height that swings within a frame asks once.
     func noteComposerAreaGrowth() {
-        areaGrowthRequest += 1
+        guard !growthPending else { return }
+        growthPending = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            growthPending = false
+            areaGrowthRequest += 1
+        }
     }
 }
 
@@ -2233,6 +2572,12 @@ final class TimelineScrollState {
 /// only its action is renewed. Outside a timeline it does nothing.
 @MainActor
 final class TimelineRevealBox: Equatable {
+    var presentation = TimelinePresentation()
+    var stepLimits: [UUID: Int] {
+        get { presentation.stepLimits }
+        set { presentation.stepLimits = newValue }
+    }
+    var disclosure: (String, Bool) -> Void = { _, _ in }
     var action: () -> Void = {}
     /// The reveal for an opening that means "follow the stream" (the working line):
     /// reveals even with the jump button up, where `action` holds back (see `followEnd`).
@@ -2322,5 +2667,118 @@ private struct ScrollFreeze: ViewModifier {
 
     func body(content: Content) -> some View {
         content.allowsHitTesting(!tracking.isReaderScrolling)
+    }
+}
+
+@MainActor
+private final class TimelineMeasurements {
+    var width: CGFloat = 0
+    var frames: [String: CGRect] = [:]
+    /// A row's frame in the viewport, from its content frame and the scroll offset: a
+    /// geometry callback per row for this fired on every frame of every scroll.
+    func viewportFrame(_ id: String, offset: CGFloat) -> CGRect? {
+        frames[id]?.offsetBy(dx: 0, dy: Chrome.contentTopInset - offset)
+    }
+    var blockIDs: [String] = []
+    var liveIDs: Set<String> = []
+    var liveQuestions: Set<String> = []
+    var materializedIDs: Set<String> = []
+    private var knownIDs: Set<String>?
+    private var knownQuestions: Set<String>?
+
+    func noteArrivals(_ ids: [String], questions: [String]) {
+        blockIDs = ids
+        let current = Set(ids)
+        if let knownIDs { liveIDs.formUnion(current.subtracting(knownIDs)) }
+        knownIDs = current
+        let questionIDs = Set(questions)
+        if let knownQuestions { liveQuestions.formUnion(questionIDs.subtracting(knownQuestions)) }
+        knownQuestions = questionIDs
+    }
+
+    func invalidate(width: CGFloat) {
+        guard self.width != width else { return }
+        self.width = width
+        frames.removeAll()
+    }
+
+    func record(_ id: String, frame: CGRect) { frames[id] = frame }
+
+    func height(of blocks: ArraySlice<DisplayBlock>) -> CGFloat {
+        blocks.reduce(0) { $0 + (frames[$1.id]?.height ?? 0) + TimelineMetrics.rowSpacing }
+    }
+
+    func window(around index: Int, in blocks: [DisplayBlock], start: Int, viewport: CGFloat) -> Range<Int> {
+        var lower = index
+        var upper = index + 1
+        var distance: CGFloat = 0
+        while lower > start, distance < viewport {
+            lower -= 1
+            distance += (frames[blocks[lower].id]?.height ?? viewport) + TimelineMetrics.rowSpacing
+        }
+        distance = 0
+        while upper < blocks.count, distance < viewport {
+            distance += (frames[blocks[upper].id]?.height ?? viewport) + TimelineMetrics.rowSpacing
+            upper += 1
+        }
+        // An unmeasured row cannot be replaced by an exact spacer.
+        if let unknown = (start..<lower).first(where: { frames[blocks[$0].id] == nil }) { lower = unknown }
+        if let unknown = (upper..<blocks.count).last(where: { frames[blocks[$0].id] == nil }) { upper = unknown + 1 }
+        return lower..<upper
+    }
+}
+
+private struct TimelineLiveAppearanceKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var timelineLiveAppearance: Bool {
+        get { self[TimelineLiveAppearanceKey.self] }
+        set { self[TimelineLiveAppearanceKey.self] = newValue }
+    }
+}
+
+@MainActor
+@Observable
+final class TimelinePresentation {
+    var finished: [UUID: Bool] = [:]
+    var working: [UUID: Bool] = [:]
+    var prompts: [String: Bool] = [:]
+    var stepLimits: [UUID: Int] = [:]
+    @ObservationIgnored var previews: [String: String] = [:]
+    @ObservationIgnored var anchorID: String?
+    @ObservationIgnored var anchorOffset: CGFloat = 0
+    @ObservationIgnored var pinned = true
+    @ObservationIgnored var windowStartID: String?
+    @ObservationIgnored var mountedIDs: [String] = []
+    @ObservationIgnored var frames: [String: CGRect] = [:]
+    @ObservationIgnored var width: CGFloat = 0
+}
+
+@MainActor
+private enum TimelinePresentationStore {
+    private static var entries: [UUID: TimelinePresentation] = [:]
+    private static var order: [UUID] = []
+
+    static func entry(for id: UUID) -> TimelinePresentation {
+        order.removeAll { $0 == id }
+        order.append(id)
+        if let entry = entries[id] { return entry }
+        let entry = TimelinePresentation()
+        entries[id] = entry
+        if order.count > 32 { entries.removeValue(forKey: order.removeFirst()) }
+        return entry
+    }
+}
+
+private struct TimelineBlockIDKey: EnvironmentKey {
+    static let defaultValue = ""
+}
+
+extension EnvironmentValues {
+    var timelineBlockID: String {
+        get { self[TimelineBlockIDKey.self] }
+        set { self[TimelineBlockIDKey.self] = newValue }
     }
 }

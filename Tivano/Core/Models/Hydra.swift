@@ -381,6 +381,15 @@ struct HydraHeadInfo: Codable, Hashable, Sendable {
     /// unmerged turn began skipped exactly those, leaving their files in the checkout.
     var mergedAt: Date?
 
+    /// Explicit provenance for heads created by this version. Older/imported heads
+    /// decode false; persona names or prompt text never establish ownership.
+    var tracksProviderHistory = false
+    var ownedCodexSessionID: String?
+    var ownedCodexWorkingDirectory: String?
+    /// An archive was dispatched; reconcile before resume even if its reply was lost.
+    var codexHistoryArchived = false
+    var providerHistoryIssue: String?
+
     var persona: HydraPersona { HydraRoster.persona(at: index) }
     /// The name the panel shows.
     var displayName: String { persona.name }
@@ -430,6 +439,11 @@ struct HydraHeadInfo: Codable, Hashable, Sendable {
         baseTree = container.value(.baseTree, default: nil)
         landing = container.value(.landing, default: nil)
         mergedAt = container.value(.mergedAt, default: nil)
+        tracksProviderHistory = container.value(.tracksProviderHistory, default: false)
+        ownedCodexSessionID = container.value(.ownedCodexSessionID, default: nil)
+        ownedCodexWorkingDirectory = container.value(.ownedCodexWorkingDirectory, default: nil)
+        codexHistoryArchived = container.value(.codexHistoryArchived, default: false)
+        providerHistoryIssue = container.value(.providerHistoryIssue, default: nil)
     }
 }
 
@@ -1010,7 +1024,7 @@ enum HydraPrompts {
             }
             return "Merge state: \(pendingLine("\(files(unmergedFiles)) from this job"))"
         case .settled:
-            return "Merge state: at \(when(last.at)), Hydra found no recorded files left to merge. \(pending) Do not describe this as a new merge."
+            return "Merge state: at \(when(last.at)), Hydra found every change from this chat already on main, so nothing was sent. \(pending) Do not describe this as a new merge."
         case .stray:
             // A stray note right after a merge is a footnote to it: the merge is the news.
             var parts = ["Merge state:"]

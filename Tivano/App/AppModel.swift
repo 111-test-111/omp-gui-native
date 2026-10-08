@@ -30,18 +30,26 @@ final class AppModel {
     private(set) var projects: [Project] = [] {
         didSet { Self.write(Self.sync(&projectCells, with: projects)) }
     }
-    private(set) var threads: [ChatThread] = [] {
-        didSet {
-            // The positions stand while every thread kept its place and its project; a
-            // metadata change to a thread rebuilds nothing.
-            let changedMembership = threads.count != threadIndex.positions.count || threads.enumerated().contains { index, thread in
-                guard threadIndex.positions[thread.id] == index, let previous = threadCells[thread.id]?.value else { return true }
-                return previous.projectID != thread.projectID
-            }
-            Self.write(Self.sync(&threadCells, with: threads))
-            syncChildCells()
-            if changedMembership { threadIndex = ThreadIndex(threads) }
+    @ObservationIgnored private var threadStorage: [ChatThread] = []
+    private(set) var threadsRevision: UInt64 = 0
+    private(set) var threads: [ChatThread] {
+        get {
+            _ = threadsRevision
+            return threadStorage
         }
+        set {
+            threadStorage = newValue
+            synchronizeThreads()
+        }
+    }
+
+    private func synchronizeThreads() {
+        // Finish storage/index borrows before any observed write can rebuild Commands.
+        threadIndex = ThreadIndex(threadStorage)
+        let writes = Self.sync(&threadCells, with: threadStorage)
+        Self.write(writes)
+        syncChildCells()
+        threadsRevision &+= 1
     }
     private var threadIndex = ThreadIndex([])
 
@@ -106,6 +114,8 @@ final class AppModel {
     var alert: AppAlert?
 
     @ObservationIgnored private var runtimes: [UUID: ThreadRuntime] = [:]
+    @ObservationIgnored private var runtimeLastAccess: [UUID: ContinuousClock.Instant] = [:]
+    @ObservationIgnored private var runtimeCapacityScheduled = false
     @ObservationIgnored private var idleSessionStops: [UUID: Task<Void, Never>] = [:]
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var lastLibrarySave: ContinuousClock.Instant?
@@ -115,6 +125,9 @@ final class AppModel {
     /// its files forever, with the merge note still promising they go out. The sweep asks
     /// again every few minutes; it skips anything still running, so a busy chat is left alone.
     @ObservationIgnored private var hydraMergeSweepTask: Task<Void, Never>?
+    private(set) var isLibraryLoaded = false
+    @ObservationIgnored private var libraryLoad: Task<Library, Never>?
+    @ObservationIgnored private var restoreSelectionAfterLoad = false
     @ObservationIgnored private var persistenceEnabled = true
     @ObservationIgnored private var didRequestNotifications = false
 
@@ -124,26 +137,7 @@ final class AppModel {
         mcp = MCPStore()
         terminals = TerminalStore()
         sidebar = SidebarLayout()
-        let library = Storage.loadLibrary()
-        projects = library.projects
-        threads = library.threads
-        for index in threads.indices where threads[index].lastStatus == .running {
-            threads[index].lastStatus = .interrupted
-        }
-        // A head at work when the app last quit went with its session.
-        for index in threads.indices where threads[index].hydra?.status == .running {
-            threads[index].hydra?.status = .stopped
-            threads[index].hydra?.finishedAt = .now
-        }
-        // Property observers stay quiet inside an initializer, so the cells are built here once.
-        Self.write(Self.sync(&projectCells, with: projects))
-        Self.write(Self.sync(&threadCells, with: threads))
-        syncChildCells()
-        threadIndex = ThreadIndex(threads)
         autoContinue = AutoContinue(app: self)
-        if let lastID = settings.lastProjectID, project(lastID) == nil {
-            settings.lastProjectID = nil
-        }
     }
 
     /// Mirrors a list into its cells: values that changed are written to their cell (and only
@@ -238,12 +232,43 @@ final class AppModel {
     }
 
     func bootstrap() async {
+        guard !isLibraryLoaded else { return }
+        if let libraryLoad {
+            _ = await libraryLoad.value
+            return
+        }
+        let load = Task.detached(priority: .userInitiated) { Storage.loadLibrary() }
+        libraryLoad = load
+        var library = await load.value
+        for index in library.threads.indices {
+            if library.threads[index].lastStatus == .running {
+                library.threads[index].lastStatus = .interrupted
+            }
+            if library.threads[index].hydra?.status == .running {
+                library.threads[index].hydra?.status = .stopped
+                library.threads[index].hydra?.finishedAt = .now
+            }
+        }
+        // Anything made in the moments before the library landed (a project opened from
+        // the Finder, a chat from the menu) joins it rather than being written over.
+        let knownProjects = Set(library.projects.map(\.id))
+        let knownThreads = Set(library.threads.map(\.id))
+        projects = library.projects + projects.filter { !knownProjects.contains($0.id) }
+        threads = library.threads + threads.filter { !knownThreads.contains($0.id) }
+        isLibraryLoaded = true
+        libraryLoad = nil
+        if let lastID = settings.lastProjectID, project(lastID) == nil {
+            settings.lastProjectID = nil
+        }
+        if restoreSelectionAfterLoad { openThreadOnLaunch() }
         // The threads most likely to be opened first decode in the background from the start,
         // so the first click into a conversation never parses its history on the main thread.
         let recent = threads.filter { !$0.isArchived && !$0.isInPanel }.sorted { $0.updatedAt > $1.updatedAt }.prefix(12).map(\.id)
         warmDocuments(recent)
         await settings.loadKeychainInBackground()
         await LoginEnvironment.load()
+        // Needs the login PATH for gh and gives every later process the account's token.
+        GitHubConnection.shared.start()
         // After the login environment, so git runs with the user's PATH.
         sweepHydraCopies()
         // A merge the last run did not finish (the app was quit under it) goes out now.
@@ -319,10 +344,11 @@ final class AppModel {
 
     /// The project's top-level threads, in sidebar order: the settled ones last, latest
     /// settled first. A helper whose parent is among them sits under that parent instead
-    /// (see `helpers(of:)`); one whose parent is gone or archived stands on its own.
+    /// (see `helpers(of:)`); an ordinary helper whose parent is gone or archived stands
+    /// on its own. Hydra heads only appear under their lead, even across projects.
     func threads(in project: Project) -> [ChatThread] {
         let shown = (threadIndex.projects[project.id] ?? []).map { threads[$0] }
-            .filter { !$0.isArchived && !$0.isInPanel }
+            .filter(\.isStandaloneListCandidate)
         let shownIDs = Set(shown.map(\.id))
         return shown
             .filter { $0.parentThreadID.map { !shownIDs.contains($0) } ?? true }
@@ -432,10 +458,31 @@ final class AppModel {
     }
 
     func runtime(for id: UUID) -> ThreadRuntime {
+        runtimeLastAccess[id] = ContinuousClock.now
         if let runtime = runtimes[id] { return runtime }
         let runtime = ThreadRuntime(threadID: id, app: self)
         runtimes[id] = runtime
+        if !runtimeCapacityScheduled {
+            runtimeCapacityScheduled = true
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.runtimeCapacityScheduled = false
+                self.releaseExcessIdleRuntimes()
+            }
+        }
         return runtime
+    }
+
+    private func releaseExcessIdleRuntimes() {
+        guard runtimes.count > 12 else { return }
+        let fallback = ContinuousClock.now
+        let candidates = runtimes.keys.sorted {
+            (runtimeLastAccess[$0] ?? fallback) < (runtimeLastAccess[$1] ?? fallback)
+        }
+        for id in candidates {
+            guard runtimes.count > 12 else { break }
+            releaseIdleRuntime(id)
+        }
     }
 
     func existingRuntime(for id: UUID) -> ThreadRuntime? {
@@ -477,6 +524,7 @@ final class AppModel {
     /// the thread resuming the conversation. A thread with a draft, an edit under way, work
     /// still owed to it or a terminal keeps its runtime, session stopped.
     private func scheduleIdleSessionStop(leaving id: UUID?) {
+        guard isLibraryLoaded else { return }
         if let selectedThreadID {
             idleSessionStops.removeValue(forKey: selectedThreadID)?.cancel()
         }
@@ -503,14 +551,20 @@ final class AppModel {
         guard let runtime = runtimes[id], selectedThreadID != id, let thread = thread(id),
               // A thread shown beside the selection, in its panel, is on screen.
               thread.parentThreadID == nil || thread.parentThreadID != selectedThreadID,
+              !thread.isInPanel, thread.hydra?.status != .running,
+              !runtime.isRunning, runtime.draft.isEmpty, runtime.followUps.isEmpty,
               runtime.holdsOnlyPersistedState, !sessionsToRelease.contains(id),
               autoContinue.resumesAt[id] == nil, terminals.sessions(for: id).isEmpty,
-              runningTivanoHeads(of: id) == 0 else { return false }
+              !children(of: id).contains(where: {
+                  $0.hydra?.status == .running || existingRuntime(for: $0.id)?.isRunning == true
+              }) else { return false }
         // The save is queued before the runtime goes; a read that follows waits for it
         // (see `Storage.readDocument`), so the thread can never come back older than it left.
         runtime.saveNow()
         runtime.cancelPersistence()
         runtimes[id] = nil
+        runtimeLastAccess[id] = nil
+        idleSessionStops.removeValue(forKey: id)?.cancel()
         return true
     }
 
@@ -577,37 +631,28 @@ final class AppModel {
 
     // MARK: - Threads
 
-    /// Launch lands in a chat, never on the empty page: the newest thread nothing has been
-    /// sent in yet, in the project you last worked in, or a fresh one there. Reusing an
-    /// unused thread keeps a launch from leaving a "New thread" row behind every time.
+    /// Restores the most relevant existing chat in the last project without making launch
+    /// an implicit "New thread" action. A chat interrupted by the previous process wins;
+    /// otherwise the last active user chat does. With no chat, the existing empty state
+    /// remains on screen until the user explicitly starts one.
     func openThreadOnLaunch() {
-        guard let project = currentProject else { return }
-        let unused = threads
-            .filter {
-                $0.projectID == project.id && !$0.isArchived && !$0.isSettled && !$0.isHelper
-                    && $0.lastStatus == nil && !$0.hasCustomTitle && $0.title == ChatThread.untitled
-            }
-            .max { $0.createdAt < $1.createdAt }
-        if let unused {
-            // The row may be older than the pair or model chosen since: nothing was sent in
-            // it, so it starts over on what a fresh chat would open on today.
-            let fresh = makeThread(in: project, carrying: nil)
-            updateThread(unused.id) { thread in
-                if thread.provider != fresh.provider {
-                    thread.providerSessionID = nil
-                    thread.providerResumeAt = nil
-                }
-                thread.provider = fresh.provider
-                thread.model = fresh.model
-                thread.effort = fresh.effort
-                thread.fastMode = fresh.fastMode
-                thread.hydraPairID = fresh.hydraPairID
-                thread.hydraEnabled = fresh.hydraEnabled
-            }
-            selectedThreadID = unused.id
-        } else {
-            newThread(in: project)
+        guard isLibraryLoaded else {
+            restoreSelectionAfterLoad = true
+            return
         }
+        restoreSelectionAfterLoad = false
+        guard let project = currentProject else { return }
+        let restored = threads
+            .filter {
+                $0.projectID == project.id && !$0.isArchived && !$0.isInPanel && !$0.isHelper && !$0.isHydraHead
+            }
+            .max { lhs, rhs in
+                let lhsInterrupted = lhs.lastStatus == .interrupted
+                let rhsInterrupted = rhs.lastStatus == .interrupted
+                if lhsInterrupted != rhsInterrupted { return !lhsInterrupted }
+                return lhs.updatedAt < rhs.updatedAt
+            }
+        selectedThreadID = restored?.id
     }
 
     @discardableResult
@@ -713,11 +758,32 @@ final class AppModel {
 
     func updateThread(_ id: UUID, _ change: (inout ChatThread) -> Void) {
         guard let index = threadIndex.positions[id] else { return }
-        var thread = threads[index]
+        let previous = threadStorage[index]
+        var thread = previous
         change(&thread)
-        guard thread != threads[index] else { return }
-        threads[index] = thread
+        guard thread != previous else { return }
+        threadStorage[index] = thread
+        if Self.structureChanged(previous, thread) {
+            synchronizeThreads()
+        } else {
+            let cell = threadCells[id]
+            cell?.value = thread
+            threadsRevision &+= 1
+        }
         scheduleSave()
+    }
+
+    private static func structureChanged(_ previous: ChatThread, _ thread: ChatThread) -> Bool {
+        previous.id != thread.id || previous.projectID != thread.projectID
+            || previous.parentThreadID != thread.parentThreadID
+            || previous.isArchived != thread.isArchived || previous.isSettled != thread.isSettled
+            || previous.isInPanel != thread.isInPanel || previous.isHydraHead != thread.isHydraHead
+            || previous.hydra?.index != thread.hydra?.index
+            || previous.isPinned != thread.isPinned || previous.sortOrder != thread.sortOrder
+            || previous.createdAt != thread.createdAt || previous.updatedAt != thread.updatedAt
+            || previous.settledAt != thread.settledAt || previous.activityOrder != thread.activityOrder
+            || previous.activityOrderDay != thread.activityOrderDay
+            || previous.foldsHelpers != thread.foldsHelpers
     }
 
     /// Moves a thread to another project's folder: what the old folder's session and
@@ -1302,7 +1368,7 @@ final class AppModel {
     /// and a quarter (September 22). Restarting the wait on each change also meant a steady
     /// stream of changes never saved at all.
     func scheduleSave() {
-        guard persistenceEnabled, saveTask == nil else { return }
+        guard persistenceEnabled, isLibraryLoaded, saveTask == nil else { return }
         let sinceLast = lastLibrarySave.map { ContinuousClock.now - $0 } ?? .seconds(60)
         let wait = max(.milliseconds(400), .seconds(4) - sinceLast)
         saveTask = Task { [weak self] in
@@ -1314,7 +1380,7 @@ final class AppModel {
     }
 
     private func saveLibrary() {
-        guard persistenceEnabled else { return }
+        guard isLibraryLoaded, persistenceEnabled else { return }
         lastLibrarySave = .now
         var library = Library()
         library.projects = projects
@@ -1323,9 +1389,22 @@ final class AppModel {
         DiskWriter.shared.encodeAndWrite(library, to: url)
     }
 
+    /// Flush recovery metadata before an opt-in provider archive. A capture or a disk
+    /// write failure cannot authorize a provider-side change.
+    func saveProviderHistoryIntent() async throws {
+        guard isLibraryLoaded, persistenceEnabled, !CaptureRun.isEnabled else {
+            throw ProviderError.failed(Chrome.localized("Provider history changes require a persistent library."))
+        }
+        var library = Library()
+        library.projects = projects
+        library.threads = threads
+        try await DiskWriter.shared.writeOrThrow(library, to: Storage.libraryURL)
+        lastLibrarySave = .now
+    }
+
     /// Writes everything synchronously, for use while the app terminates.
     func saveBeforeQuit() {
-        guard persistenceEnabled else { return }
+        guard isLibraryLoaded, persistenceEnabled else { return }
         persistenceEnabled = false
         saveTask?.cancel()
         saveTask = nil
@@ -1338,7 +1417,7 @@ final class AppModel {
             runtime.stopSession()
             // A thread only read since its last save is already on disk as it is.
             guard let snapshot = runtime.unsavedSnapshot() else { continue }
-            DiskWriter.shared.writeSynchronously(snapshot, to: Storage.threadURL(runtime.threadID))
+            DiskWriter.shared.writeThreadSynchronously(snapshot)
         }
         DiskWriter.shared.waitForQueuedWrites()
         terminals.terminateAll()

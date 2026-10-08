@@ -6,6 +6,12 @@ struct StdioFramer {
         case contentLength
     }
 
+    enum FrameError: LocalizedError {
+        case tooLarge
+        var errorDescription: String? { AppText.localized("The agent sent a message over 16 MB") }
+    }
+
+    private static let limit = 16 * 1024 * 1024
     private let framing: Framing
     private var buffer = Data()
     private var scanned = 0
@@ -16,7 +22,7 @@ struct StdioFramer {
         self.framing = framing
     }
 
-    mutating func append(_ data: Data) -> [Data] {
+    mutating func append(_ data: Data) throws -> [Data] {
         buffer.append(data)
         var messages: [Data] = []
         var start = buffer.startIndex
@@ -25,9 +31,11 @@ struct StdioFramer {
             switch framing {
             case .lines:
                 guard let newline = buffer[search...].firstIndex(of: 0x0A) else {
+                    guard buffer.endIndex - start <= Self.limit else { throw FrameError.tooLarge }
                     search = buffer.endIndex
                     break
                 }
+                guard newline - start <= Self.limit else { throw FrameError.tooLarge }
                 messages.append(Data(buffer[start..<newline]))
                 start = newline + 1
                 search = start
@@ -35,13 +43,16 @@ struct StdioFramer {
             case .contentLength:
                 if bodyLength == nil {
                     guard let headerEnd = buffer[search...].range(of: Self.separator) else {
+                        guard buffer.endIndex - start <= Self.limit else { throw FrameError.tooLarge }
                         search = max(start, buffer.endIndex - 3)
                         break
                     }
+                    guard headerEnd.upperBound - start <= Self.limit else { throw FrameError.tooLarge }
                     let header = String(decoding: buffer[start..<headerEnd.lowerBound], as: UTF8.self)
                     start = headerEnd.upperBound
                     search = start
                     guard let length = Self.contentLength(in: header) else { continue }
+                    guard length <= Self.limit else { throw FrameError.tooLarge }
                     bodyLength = length
                 }
                 if let length = bodyLength, buffer.endIndex - start >= length {
