@@ -14,6 +14,10 @@ Droppy Code 是一件出色的作品，我真心喜欢用它。用得越多，�
 
 遵循作者的商标政策，本 fork 使用了自己的名称、图标与品牌。Tivano 与 Droppy 无任何关联，也未获得其背书。
 
+## 名字
+
+Tivano 是一阵风——科莫湖上清晨的微风。图标里，它吹起一只小小的晴天娃娃，那种挂起来祈求晴空的吉祥物。这也是我们希望编码拥有的感觉：惬意，从容，风在背后。即使身处与 Agent 协作的深水区，Tivano 也希望让新一代的 coder 享受 AI 编码本来的乐趣。
+
 ## 功能
 
 Tivano 驱动你本机已安装并登录的编码 Agent，用你自己的订阅：Codex、Claude、Cursor、OpenCode、Grok、Antigravity、Copilot、Command Code、Pi、DeepSeek、Z.ai 与 Meta。
