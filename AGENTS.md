@@ -32,9 +32,10 @@
 
 ## Relaunching (never unprompted)
 
-- NEVER run `scripts/quick_run.sh` or otherwise quit/relaunch Tivano unless the owner explicitly asks for it in that moment.
+- NEVER run `scripts/quick_run.sh` or otherwise relaunch Tivano unless the owner explicitly asks for it in that moment. Quitting for an explicit Dev package request is preauthorized below.
 - Agent-initiated build-only verification inside the worktree is fine and does not install. An explicit owner request to build/package an app also authorizes updating the requested edition(s) in `/Applications` via `scripts/package_local.sh`, unless the owner explicitly asks for build-only.
-- Packaging never implies quitting or launching an app. If a target is running, stop and request an explicit quit; do not overwrite its running bundle.
+- An explicit request to package Tivano Dev authorizes the agent to quit the running Dev app before packaging, even if it has active work; do not ask again. Verify it has exited before replacing its bundle. This does not authorize launching it afterward.
+- For Release, packaging alone does not authorize quitting or launching. If it is running, request an explicit quit; do not overwrite its running bundle.
 - "Finish", "merge", "done" or "test it" do not imply relaunch — only an explicit request to run/relaunch the app does.
 
 ## Local packaging, editions and shared data
