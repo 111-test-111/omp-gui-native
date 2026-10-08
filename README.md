@@ -14,6 +14,10 @@ Droppy Code is a wonderful piece of work, and I genuinely love using it. The mor
 
 Following the author's trademark policy, the fork carries its own name, icon and branding. Tivano is not affiliated with or endorsed by Droppy.
 
+## The name
+
+Tivano is a wind — a gentle morning breeze off Lake Como. In the icon, that wind lifts a little weather doll, the kind hung out to wish for clear skies. That is the feeling we want for coding: at ease, with the wind at your back. Even deep in a session with your agents, Tivano is here so a new generation of coders can enjoy what AI coding can be.
+
 ## What it does
 
 Tivano drives the coding agents you already have installed and signed in, on your own subscriptions: Codex, Claude, Cursor, OpenCode, Grok, Antigravity, Copilot, Command Code, Pi, DeepSeek, Z.ai and Meta.
