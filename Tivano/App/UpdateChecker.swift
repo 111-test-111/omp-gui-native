@@ -63,9 +63,8 @@ struct AvailableUpdate: Codable, Equatable, Sendable {
 final class UpdateChecker {
     static let shared = UpdateChecker()
 
-    /// The fork's repository on GitHub. Public, so the API needs no token.
+    /// The fork's repository on GitHub.
     static let projectURL = URL(string: "https://github.com/elijah7x/tivano")!
-    static let releasesURL = projectURL.appending(path: "releases")
     private static let apiURL = URL(string: "https://api.github.com/repos/elijah7x/tivano/releases?per_page=20")!
 
     /// How often the background check runs, and how stale a check may be before the app
@@ -115,6 +114,7 @@ final class UpdateChecker {
             update = saved
         }
         lastCheckedAt = defaults.object(forKey: Keys.lastChecked) as? Date
+        #if DEBUG
         // `--preview-update 9.9.9` shows the update story without a newer release: the latest
         // real release is offered under that version. Pressing Update & restart then installs
         // that release for real, which only passes verification when its version is the one shown.
@@ -122,6 +122,7 @@ final class UpdateChecker {
         if let index = arguments.firstIndex(of: "--preview-update"), index + 1 < arguments.count {
             previewVersion = arguments[index + 1]
         }
+        #endif
     }
 
     // MARK: - Schedule

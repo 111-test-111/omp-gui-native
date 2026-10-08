@@ -12,9 +12,7 @@ enum Tour {
         TourPage(imageName: "tour-themes", title: "Make it yours", description: String(format: Chrome.localized("%@ themes, from Catppuccin to Kanagawa, in real Liquid Glass. Built in Swift, so it scrolls at 120 frames a second and starts in a blink."), themeCount)),
     ]
 
-    /// The number of themes spelled out ("Twenty-six"), read from the catalogue so the
-    /// page cannot drift from it again: the copy said twenty-five after the twenty-sixth
-    /// was added.
+    /// The localized theme count, derived from the catalogue.
     private static var themeCount: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .spellOut

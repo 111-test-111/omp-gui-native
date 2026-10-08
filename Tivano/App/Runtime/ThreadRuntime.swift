@@ -3609,9 +3609,6 @@ final class ThreadRuntime {
             max(45, streamingCount * Self.headFlushBudget)
         }
 
-        var headFlushWindow: Duration {
-            .milliseconds(headFlushDelayMilliseconds)
-        }
     }
 
     private func flushDeltas(scheduleSave: Bool = true) {

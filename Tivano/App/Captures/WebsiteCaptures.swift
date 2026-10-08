@@ -1,22 +1,11 @@
 import AppKit
-import AVFoundation
 import ScreenCaptureKit
 import SwiftUI
 
-/// Renders the real app with mock data into stills and films for the marketing site:
-///
-///     open -n -W "Tivano.app" --args --website-captures <folder>
-///
-/// Nothing in here runs otherwise. The run keeps to its own storage folder and its own
-/// defaults suite, never reads the Keychain, posts no notifications, and quits when the
-/// last file is written, so the library, settings and permissions on this Mac are untouched.
-///
-/// The app window is put over a backdrop window showing this Mac's own desktop picture, and
-/// every capture is the composite of the two as the window server shows it: the real Liquid
-/// Glass over the real wallpaper. ScreenCaptureKit composites a process's own windows without
-/// screen recording permission, which is all a capture ever includes. Stills are PNG at the
-/// display's scale; films are recorded by a 60 fps stream straight into a high-bitrate HEVC
-/// master, for `scripts/website_captures.py` to cut and encode.
+/// Shared mock data and window capture support for the onboarding tour.
+/// `scripts/tour_captures.py` runs the app with `--tour-captures <folder>`.
+/// Captures use independent storage/defaults, no Keychain, and a generated backdrop.
+/// ScreenCaptureKit includes only this process's windows; no personal desktop is read.
 @MainActor
 enum WebsiteCaptures {
     /// The composer's model chip, captured by the chip itself, so the slider and the
@@ -78,7 +67,7 @@ enum WebsiteCaptures {
         let files = FileManager.default
         try? files.removeItem(at: root)
         try? files.createDirectory(at: root.appendingPathComponent("threads"), withIntermediateDirectories: true)
-        try? files.createDirectory(at: output.appendingPathComponent("films"), withIntermediateDirectories: true)
+        try? files.createDirectory(at: output, withIntermediateDirectories: true)
 
         defaults.removePersistentDomain(forName: CaptureRun.suiteName)
         defaults.set("dark", forKey: "appTheme")
@@ -293,56 +282,12 @@ enum WebsiteCaptures {
     // MARK: - Run
 
     static func run(model: AppModel) async {
-        if CaptureRun.isTourRun { await TourCaptures.run(model: model); return }
-        guard let output = CaptureRun.outputDirectory else { return }
-        // A capture call that never returns must not leave a recording process behind: the
-        // run quits after its budget no matter where it is.
-        Task {
-            try? await Task.sleep(for: .seconds(110))
-            log("out of time, quitting")
-            exit(0)
-        }
-        let stage = Stage(model: model)
-        stage.show(size: Stage.wide)
-        await stage.ensureActive()
-        let recorder = Recorder(output: output, stage: stage)
-        try? await Task.sleep(for: .milliseconds(1_400))
-
-        await blankScene(model, stage, recorder, name: "blank-wide")
-        await editingScene(model, stage, recorder)
-        await themesScene(model, stage, recorder)
-        await diffScene(model, stage, recorder)
-        await queueScene(model, stage, recorder)
-        await paletteScene(model, stage, recorder)
-        await plansScene(model, stage, recorder)
-        await questionScene(model, stage, recorder)
-
-        // The detail scenes: a narrow window without the sidebar, on an empty thread, so the
-        // composer and its popovers sit on clean glass and can be shown large.
-        stage.resize(to: Stage.narrow)
-        if model.sidebar.isVisible { model.sidebar.toggle() }
-        model.selectedThreadID = ID.fresh
-        try? await Task.sleep(for: .milliseconds(1_200))
-        await recorder.still("blank-narrow", stage.captureRect)
-        await sliderScene(model, stage, recorder)
-        await switcherScene(model, stage, recorder)
-
-        await recorder.finish()
-        log("done")
-        exit(0)
-    }
-
-    /// The empty thread, so the encoder knows what untouched glass looks like.
-    private static func blankScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, name: String) async {
-        log("scene blankScene")
-        model.selectedThreadID = ID.fresh
-        try? await Task.sleep(for: .milliseconds(900))
-        await recorder.still(name, stage.captureRect)
+        await TourCaptures.run(model: model)
     }
 
     /// The composer thread mid-turn: reasoning, a read, an edit, the to-dos, a build running
     /// and the reply streaming in. Ends still running, so the working line stays.
-    static func editingScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = true) async {
+    static func editingScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder) async {
         log("scene editingScene")
         model.selectedThreadID = ID.composer
         // The sidebar's other pulse.
@@ -352,7 +297,6 @@ enum WebsiteCaptures {
         try? await Task.sleep(for: .milliseconds(900))
 
         let runtime = model.runtime(for: ID.composer)
-        if film { await recorder.startFilm("editing", stage.captureRect) }
         try? await Task.sleep(for: .milliseconds(600))
         runtime.rehearseTurn(
             "The draft photo in the composer should sit as far from the top as it does from the left.",
@@ -389,243 +333,7 @@ enum WebsiteCaptures {
         runtime.rehearse(.messageCompleted(id: "m1", text: ""))
         runtime.noteDiffChanged()
         try? await Task.sleep(for: .milliseconds(1_400))
-        if film { await recorder.stopFilm() }
         await recorder.still("editing", stage.captureRect)
-    }
-
-    /// The same window in every theme, for the theme picker.
-    private static func themesScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder) async {
-        log("scene themesScene")
-        let current = model.settings.theme
-        for theme in AppTheme.allCases {
-            model.settings.theme = theme
-            try? await Task.sleep(for: .milliseconds(500))
-            await recorder.still("theme-\(theme.rawValue)", stage.captureRect)
-        }
-        model.settings.theme = current
-        try? await Task.sleep(for: .milliseconds(800))
-    }
-
-    /// The changes popover, open on the turn's diff.
-    static func diffScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = true, stillName: String? = nil) async {
-        log("scene diffScene")
-        let runtime = model.runtime(for: ID.composer)
-        runtime.clearDiffFocus()
-        runtime.diffAnchor = nil
-        runtime.isDiffVisible = true
-        try? await Task.sleep(for: .milliseconds(1_200))
-        await recorder.still(stillName ?? "diff", film ? stage.captureRect : stage.tourCaptureRect)
-        runtime.isDiffVisible = false
-        try? await Task.sleep(for: .milliseconds(600))
-    }
-
-    /// Three follow-ups queued behind the running turn.
-    static func queueScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = true, stillName: String? = nil) async {
-        log("scene queueScene")
-        let runtime = model.runtime(for: ID.composer)
-        if film { await recorder.startFilm("queue", stage.captureRect) }
-        try? await Task.sleep(for: .milliseconds(700))
-        for text in [
-            "Also match the trailing inset, and keep the corner radius at 10.",
-            "Then run the composer's UI tests.",
-            "Commit with a message that names the attachment strip.",
-        ] {
-            runtime.enqueueFollowUp(text: text, attachments: [])
-            try? await Task.sleep(for: .milliseconds(800))
-        }
-        try? await Task.sleep(for: .milliseconds(1_200))
-        if film { await recorder.stopFilm() }
-        await recorder.still(stillName ?? "queue", film ? stage.captureRect : stage.tourCaptureRect)
-        for prompt in runtime.followUps { runtime.removeFollowUp(prompt.id) }
-        try? await Task.sleep(for: .milliseconds(600))
-    }
-
-    /// The command palette over the thread.
-    static func paletteScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = true, stillName: String? = nil) async {
-        log("scene paletteScene")
-        model.isCommandPalettePresented = true
-        try? await Task.sleep(for: .milliseconds(800))
-        await recorder.still(stillName ?? "palette", film ? stage.captureRect : stage.tourCaptureRect)
-        model.isCommandPalettePresented = false
-        try? await Task.sleep(for: .milliseconds(500))
-    }
-
-    /// A fresh plan-mode thread: one ask, a proposed plan, the to-dos. Nothing else on the
-    /// glass, so the encoder can cut the whole exchange out cleanly.
-    static func plansScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = true, stillName: String? = nil) async {
-        log("scene plansScene")
-        model.selectedThreadID = ID.freshPlan
-        try? await Task.sleep(for: .milliseconds(900))
-        let runtime = model.runtime(for: ID.freshPlan)
-        runtime.rehearseTurn("Give the final answer of a turn its own card.")
-        try? await Task.sleep(for: .milliseconds(400))
-        runtime.rehearse(.planCompleted(id: "p0", markdown: "1. Tag the last assistant text of a turn as the final answer\n2. Give it the glass card the plan cards use\n3. Keep streaming text plain until the turn ends"))
-        try? await Task.sleep(for: .milliseconds(300))
-        runtime.rehearse(.todos([
-            TodoStep(text: "Tag the final answer in the timeline", status: .done),
-            TodoStep(text: "Draw it on the plan cards' glass", status: .active),
-            TodoStep(text: "Leave streaming text plain", status: .pending),
-        ]))
-        try? await Task.sleep(for: .milliseconds(1_200))
-        await recorder.still(stillName ?? "plans", film ? stage.captureRect : stage.tourCaptureRect)
-    }
-
-    /// The plan-mode thread: a plan proposed, then the agent asks a question, then it asks
-    /// before pushing. Lands the thread under "Needs attention" in the sidebar.
-    static func questionScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = true, stillName: String? = nil) async {
-        log("scene questionScene")
-        model.selectedThreadID = ID.finalAnswer
-        try? await Task.sleep(for: .milliseconds(1_000))
-        let runtime = model.runtime(for: ID.finalAnswer)
-        if film { await recorder.startFilm("question", stage.captureRect) }
-        try? await Task.sleep(for: .milliseconds(600))
-        runtime.rehearseTurn("Make the final answer of a turn stand out from the tool chatter above it.")
-        try? await Task.sleep(for: .milliseconds(400))
-        await stream(runtime, id: "r2", reasoning: true, "Comparing the last text block against tool results in TimelineView. The answer needs its own marker before it can get its own card.", step: 40)
-        runtime.rehearse(.reasoningCompleted(id: "r2", text: ""))
-        try? await Task.sleep(for: .milliseconds(200))
-        runtime.rehearse(.toolStarted(id: "t-tl", call: ToolCall(kind: .read, title: "Read", detail: "Tivano/App/Views/Chat/TimelineRows.swift")))
-        try? await Task.sleep(for: .milliseconds(500))
-        runtime.rehearse(.toolUpdated(id: "t-tl", update: ToolUpdate(output: "struct TimelineRows: View {\n", status: .completed)))
-        try? await Task.sleep(for: .milliseconds(300))
-        runtime.rehearse(.planCompleted(id: "p1", markdown: "1. Tag the last assistant text of a turn as the final answer\n2. Give it the glass card the plan cards use\n3. Keep streaming text plain until the turn ends"))
-        try? await Task.sleep(for: .milliseconds(900))
-        runtime.rehearse(.question(QuestionRequest(id: "q1", questions: [
-            QuestionRequest.Question(
-                id: "q1-a",
-                header: "Tool calls",
-                prompt: "Should the final answer also collapse the tool calls above it by default?",
-                choices: [
-                    QuestionRequest.Choice(label: "Yes, collapse them", detail: "The reply stays in view; the steps are one click away"),
-                    QuestionRequest.Choice(label: "No, keep them open", detail: "Every step stays visible above the answer"),
-                ],
-                allowsMultiple: false,
-                allowsOther: true,
-                isSecret: false
-            ),
-        ])))
-        try? await Task.sleep(for: .milliseconds(2_600))
-        await recorder.still(stillName ?? "question", film ? stage.captureRect : stage.tourCaptureRect)
-        runtime.rehearse(.requestResolved(id: "q1"))
-        // Over a gradient only the question itself is photographed; the approval half of
-        // the film stays in the website run, so no approval is left behind.
-        guard film else {
-            try? await Task.sleep(for: .milliseconds(600))
-            return
-        }
-        try? await Task.sleep(for: .milliseconds(800))
-        runtime.rehearse(.toolStarted(id: "t-edit2", call: ToolCall(kind: .edit, title: "Edit", detail: "TimelineRows.swift · final answer card")))
-        try? await Task.sleep(for: .milliseconds(700))
-        runtime.rehearse(.toolUpdated(id: "t-edit2", update: ToolUpdate(status: .completed, edits: [FileEdit(path: "Tivano/App/Views/Chat/TimelineRows.swift", additions: 18, deletions: 3)])))
-        try? await Task.sleep(for: .milliseconds(500))
-        runtime.rehearse(.approval(ApprovalRequest(
-            id: "a1",
-            kind: .command,
-            title: "git push origin feat/timeline-final-answer",
-            detail: "Pushes the branch so the merge request can be opened.",
-            reason: nil,
-            options: [
-                ApprovalRequest.Option(id: "yes", title: "Allow", role: .approve),
-                ApprovalRequest.Option(id: "always", title: "Allow for this thread", role: .approveAlways),
-                ApprovalRequest.Option(id: "no", title: "Deny", role: .decline),
-            ],
-            toolItemID: nil
-        )))
-        try? await Task.sleep(for: .milliseconds(2_400))
-        if film { await recorder.stopFilm() }
-        await recorder.still("approval", stage.captureRect)
-    }
-
-    /// The reasoning slider, from the chip: high, then maximum with its particles, then fast
-    /// mode fused in, then back down.
-    private static func sliderScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder) async {
-        log("scene sliderScene")
-        guard let thread = model.thread(ID.fresh) else { return }
-        let option = model.providers.model(thread.model, for: thread.provider)
-        let card = EffortSliderCard(
-            modelName: option?.shortName ?? thread.model ?? thread.provider.displayName,
-            provider: thread.provider,
-            efforts: option?.efforts ?? [],
-            defaultEffort: option?.defaultEffort,
-            supportsFast: option?.supportsFast ?? false,
-            effort: Binding(get: { model.thread(ID.fresh)?.effort }, set: { effort in model.updateThread(ID.fresh) { $0.effort = effort } }),
-            fastMode: Binding(get: { model.thread(ID.fresh)?.fastMode ?? false }, set: { on in model.updateThread(ID.fresh) { $0.fastMode = on } }),
-            onTitleTap: {},
-            onReset: {}
-        )
-        let popover = stage.presentPopover(card.environment(model), width: 330)
-        try? await Task.sleep(for: .milliseconds(900))
-        await recorder.startFilm("slider", stage.captureRect)
-        try? await Task.sleep(for: .milliseconds(900))
-        withAnimation(.snappy(duration: 0.2)) { model.updateThread(ID.fresh) { $0.effort = "xhigh" } }
-        try? await Task.sleep(for: .milliseconds(800))
-        withAnimation(.snappy(duration: 0.2)) { model.updateThread(ID.fresh) { $0.effort = "max" } }
-        try? await Task.sleep(for: .milliseconds(2_000))
-        await recorder.still("slider", stage.captureRect)
-        withAnimation(.snappy(duration: 0.2)) { model.updateThread(ID.fresh) { $0.fastMode = true } }
-        try? await Task.sleep(for: .milliseconds(2_200))
-        withAnimation(.snappy(duration: 0.2)) { model.updateThread(ID.fresh) { $0.fastMode = false; $0.effort = "medium" } }
-        try? await Task.sleep(for: .milliseconds(1_000))
-        withAnimation(.snappy(duration: 0.2)) { model.updateThread(ID.fresh) { $0.effort = "high" } }
-        try? await Task.sleep(for: .milliseconds(1_100))
-        await recorder.stopFilm()
-        popover.close()
-        try? await Task.sleep(for: .milliseconds(500))
-    }
-
-    /// The model switcher behind the slider's title.
-    private static func switcherScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder) async {
-        log("scene switcherScene")
-        guard let thread = model.thread(ID.fresh) else { return }
-        let list = ModelList(thread: thread, hasHistory: false, onChoose: { _ in }, onBack: {})
-        let popover = stage.presentPopover(list.environment(model), width: 330)
-        try? await Task.sleep(for: .milliseconds(900))
-        await recorder.still("switcher", stage.captureRect)
-        popover.close()
-        try? await Task.sleep(for: .milliseconds(400))
-    }
-
-    /// The composer with a slash command menu open: the draft holds a leading slash,
-    /// so the caret-anchored suggestions list shows the registry's commands for the
-    /// thread's provider and directory, seeded here since the run never launches CLIs.
-    static func slashScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = false, stillName: String? = nil) async {
-        log("scene slashScene")
-        model.selectedThreadID = ID.composer
-        try? await Task.sleep(for: .milliseconds(900))
-        let runtime = model.runtime(for: ID.composer)
-        runtime.draft = ComposerDraft()
-        if let thread = model.thread(ID.composer), let project = model.project(thread.projectID) {
-            let directory = thread.worktreePath ?? project.path
-            model.providers.updateCommands([
-                SlashCommand(name: "compact", detail: "Summarize the conversation to free up context", isBuiltIn: true),
-                SlashCommand(name: "review", detail: "Review the working tree for issues"),
-                SlashCommand(name: "commit", detail: "Commit the staged changes"),
-                SlashCommand(name: "test", detail: "Run the project's tests"),
-                SlashCommand(name: "plan", detail: "Turn plan mode on or off", isBuiltIn: true),
-            ], for: thread.provider, directory: directory)
-        }
-        runtime.draft.text = "/"
-        try? await Task.sleep(for: .milliseconds(900))
-        await recorder.still(stillName ?? "slash", film ? stage.captureRect : stage.tourCaptureRect)
-        runtime.draft = ComposerDraft()
-        try? await Task.sleep(for: .milliseconds(500))
-    }
-
-    /// A reply quote in the composer: one line of the assistant's reply as the quoted
-    /// chip, with a short draft under it.
-    static func quoteScene(_ model: AppModel, _ stage: Stage, _ recorder: Recorder, film: Bool = false, stillName: String? = nil) async {
-        log("scene quoteScene")
-        model.selectedThreadID = ID.composer
-        try? await Task.sleep(for: .milliseconds(900))
-        let runtime = model.runtime(for: ID.composer)
-        var draft = ComposerDraft()
-        draft.quotes = [ReplyQuote(text: "In `DraftAttachments`, inside **ComposerView.swift**.")]
-        draft.text = "Do that for the sidebar too."
-        runtime.draft = draft
-        try? await Task.sleep(for: .milliseconds(900))
-        await recorder.still(stillName ?? "quote", film ? stage.captureRect : stage.tourCaptureRect)
-        runtime.draft = ComposerDraft()
-        try? await Task.sleep(for: .milliseconds(500))
     }
 
     /// Streams `text` into the timeline a few characters at a time, as a provider does.
@@ -644,7 +352,7 @@ enum WebsiteCaptures {
 // MARK: - Stage
 
 /// The two windows a capture composites: the app window, and this run's own backdrop under
-/// it, showing this Mac's desktop picture.
+/// it, showing the fixed generated backdrop.
 @MainActor
 final class Stage {
     static let wide = NSSize(width: 1320, height: 860)
@@ -887,48 +595,29 @@ final class Stage {
     }
 }
 
-/// What the glass blurs: this Mac's desktop picture, filling the screen the way the desktop
-/// shows it. Falls back to the system's default wallpaper.
+/// A generated backdrop shared by capture scenes; never reads the user's desktop.
 struct BackdropWallpaper: View {
     let screen: NSScreen
     var alignment: Alignment = .center
 
-    private static let systemDefault = URL(fileURLWithPath: "/System/Library/Wallpapers/.default/DefaultAerial.heic")
-
-    private var image: NSImage? {
-        if let url = NSWorkspace.shared.desktopImageURL(for: screen), let image = NSImage(contentsOf: url) { return image }
-        return NSImage(contentsOf: Self.systemDefault)
-    }
-
     var body: some View {
-        GeometryReader { proxy in
-            if let image {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: proxy.size.width, height: proxy.size.height, alignment: alignment)
-                    .clipped()
-            } else {
-                Color.black
-            }
-        }
+        LinearGradient(
+            colors: [AppTheme.nord.spec.surface, AppTheme.rosePine.spec.surface],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }
 
 // MARK: - Recorder
 
-/// Stills and films of this process's windows as the window server shows them: the run's
+/// Stills of this process's windows as the window server shows them: the run's
 /// backdrop, the app window and any popover above it, and nothing of anyone else's.
 ///
-/// Films are single screenshots taken on a 60 Hz clock and encoded as they arrive, not a
-/// ScreenCaptureKit stream: while a stream runs, the window server draws the captured app
-/// as if it were inactive, gray traffic lights and all, and screenshots never do that.
 @MainActor
 final class Recorder {
     private let output: URL
     private weak var stage: Stage?
-    private var film: FilmRecorder?
-    private var loop: Task<Void, Never>?
 
     init(output: URL, stage: Stage) {
         self.output = output
@@ -938,6 +627,11 @@ final class Recorder {
     /// Photographs `rect` as <name>.png. `focus`, in screen coordinates, names the part of
     /// the scene the tour page should zoom on; it goes into the sidecar.
     func still(_ name: String, _ rect: NSRect, focus: NSRect? = nil) async {
+        guard let screen = NSScreen.main else { return }
+        // Expanded popover framing can reach beyond the display or into the menu bar.
+        // Clip before capture, and record that same rect in the sidecar.
+        let rect = rect.intersection(screen.visibleFrame)
+        guard !rect.isEmpty else { return }
         await stage?.ensureActive()
         WebsiteCaptures.log("still \(name)")
         guard let filter = await Self.filter() else { WebsiteCaptures.log("still \(name): no filter"); return }
@@ -976,64 +670,13 @@ final class Recorder {
         try? data.write(to: output.appendingPathComponent("\(name).json"), options: .atomic)
     }
 
-    /// Starts filming `rect` into films/<name>.mov at 60 fps.
-    func startFilm(_ name: String, _ rect: NSRect) async {
-        await stopFilm()
-        await stage?.ensureActive()
-        WebsiteCaptures.log("film \(name): start")
-        guard let filter = await Self.filter() else { return }
-        let configuration = Self.configuration(for: rect)
-        configuration.captureResolution = .best
-        let url = output.appendingPathComponent("films/\(name).mov")
-        try? FileManager.default.removeItem(at: url)
-        let recorder: FilmRecorder
-        do {
-            recorder = try FilmRecorder(url: url, width: configuration.width, height: configuration.height)
-        } catch {
-            WebsiteCaptures.log("film \(name): failed to start: \(error.localizedDescription)")
-            return
-        }
-        film = recorder
-        let interval = 1.0 / 60
-        loop = Task { [weak self] in
-            let started = Date.now
-            var next = started
-            while let self, !Task.isCancelled {
-                let shot = Date.now
-                if let buffer = try? await SCScreenshotManager.captureSampleBuffer(contentFilter: filter, configuration: configuration) {
-                    recorder.append(buffer, at: shot.timeIntervalSince(started))
-                }
-                _ = self
-                next = next.addingTimeInterval(interval)
-                let wait = next.timeIntervalSinceNow
-                if wait > 0 {
-                    try? await Task.sleep(for: .seconds(wait))
-                } else {
-                    next = Date.now
-                }
-            }
-        }
-    }
-
-    func stopFilm() async {
-        loop?.cancel()
-        loop = nil
-        guard let film else { return }
-        self.film = nil
-        WebsiteCaptures.log("film: stopping")
-        await film.finish()
-        WebsiteCaptures.log("film: stopped, \(film.frames) frames")
-    }
-
-    func finish() async {
-        await stopFilm()
-    }
-
     private static func filter() async -> SCContentFilter? {
         guard let content = try? await SCShareableContent.currentProcess,
               let display = content.displays.first(where: { $0.displayID == CGMainDisplayID() }) ?? content.displays.first
         else { return nil }
-        return SCContentFilter(display: display, including: content.windows)
+        let filter = SCContentFilter(display: display, including: content.windows)
+        filter.includeMenuBar = false
+        return filter
     }
 
     private static func configuration(for rect: NSRect) -> SCStreamConfiguration {
@@ -1041,74 +684,11 @@ final class Recorder {
         let scale = NSScreen.main?.backingScaleFactor ?? 2
         let displayHeight = CGDisplayBounds(CGMainDisplayID()).height
         configuration.sourceRect = CGRect(x: rect.minX, y: displayHeight - rect.maxY, width: rect.width, height: rect.height)
-        // Even dimensions, for the video encoders.
+        // Keep dimensions even when the screen scale produces a fractional size.
         configuration.width = Int(rect.width * scale) & ~1
         configuration.height = Int(rect.height * scale) & ~1
         configuration.scalesToFit = false
         configuration.showsCursor = false
         return configuration
-    }
-}
-
-/// Encodes screenshots into an HEVC master as they arrive, on its own queue, stamped with
-/// the moment each was taken.
-private final class FilmRecorder: @unchecked Sendable {
-    private let queue = DispatchQueue(label: "tivano.website-captures.film", qos: .userInteractive)
-    private let writer: AVAssetWriter
-    private let input: AVAssetWriterInput
-    private let adaptor: AVAssetWriterInputPixelBufferAdaptor
-    private var started = false
-    private var last = CMTime.zero
-    private(set) var frames = 0
-
-    init(url: URL, width: Int, height: Int) throws {
-        writer = try AVAssetWriter(outputURL: url, fileType: .mov)
-        input = AVAssetWriterInput(mediaType: .video, outputSettings: [
-            AVVideoCodecKey: AVVideoCodecType.hevc,
-            AVVideoWidthKey: width,
-            AVVideoHeightKey: height,
-            AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: 80_000_000,
-                AVVideoExpectedSourceFrameRateKey: 60,
-                AVVideoMaxKeyFrameIntervalKey: 60,
-                AVVideoAllowFrameReorderingKey: false,
-            ],
-        ])
-        input.expectsMediaDataInRealTime = true
-        adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-            kCVPixelBufferWidthKey as String: width,
-            kCVPixelBufferHeightKey as String: height,
-        ])
-        writer.add(input)
-        guard writer.startWriting() else { throw writer.error ?? CocoaError(.fileWriteUnknown) }
-        writer.startSession(atSourceTime: .zero)
-        started = true
-    }
-
-    func append(_ buffer: CMSampleBuffer, at seconds: TimeInterval) {
-        let frame = Frame(buffer: buffer)
-        queue.async { [self] in
-            guard let pixelBuffer = CMSampleBufferGetImageBuffer(frame.buffer), input.isReadyForMoreMediaData else { return }
-            let time = CMTime(seconds: seconds, preferredTimescale: 6_000)
-            guard time > last else { return }
-            if adaptor.append(pixelBuffer, withPresentationTime: time) {
-                last = time
-                frames += 1
-            }
-        }
-    }
-
-    func finish() async {
-        await withCheckedContinuation { continuation in
-            queue.async { [self] in
-                input.markAsFinished()
-                writer.finishWriting { continuation.resume() }
-            }
-        }
-    }
-
-    private struct Frame: @unchecked Sendable {
-        let buffer: CMSampleBuffer
     }
 }

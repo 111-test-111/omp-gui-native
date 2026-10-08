@@ -1,8 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// A thread row's glide to its new place in the sidebar: down to the settled rows as it
-/// settles, back up among the open ones as it reopens.
+/// A thread row's glide back among the open rows when it reopens.
 ///
 /// The row itself is swapped for its new form the moment the thread changes; what travels
 /// is a ghost. It leaves the old row's frame looking like the old row and lands on the new
@@ -18,14 +17,8 @@ final class RowGlideAnimator {
     nonisolated static let spring = Chrome.glideSpring
 
     struct Glide: Identifiable {
-        enum Direction {
-            case settle
-            case reopen
-        }
-
         let id = UUID()
         let threadID: UUID
-        let direction: Direction
         /// The row's face as it looked where it left, and as it looks where it lands.
         let departure: NSImage
         let arrival: NSImage
@@ -64,7 +57,6 @@ final class RowGlideAnimator {
     /// the new row reports where it really is. Nothing flies with Reduce Motion on.
     func launch(
         threadID: UUID,
-        direction: Glide.Direction,
         from: CGRect,
         fallback: CGRect,
         bounds: CGRect,
@@ -76,7 +68,7 @@ final class RowGlideAnimator {
         guard from.width > 1, from.height > 1, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
         glides.removeAll { $0.threadID == threadID }
         glides.append(Glide(
-            threadID: threadID, direction: direction, departure: departure, arrival: arrival,
+            threadID: threadID, departure: departure, arrival: arrival,
             departureFill: departureFill, arrivalFill: arrivalFill, from: from, to: fallback, bounds: bounds
         ))
         setHiding(threadID, true)
@@ -86,7 +78,7 @@ final class RowGlideAnimator {
     func land(threadID: UUID, settled: Bool, at frame: CGRect) {
         guard let index = glides.firstIndex(where: { $0.threadID == threadID }),
               Date.now.timeIntervalSince(glides[index].launchedAt) < Self.landingWindow,
-              glides[index].direction == (settled ? .settle : .reopen) else { return }
+              !settled else { return }
         glides[index].to = frame
         glides[index].hasLanded = true
     }
@@ -184,10 +176,9 @@ private struct RowGlideView: View {
                 // The lift comes up as the row takes off and is gone by the time it lands.
                 let lift = min(Self.smoothstep(0, 0.12, p), 1 - Self.smoothstep(0.7, 1, p))
                 let fill = max(glide.departureFill + (glide.arrivalFill - glide.departureFill) * p, 0.12 * lift)
-                let settles = glide.direction == .settle
                 let checkTravel = Self.smoothstep(0.05, 0.95, p)
-                let checkStart = settles ? frame.maxX - Self.trailingCheckInset : frame.minX + Self.leadingCheckInset
-                let checkEnd = settles ? frame.minX + Self.leadingCheckInset : frame.maxX - Self.trailingCheckInset
+                let checkStart = frame.minX + Self.leadingCheckInset
+                let checkEnd = frame.maxX - Self.trailingCheckInset
                 // Both faces sit at the row's top-left corner, each at the size it was drawn at;
                 // the frame between them clips whichever is the larger, and the one fades into
                 // the other on the way.
@@ -211,14 +202,12 @@ private struct RowGlideView: View {
                 }
                 .position(x: frame.midX, y: frame.midY)
                 .overlay(alignment: .topLeading) {
-                    // The check crosses the row on its own: from beside the ellipsis to the
-                    // front as the thread settles (easing back from its pop on the way), and
-                    // back again as it reopens, fading once the row is open.
-                    Image(systemName: settles ? "checkmark.circle.fill" : "checkmark.circle")
+                    // The check travels from the front to the trailing edge as the
+                    // thread reopens, fading once the row is open.
+                    Image(systemName: "checkmark.circle")
                         .font(Chrome.inlineIconFont)
                         .foregroundStyle(Chrome.success)
-                        .scaleEffect(settles ? 1.35 - 0.35 * Self.smoothstep(0, 0.5, p) : 1)
-                        .opacity(settles ? 1 - 0.2 * p : 1 - Self.smoothstep(0.55, 0.9, p))
+                        .opacity(1 - Self.smoothstep(0.55, 0.9, p))
                         .position(x: checkStart + (checkEnd - checkStart) * checkTravel, y: frame.midY)
                 }
                 .frame(width: canvas.width, height: canvas.height, alignment: .topLeading)

@@ -157,7 +157,6 @@ final class AppSettings {
         static let threadFinishAction = "threadFinishAction"
         static let settleSound = "settleSound"
         static let showReasoning = "showReasoning"
-        static let chronologicalTimeline = "chronologicalTimeline"
         static let antiSlopEnabled = "antiSlopEnabled"
         static let showsWorkingCard = "showsWorkingCard"
         static let timelineHapticStyle = "timelineHapticStyle"
@@ -171,7 +170,6 @@ final class AppSettings {
         static let backdropOpacity = "backdropOpacity"
         static let appearance = "appearance"
         static let performanceMode = "performanceMode"
-        static let performanceModeKey = performanceMode
         static let binaryPaths = "providerBinaryPaths"
         static let disabledProviders = "disabledProviders"
         static let models = "lastModels"
@@ -268,13 +266,6 @@ final class AppSettings {
 
     var showReasoning: Bool {
         didSet { defaults.set(showReasoning, forKey: Key.showReasoning) }
-    }
-
-    /// The running turn's rows in arrival order — replies and tool runs interleaved as
-    /// they happened — instead of every step before the last tool call drawn into the
-    /// working line.
-    var chronologicalTimeline: Bool {
-        didSet { defaults.set(chronologicalTimeline, forKey: Key.chronologicalTimeline) }
     }
 
     var antiSlopEnabled: Bool {
@@ -827,7 +818,6 @@ final class AppSettings {
         threadFinishAction = ThreadFinishAction(rawValue: defaults.string(forKey: Key.threadFinishAction) ?? "") ?? .settle
         settleSound = defaults.object(forKey: Key.settleSound) as? Bool ?? true
         showReasoning = defaults.object(forKey: Key.showReasoning) as? Bool ?? false
-        chronologicalTimeline = defaults.object(forKey: Key.chronologicalTimeline) as? Bool ?? false
         antiSlopEnabled = defaults.object(forKey: Key.antiSlopEnabled) as? Bool ?? true
         showsWorkingCard = defaults.object(forKey: Key.showsWorkingCard) as? Bool ?? true
         timelineHapticStyle = TimelineHapticStyle(rawValue: defaults.string(forKey: Key.timelineHapticStyle) ?? "") ?? .soft
@@ -954,10 +944,6 @@ final class AppSettings {
     }
 
     // MARK: - Model picker
-
-    func isInModelList(_ pin: ModelPin) -> Bool {
-        modelList.contains(pin)
-    }
 
     func addToModelList(_ pin: ModelPin) {
         guard !modelList.contains(pin), modelList.count < Self.modelListLimit else { return }

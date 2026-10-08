@@ -2184,7 +2184,7 @@ struct RowContext: Equatable {
     var workingDirectory: String?
     /// Whether the block's turn can be reverted right now.
     var canRewind: Bool
-    /// Whether the working line opens with all steps in arrival order (`chronologicalTimeline`).
+    /// Whether the working line opens with all steps in arrival order.
     var chronological: Bool
 }
 

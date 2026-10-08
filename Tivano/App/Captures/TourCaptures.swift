@@ -2,13 +2,13 @@ import AppKit
 import SwiftUI
 
 /// The onboarding tour's captures: eight scenes (plus four theme variants) photographed
-/// over this Mac's desktop picture as 16:10 images:
+/// over a fixed generated gradient as 16:10 images:
 ///
 ///     open -n -W "Tivano.app" --args --tour-captures <folder>
 ///
 /// Same isolation contract as WebsiteCaptures: own storage folder, own defaults suite,
 /// quits when the last file is written. The Hydra scene itself lives in
-/// `TourCaptures+Hydra.swift`, written by another head.
+/// `TourCaptures+Hydra.swift`.
 @MainActor
 enum TourCaptures {
     enum Backdrop: CaseIterable {
@@ -48,15 +48,20 @@ enum TourCaptures {
 
     static func run(model: AppModel) async {
         guard let output = CaptureRun.outputDirectory else { return }
-        // Thirty-odd stills, each with an activation wait: ten minutes of budget.
+        // Library loading moved out of AppModel.init; the normal launch performs this
+        // separately, while capture launch skips that path.
+        await model.bootstrap()
+        guard model.isLibraryLoaded, !model.threads.isEmpty else {
+            WebsiteCaptures.log("capture library failed to load")
+            exit(1)
+        }
+        // Each still waits for activation; ten minutes is the capture budget.
         Task {
             try? await Task.sleep(for: .seconds(600))
             WebsiteCaptures.log("out of time, quitting")
             exit(0)
         }
-        // The run's fresh defaults never saw the Hydra intro, and the first chat with
-        // Hydra on would show it over the welcome overview; the intro has a scene of its
-        // own (web-intro) that presents it on purpose.
+        // The first Hydra chat must not present an intro over the staged screenshot.
         model.settings.hasSeenHydraIntro = true
         let stage = Stage(model: model)
         stage.show(size: NSSize(width: 1200, height: 660))
@@ -71,14 +76,12 @@ enum TourCaptures {
             if model.sidebar.isVisible { model.sidebar.toggle() }
             model.settings.theme = .dark
             model.selectedThreadID = WebsiteCaptures.composerThreadID
-            await WebsiteCaptures.editingScene(model, stage, recorder, film: false)
+            await WebsiteCaptures.editingScene(model, stage, recorder)
             try? await Task.sleep(for: .milliseconds(900))
             return nil
         }
-        // 2. tour-hydra (the other head's).
+        // 2. tour-hydra.
         await TourCaptures.hydraScene(model, stage, recorder)
-        // 2b. web-hero: the one picture with everything in it.
-        await TourCaptures.heroScene(model, stage, recorder)
         // 3. tour-pairs: zoomed on the model switcher hanging from the composer's
         // chip. Narrow 16:10 stage, sidebar hidden, chip settled before hanging.
         await capture(model, stage, recorder, name: "tour-pairs", backdrop: .pairs, size: NSSize(width: 960, height: 600)) {
@@ -150,35 +153,6 @@ enum TourCaptures {
         }
         // 5. tour-panels: the team's panel and a popped-out head over the lead's chat.
         await TourCaptures.panelsScene(model, stage, recorder)
-        // 5b. web-diff, web-palette, web-plans, web-question, web-queue: the site's
-        // composer scenes over gradients instead of the desktop picture.
-        await siteScene(model, stage, recorder, name: "web-diff", backdrop: .panels, size: NSSize(width: 1200, height: 660)) {
-            await WebsiteCaptures.diffScene(model, stage, recorder, film: false, stillName: "web-diff")
-        }
-        await siteScene(model, stage, recorder, name: "web-palette", backdrop: .welcome, size: NSSize(width: 1200, height: 660)) {
-            await WebsiteCaptures.paletteScene(model, stage, recorder, film: false, stillName: "web-palette")
-        }
-        await siteScene(model, stage, recorder, name: "web-plans", backdrop: .pairs, size: NSSize(width: 1200, height: 660)) {
-            await WebsiteCaptures.plansScene(model, stage, recorder, film: false, stillName: "web-plans")
-        }
-        await siteScene(model, stage, recorder, name: "web-question", backdrop: .hydra, size: NSSize(width: 1200, height: 660)) {
-            await WebsiteCaptures.questionScene(model, stage, recorder, film: false, stillName: "web-question")
-        }
-        await siteScene(model, stage, recorder, name: "web-queue", backdrop: .slider, size: NSSize(width: 1200, height: 660)) {
-            await WebsiteCaptures.queueScene(model, stage, recorder, film: false, stillName: "web-queue")
-        }
-        // 5c. web-intro: the Hydra intro popover over the chat, for the site.
-        await capture(model, stage, recorder, name: "web-intro", backdrop: .pairs, size: NSSize(width: 1200, height: 660)) {
-            if model.sidebar.isVisible { model.sidebar.toggle() }
-            model.selectedThreadID = WebsiteCaptures.composerThreadID
-            try? await Task.sleep(for: .milliseconds(900))
-            let intro = HydraIntroPopover(dismiss: {}).environment(model)
-            // From the toolbar's mark, where the app shows it, at the intro's own width
-            // (420); the chip is the fallback.
-            let popover = stage.presentPopover(intro, width: 420, chipOf: WebsiteCaptures.composerThreadID, at: WebsiteCaptures.hydraMarkFrame)
-            await stage.holdPopover(popover, seconds: 2.0)
-            return popover
-        }
         // 6. tour-theme-<rawValue>: four themes far apart, one of them light. Each shows
         // one quarter of a double-size gradient, so the four tile into one seamless image.
         let quadrantThemes = [AppTheme.tokyoNight, .gruvbox, .catppuccinLatte, .rosePine]
@@ -197,57 +171,11 @@ enum TourCaptures {
         }
         model.settings.theme = .dark
 
-        // 6b. web-theme-<rawValue>: the same window in every theme, for the theme picker.
-        for theme in AppTheme.allCases {
-            await capture(model, stage, recorder, name: "web-theme-\(theme.rawValue)", backdrop: .themes, size: NSSize(width: 960, height: 600)) {
-                if model.sidebar.isVisible { model.sidebar.toggle() }
-                model.selectedThreadID = WebsiteCaptures.composerThreadID
-                model.settings.theme = theme
-                try? await Task.sleep(for: .milliseconds(650))
-                return nil
-            }
-        }
-        model.settings.theme = .dark
-
-        // 7. tour-window: the tour itself, over the backdrop alone, for the website.
-        WebsiteCaptures.log("scene tour-window")
-        stage.setBackdrop(backdropView(.welcome))
-        stage.setWindowHidden(true)
-        let tourWindow = TourWindowController.shared.present(pages: Tour.pages)
-        NSApp.activate(ignoringOtherApps: true)
-        try? await Task.sleep(for: .milliseconds(1_400))
-        await recorder.still("tour-window", Stage.tourRect(around: tourWindow.frame))
-        TourWindowController.shared.close()
-        stage.setWindowHidden(false)
-
-        // 8. web-notify at 1280x800: the thread that needs you — sidebar shown so the
-        // question badge and the sidebar's attention state are in the picture.
-        WebsiteCaptures.log("scene web-notify")
-        stage.setBackdrop(backdropView(.welcome))
-        stage.resize(to: NSSize(width: 1280, height: 800))
-        if !model.sidebar.isVisible { model.sidebar.toggle() }
-        model.selectedThreadID = WebsiteCaptures.composerThreadID
-        await stage.ensureActive()
-        try? await Task.sleep(for: .milliseconds(900))
-        await WebsiteCaptures.questionScene(model, stage, recorder, film: false, stillName: "web-notify")
-        if model.sidebar.isVisible { model.sidebar.toggle() }
-        // 9. web-slash at 1280x800: the composer with its slash command menu open.
-        await siteScene(model, stage, recorder, name: "web-slash", backdrop: .welcome, size: NSSize(width: 1280, height: 800)) {
-            await WebsiteCaptures.slashScene(model, stage, recorder, film: false, stillName: "web-slash")
-        }
-        // 10. web-quote at 1280x800: a reply quote in the composer with a short draft
-        // under it.
-        await siteScene(model, stage, recorder, name: "web-quote", backdrop: .welcome, size: NSSize(width: 1280, height: 800)) {
-            await WebsiteCaptures.quoteScene(model, stage, recorder, film: false, stillName: "web-quote")
-        }
-
-        await recorder.finish()
         WebsiteCaptures.log("tour done")
         exit(0)
     }
 
-    /// The two pairs the pairs scene stages, created once: the hero scene runs first and
-    /// needs the first of them.
+    /// The two pairs staged for the model picker.
     static func ensurePairs(_ model: AppModel) async {
         guard model.settings.hydraPairs.isEmpty else { return }
         let fableID = model.providers.model("claude-fable-5-1[1m]", for: .claude)?.id ?? "claude-fable-5-1[1m]"
@@ -268,27 +196,6 @@ enum TourCaptures {
 
     /// A site scene over a gradient: sidebar hidden, settled, then the scene stages
     /// itself and takes its own still.
-    private static func siteScene(
-        _ model: AppModel, _ stage: Stage, _ recorder: Recorder,
-        name: String, backdrop: Backdrop, size: NSSize,
-        body: () async -> Void
-    ) async {
-        WebsiteCaptures.log("scene \(name)")
-        stage.setBackdrop(backdropView(backdrop))
-        stage.resize(to: size)
-        if model.sidebar.isVisible { model.sidebar.toggle() }
-        model.selectedThreadID = WebsiteCaptures.composerThreadID
-        await stage.ensureActive()
-        try? await Task.sleep(for: .milliseconds(900))
-        _ = model
-        _ = recorder
-        await body()
-    }
-
-    /// Sets the gradient backdrop, resizes, settles, runs the body (which stages the
-    /// scene and returns any popover to keep open for the shot), photographs the
-    /// 16:10 tour rect around the window plus any open popover, then closes the
-    /// popover and runs `after`.
     private static func capture(
         _ model: AppModel, _ stage: Stage, _ recorder: Recorder,
         name: String, backdrop: Backdrop, size: NSSize,

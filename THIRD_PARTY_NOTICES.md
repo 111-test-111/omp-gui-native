@@ -130,8 +130,10 @@ SOFTWARE.
 
 ## Zeron
 
-Droppy Code's working indicators (`Tivano/UI/Common/WorkingIndicators.swift`) are ported from Zeron,
-https://github.com/zeronsh/zeron, `apps/ios/Zeron/Views/Loaders.swift` and `apps/ios/Zeron/Theme/Motion.swift`.
+Tivano's working indicators (`Tivano/UI/Common/WorkingIndicators.swift`) are ported from Zeron,
+https://github.com/zeronsh/zeron, `apps/ios/Zeron/Views/Loaders.swift`,
+`apps/ios/Zeron/Theme/Motion.swift` and `crates/ui/src/markdown/veil.rs`
+(`Tivano/UI/Markdown/StreamVeil.swift`).
 
 MIT License
 
@@ -211,8 +213,64 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+## mugen-markdown
+
+The streaming fade in `Tivano/UI/Markdown/StreamVeil.swift` derives from Zeron's
+veil implementation, which credits mugen-markdown's `FadePainter`.
+https://github.com/wingleeio/mugen
+
+MIT License
+
+Copyright (c) 2026 Wing Lee
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Anti-slop guidance
+
+Tivano's concise reply guidance is adapted from ideas in
+https://github.com/miqdadbadjuber/anti-slop, revision
+`743735248fbaefd76bb56619615687dfa8b3bc1e`. Tivano does not bundle or run its tooling.
+
+MIT License
+
+Copyright (c) 2026 Miqdad Badjuber
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 ## Provider names and marks
 
 Codex, Claude, Cursor, OpenCode, Grok, DeepSeek, Meta, Devin, Antigravity, GitHub Copilot and Command
 Code are the names and marks of their respective owners, used here to name the agents the app drives.
-Droppy Code is not affiliated with or endorsed by any of them.
+Tivano is not affiliated with or endorsed by any of them.

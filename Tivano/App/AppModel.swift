@@ -248,7 +248,7 @@ final class AppModel {
         let originalThreads = library.threads
         libraryFile.remember((try? JSONEncoder.storage.encode(library)) ?? Data(), existed: FileManager.default.fileExists(atPath: Storage.libraryURL.path))
         libraryStamp = nil
-        for index in library.threads.indices where (library.threads[index].lastStatus == .running || library.threads[index].hydra?.status == .running) {
+        for index in library.threads.indices where !CaptureRun.isEnabled && (library.threads[index].lastStatus == .running || library.threads[index].hydra?.status == .running) {
             if library.threads[index].lastStatus == .running {
                 library.threads[index].lastStatus = .interrupted
             }
@@ -266,6 +266,8 @@ final class AppModel {
         isLibraryLoaded = true
         libraryLoad = nil
         if threads != originalThreads || projects != library.projects { scheduleSave() }
+        // Capture seeds retain their staged statuses and never start account or merge services.
+        if CaptureRun.isEnabled { return }
         if !CaptureRun.isEnabled {
             sharedRefreshTask = Task { [weak self] in
                 while !Task.isCancelled {
@@ -323,9 +325,6 @@ final class AppModel {
                 await providers.updateCLIIfDue(provider)
             }
         }
-        // Last, once nothing the first click needs is waiting on the disk: the attachment
-        // files no thread refers to any more go, a day after they were written.
-        guard !CaptureRun.isEnabled else { return }
         // Another edition can hold an attachment in an unsaved draft. Automatic
         // orphan reclamation is paused rather than deleting that process's data.
     }

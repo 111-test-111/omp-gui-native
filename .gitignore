@@ -8,3 +8,7 @@ build.noindex/
 -Xcc/
 
 __pycache__/
+
+# Private icon deliveries and source archives are kept outside the repository.
+/Tivano-Icon-*.zip
+/design/icons/Tivano-Icon-v*/

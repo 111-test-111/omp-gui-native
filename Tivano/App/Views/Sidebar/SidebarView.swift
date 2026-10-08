@@ -1430,8 +1430,6 @@ private struct SidebarHelperRow: View, Equatable {
         .opacity(isHidden ? 0 : 1)
     }
 
-    /// The ellipsis popover's items. Kept on the instance: a popover is not an AppKit menu.
-
     static func == (lhs: SidebarHelperRow, rhs: SidebarHelperRow) -> Bool {
         lhs.snapshot.id == rhs.snapshot.id
             && lhs.snapshot.title == rhs.snapshot.title
@@ -1941,34 +1939,27 @@ private struct SidebarThreadRow: View, Equatable {
 
     private func reopen() {
         guard thread.isSettled else { return }
-        glide(.reopen)
+        glide()
         model.reopenAnimated(thread.id)
     }
 
     /// Sends the row's ghost on its way: from this row's frame, looking like this row, to
     /// where the thread's other row will be (or the list's edge, when that is out of view),
     /// looking like that one. Launched just before the thread changes, so the new row can
-    /// report its frame to the ghost as it arrives. Only a reopen flies now: a settle leaves
-    /// in place (see `settle`), so the settle branches below are kept for the flight's shape
-    /// but no longer run.
-    private func glide(_ direction: RowGlideAnimator.Glide.Direction) {
+    /// report its frame to the ghost as it arrives. Only reopening flies; settling leaves
+    /// the row in place (see `settle`).
+    private func glide() {
         guard let listFrame else { return }
         let from = windowFrame.frame
         let bounds = listFrame.frame
         let isSelected = model.selectedThreadID == thread.id
-        let settled = direction == .settle
-        // The thread as its other row will show it: the settled one keeps its place at the
-        // bottom unpinned and read; the reopened one is open again.
+        // The thread as its reopened row will show it.
         var arriving = thread
-        arriving.isSettled = settled
-        if settled {
-            arriving.isPinned = false
-            arriving.hasUnread = false
-        }
-        let arrivalHeight = settled ? ThreadRowMetrics.settledHeight : (projectName != nil ? ThreadRowMetrics.detailedHeight : Chrome.rowHeight)
+        arriving.isSettled = false
+        let arrivalHeight = projectName != nil ? ThreadRowMetrics.detailedHeight : Chrome.rowHeight
         let fallback = CGRect(
             x: from.minX,
-            y: settled ? bounds.maxY : bounds.minY - arrivalHeight,
+            y: bounds.minY - arrivalHeight,
             width: from.width,
             height: arrivalHeight
         )
@@ -1977,7 +1968,7 @@ private struct SidebarThreadRow: View, Equatable {
         // The faces leave the same room at the trailing end as the rows they stand in for: the
         // departing row is hovered, with its buttons out; the arriving one shows its status.
         let departureClearance = Self.trailingClearance(isSettled: thread.isSettled, isDetailed: projectName != nil, showsActions: true)
-        let arrivalClearance = Self.trailingClearance(isSettled: settled, isDetailed: !settled && projectName != nil, showsActions: false)
+        let arrivalClearance = Self.trailingClearance(isSettled: false, isDetailed: projectName != nil, showsActions: false)
         guard let departure = animator.render(
             ThreadRowFace(thread: thread, projectName: projectName, projectIcon: projectIcon, isSelected: isSelected, trailingClearance: departureClearance) { badge },
             size: from.size, colorScheme: colorScheme
@@ -1987,7 +1978,6 @@ private struct SidebarThreadRow: View, Equatable {
         ) else { return }
         animator.launch(
             threadID: thread.id,
-            direction: direction,
             from: from,
             fallback: fallback,
             bounds: bounds,

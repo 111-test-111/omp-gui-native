@@ -5,13 +5,13 @@ The app runs once in its tour capture mode (see Tivano/App/Captures/TourCaptures
 it opens the real window with mock data over a curated gradient backdrop, photographs
 each tour scene as a 16:10 still into build.noindex/tour-captures, and quits. This
 script then resizes every still to exactly 1320x824 and writes it into the tour
-imagesets (welcome comes from the web hero, themes from a seamless 2x2 collage).
+imagesets (themes come from a seamless 2x2 collage).
 
 A still's sidecar may name a `focus`, the part of the scene the page is about (the
 open popover with its chip, the team's panel); the page is then cut around that focus
 instead of the whole window, so the slider, recipes and Hydra pages zoom on their subject.
 
-Needs Pillow (pip).
+Needs Pillow (pip), or run with `uv run --with Pillow scripts/tour_captures.py`.
 
     scripts/tour_captures.py                 # build, capture, import into the asset catalog
 """
@@ -26,45 +26,32 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CAPTURES = ROOT / "build.noindex" / "tour-captures"
 DERIVED = ROOT / "build.noindex" / "tour"
-APP = DERIVED / "Build/Products/Debug/Tivano.app"
+APP = DERIVED / "Build/Products/Debug/Tivano Dev.app"
 ASSETS = ROOT / "Tivano" / "Resources" / "Assets.xcassets"
 
 WIDTH = 1320
 HEIGHT = 824
-SCENES = ["welcome", "hydra", "pairs", "slider", "threads", "recipes", "panels"]
 CONTENTS = {"info": {"author": "xcode", "version": 1}}
 
 # App window size in points for each still, matching the stage sizes in
 # Tivano/App/Captures/TourCaptures.swift (and TourCaptures+Hydra.swift). Every
 # still is a 16:10 rect around the window: the frame grown by 72 pt on every
 # side, then widened/heightened to 1.6. The popover scenes (tour-pairs,
-# tour-slider, tour-recipes, web-hero) photograph the window unioned with the open popover
+# tour-slider, tour-recipes) photograph the window unioned with the open popover
 # (see Stage.tourCaptureRect(including:)), so their PNGs are larger than the
 # window-only rect below.
 WINDOW_SIZES = {
     "tour-welcome": (1280, 800),
-    "web-hero": (1280, 800),
     "tour-hydra": (960, 600),
     "tour-pairs": (960, 600),
     "tour-slider": (960, 600),
     "tour-threads": (960, 600),
     "tour-recipes": (960, 600),
     "tour-panels": (1280, 800),
-    "tour-window": (660, 600),
-    "web-diff": (1200, 660),
-    "web-palette": (1200, 660),
-    "web-plans": (1200, 660),
-    "web-question": (1200, 660),
-    "web-queue": (1200, 660),
-    "web-intro": (1200, 660),
     "tour-theme-tokyoNight": (960, 600),
     "tour-theme-gruvbox": (960, 600),
     "tour-theme-catppuccinLatte": (960, 600),
     "tour-theme-rosePine": (960, 600),
-    "web-theme-tokyoNight": (960, 600),
-    "web-theme-gruvbox": (960, 600),
-    "web-theme-catppuccinLatte": (960, 600),
-    "web-theme-rosePine": (960, 600),
 }
 THEME_ORDER = ["tokyoNight", "gruvbox", "catppuccinLatte", "rosePine"]
 
@@ -89,7 +76,10 @@ def step(title):
 
 def build():
     step("Building Tivano (Debug)")
-    subprocess.run(["xcodegen", "generate", "--quiet"], cwd=ROOT, check=True)
+    if shutil.which("xcodegen"):
+        subprocess.run(["xcodegen", "generate", "--quiet"], cwd=ROOT, check=True)
+    elif not (ROOT / "Tivano.xcodeproj").exists():
+        sys.exit("Install XcodeGen to generate Tivano.xcodeproj")
     result = subprocess.run([
         "xcodebuild", "-project", "Tivano.xcodeproj", "-scheme", "Tivano", "-configuration", "Debug",
         "-destination", "platform=macOS", "-derivedDataPath", str(DERIVED), "-skipPackagePluginValidation", "build",
@@ -107,7 +97,7 @@ def capture():
     # activation, and the captures need the key window of the active app. Not waited on:
     # the run is force-killed at its budget, so a stall can never leave it running.
     marker = "tour-captures " + str(CAPTURES)
-    subprocess.run(["open", "-n", str(APP), "--args", "--tour-captures", str(CAPTURES)], check=True)
+    subprocess.run(["open", "-n", str(APP), "--args", "-AppleLanguages", "(en)", "--tour-captures", str(CAPTURES)], check=True)
     deadline = time.time() + 630
     while time.time() < deadline:
         time.sleep(2)
@@ -125,7 +115,7 @@ def capture():
 def fit(image, width, height):
     """Centre-crop to the target aspect (a no-op when already exact, up to rounding),
     then resize to exactly width x height."""
-    from PIL import Image, ImageDraw
+    from PIL import Image
     if abs(image.width / image.height - width / height) > 1e-9:
         target = width / height
         if image.width / image.height > target:
@@ -219,12 +209,13 @@ def frame(name, inset=8):
     scale = image.width / rect_w
     inner = (x + inset, y + inset, x + w - inset, y + h - inset)
     focus = frames.get("focus")
-    box = focus_box(inner, focus)
+    min_share = 0.45 if name == "tour-slider" else 0.55
+    box = focus_box(inner, focus, min_share=min_share)
     if focus and box == inner:
         # A focus the window cannot hold (the cookbook's popover is taller than the
         # window it hangs from): cut around it within the whole still instead, so the
         # page shows the popover entire beside the window rather than clipped at its edge.
-        box = focus_box((0, 0, rect_w, rect_h), focus)
+        box = focus_box((0, 0, rect_w, rect_h), focus, min_share=min_share)
     print(f"  {name}: {'focus' if focus and box != inner else 'whole window'} {tuple(round(v) for v in box)}")
     return image.crop(tuple(round(scale * v) for v in box))
 
@@ -243,7 +234,7 @@ def theme_mosaic():
 
 
 def encode():
-    from PIL import Image, ImageDraw
+    from PIL import Image
     step("Importing")
     # The welcome page is its own scene: the whole window with the sidebar open, no
     # popover, so the first page is the overview and not the hero's close-up.
@@ -256,6 +247,10 @@ def encode():
 
 
 if __name__ == "__main__":
+    try:
+        import PIL
+    except ImportError:
+        sys.exit("Pillow is required: uv run --with Pillow scripts/tour_captures.py")
     build()
     capture()
     encode()

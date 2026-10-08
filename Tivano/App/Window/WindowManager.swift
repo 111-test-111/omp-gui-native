@@ -71,7 +71,7 @@ final class WindowManager {
         return window
     }
 
-    /// The main window for the website captures: the same window, at a fixed size, with
+    /// The main window for the onboarding captures: the same window, at a fixed size, with
     /// no frame autosave, so the run never reads or writes where the real window sits.
     func makeCaptureWindow(size: NSSize) -> NSWindow {
         makeWindow(title: AppInfo.name, size: size, resizable: true) { RootView() }
