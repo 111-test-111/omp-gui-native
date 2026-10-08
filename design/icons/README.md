@@ -1,7 +1,7 @@
 # Tivano app icon
 
-The active release artwork is v1.2 System-Masked. The original v1, v1.1 and
-v1.2 delivery packages are retained in a private archive outside this repository.
+The active release artwork is v1.4 System-Masked. The original v1, v1.1, v1.2
+and v1.4 delivery packages are retained in a private archive outside this repository.
 
 The system applies the outer icon mask. Keep the full square input; do not add
 outer rounded corners or enlarge the artwork to fill the mask.
