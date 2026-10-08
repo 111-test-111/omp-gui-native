@@ -201,7 +201,7 @@ enum WindowChrome {
         window.autorecalculatesKeyViewLoop = true
     }
 
-    /// Keep AppKit's clear, shadowed window; SwiftUI owns the opaque fill and rounded corners.
+    /// Keep AppKit's exterior corners and shadow; SwiftUI owns the backdrop fill.
     /// Refresh the system shadow when performance mode changes the fill.
     static func setPerformanceMode(_ performanceMode: Bool, on window: NSWindow) {
         window.invalidateShadow()

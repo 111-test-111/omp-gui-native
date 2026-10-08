@@ -76,7 +76,7 @@ struct TourView: View {
         }
         .frame(width: width, height: height)
         // The floating-panel recipe from SubagentPanel: one shared rounded shape for
-        // either state, one glass/tint surface, one clip, and one inset hairline.
+        // either state, one glass/tint surface and one clip. Glass supplies its own edge.
         .background {
             if performanceMode {
                 shape.fill(Color(nsColor: .windowBackgroundColor))
@@ -91,7 +91,9 @@ struct TourView: View {
         }
         .clipShape(shape)
         .overlay {
-            shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1)
+            if performanceMode {
+                shape.strokeBorder(Chrome.overlay(0.14), lineWidth: 1)
+            }
         }
         // The scrim sits under the glass as a plain filled shape; AppKit owns the shadow.
         .background {

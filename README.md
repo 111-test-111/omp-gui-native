@@ -21,7 +21,7 @@ Tivano drives the coding agents you already have installed and signed in, on you
 - Projects and threads in a glass sidebar, with search, pinning and settling.
 - Streaming conversations with reasoning, tool calls, plans and inline approvals.
 - Plan mode, model and reasoning selection, four permission modes per thread.
-- Twenty-six tinted-glass themes, from System to Catppuccin, Dracula, Claude and Codex.
+- Twenty-nine tinted-glass themes, from System to Catppuccin, Dracula, Claude and Codex.
 - A diff for every turn, captured as hidden git checkpoints, with revert.
 - An embedded terminal per thread, and new threads in their own git worktree.
 - Commit, push and pull requests, with generated commit messages and titles.

@@ -117,7 +117,6 @@ struct SettingsView: View {
         .onDisappear { scrollTracker.end() }
         .background { WindowBackdrop(opacity: model.settings.backdropOpacity) }
         .background { WindowChromeConfigurator(performanceMode: model.settings.performanceMode) }
-        .clipShape(RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous))
         .ignoresSafeArea()
         .frame(width: 780, height: 580)
         .onChange(of: SettingsNavigation.shared.requestedPage, initial: true) { _, requested in
@@ -1211,8 +1210,9 @@ private struct ProjectMarksRow: View {
     }
 }
 
-/// The theme menu: System on top, then the dark and the light themes in their
-/// own sections, each with a swatch of its surface and accent.
+/// The theme menu: Breeze (Tivano's own) and System on top, then the dark and the
+/// light themes in their own sections, each with a swatch of its surface and accent.
+/// Breeze Dark and Breeze Light lead their sections.
 private struct ThemePickerButton: View {
     @Binding var selection: AppTheme
 
@@ -1249,6 +1249,7 @@ private struct ThemePickerButton: View {
         }
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu {
+                item(.breeze)
                 item(.system)
                 PopoverSectionHeader("Dark")
                 ForEach(Self.dark) { item($0) }
