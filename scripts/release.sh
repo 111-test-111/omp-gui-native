@@ -1,23 +1,24 @@
 #!/bin/bash
-# Builds, signs, notarizes and packages Droppy Code as a disk image.
+# Builds, signs, notarizes and packages Tivano, then updates /Applications.
+# Never quits or launches the app.
 #
 #   scripts/release.sh
 #
 # Needs Xcode, XcodeGen, a Developer ID Application certificate for the team below
-# and a notarytool keychain profile (NOTARY_PROFILE, "Droppy-Notarize" by default).
+# and a notarytool keychain profile (NOTARY_PROFILE, "Tivano-Notarize" by default).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 TEAM_ID="NARHG44L48"
-NOTARY_PROFILE="${NOTARY_PROFILE:-Droppy-Notarize}"
-APP_NAME="Droppy Code"
+NOTARY_PROFILE="${NOTARY_PROFILE:-Tivano-Notarize}"
+APP_NAME="Tivano"
 # ".noindex" keeps Spotlight and Launchpad from listing the build copies of the app.
-BUILD="$ROOT/build.noindex"
-ARCHIVE="$BUILD/DroppyCode.xcarchive"
+BUILD="$ROOT/build.noindex/public-release"
+ARCHIVE="$BUILD/Tivano.xcarchive"
 EXPORT="$BUILD/export"
-VERSION=$(sed -nE 's/^[[:space:]]*MARKETING_VERSION:[[:space:]]*"([^"]+)".*/\1/p' project.yml | head -1)
-DMG="$BUILD/Droppy-Code-$VERSION.dmg"
+VERSION=$(scripts/version.sh release)
+DMG="$ROOT/build.noindex/Tivano-$VERSION.dmg"
 
 step() { printf '\n==> %s\n' "$1"; }
 
@@ -41,8 +42,8 @@ step "Archiving $APP_NAME $VERSION"
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
 if ! xcodebuild archive \
-  -project DroppyCode.xcodeproj \
-  -scheme DroppyCode \
+  -project Tivano.xcodeproj \
+  -scheme Tivano \
   -configuration Release \
   -destination 'generic/platform=macOS' \
   -archivePath "$ARCHIVE" \
@@ -95,8 +96,8 @@ if [ "$archs" != "arm64" ]; then
 fi
 
 step "Notarizing the app"
-ditto -c -k --keepParent "$APP" "$BUILD/DroppyCode.zip"
-notarize "$BUILD/DroppyCode.zip"
+ditto -c -k --keepParent "$APP" "$BUILD/Tivano.zip"
+notarize "$BUILD/Tivano.zip"
 xcrun stapler staple "$APP"
 
 step "Building the disk image"
@@ -114,8 +115,11 @@ spctl --assess --type execute --ignore-cache --no-cache --verbose "$APP"
 spctl --assess --type open --context context:primary-signature --ignore-cache --no-cache --verbose "$DMG"
 xcrun stapler validate "$DMG"
 
+step "Updating the installed Release (without launching)"
+"$ROOT/scripts/install_app.sh" "$APP" release
+
 step "Cleaning up"
 # Only the disk image stays, so Spotlight and Launchpad never list a second copy of the app.
-rm -rf "$ARCHIVE" "$EXPORT" "$BUILD/DroppyCode.zip" "$BUILD/DerivedData"
+rm -rf "$ARCHIVE" "$EXPORT" "$BUILD/Tivano.zip" "$BUILD/DerivedData"
 
 printf '\nReady: %s\nPublish it with scripts/publish_release.sh once CHANGELOG.md has a ## [%s] section.\n' "$DMG" "$VERSION"

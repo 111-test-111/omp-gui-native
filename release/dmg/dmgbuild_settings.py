@@ -4,18 +4,18 @@
 #
 # Geometry must stay in lockstep with generate_installer_background.swift:
 #   window content: 660x370 (WindowBounds adds ~28pt of titlebar)
-#   Droppy Code.app at (165, 208), Applications at (495, 208), icon size 128
+#   Tivano.app at (165, 208), Applications at (495, 208), icon size 128
 import os.path
 
 # dmgbuild exec()s this file without __file__; pass -D here=<this directory>.
 HERE = os.path.abspath(defines.get("here", "."))  # noqa: F821 - injected by dmgbuild
 
-volume_name = "Droppy Code"
+volume_name = "Tivano"
 format = "UDZO"
 filesystem = "HFS+"
 
-# Any minimal stub named Droppy Code.app works: only the NAME is baked into .DS_Store.
-files = [os.path.join(HERE, "stub", "Droppy Code.app")]
+# Any minimal stub named Tivano.app works: only the NAME is baked into .DS_Store.
+files = [os.path.join(HERE, "stub", "Tivano.app")]
 symlinks = {"Applications": "/Applications"}
 
 # dmgbuild copies this to /.background.tiff on the volume and the baked alias
@@ -37,6 +37,6 @@ show_icon_preview = False
 arrange_by = None
 
 icon_locations = {
-    "Droppy Code.app": (165, 208),
+    "Tivano.app": (165, 208),
     "Applications": (495, 208),
 }
