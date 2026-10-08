@@ -99,8 +99,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## MonoCode
 
-Spending a Codex account's banked rate-limit resets from the usage popover (`DroppyCode/Services/Providers/CodexSession.swift`,
-`DroppyCode/App/Views/Usage/UsageViews.swift`) follows MonoCode by hardbeat920, https://github.com/hardbeat920/monocode,
+Spending a Codex account's banked rate-limit resets from the usage popover (`Tivano/Services/Providers/CodexSession.swift`,
+`Tivano/App/Views/Usage/UsageViews.swift`) follows MonoCode by hardbeat920, https://github.com/hardbeat920/monocode,
 `src/lib/rateLimitsFetch.ts` and `src/chrome/UsageProviderChip.tsx`: the app-server's `account/rateLimitResetCredit/consume`
 call sent with an idempotency key, the reset credits read beside the rate limits, the confirm step before a reset is spent,
 and the four outcomes it can answer with. No MonoCode code is in this repository; its license is reproduced here in
@@ -130,7 +130,7 @@ SOFTWARE.
 
 ## Zeron
 
-Droppy Code's working indicators (`DroppyCode/UI/Common/WorkingIndicators.swift`) are ported from Zeron,
+Droppy Code's working indicators (`Tivano/UI/Common/WorkingIndicators.swift`) are ported from Zeron,
 https://github.com/zeronsh/zeron, `apps/ios/Zeron/Views/Loaders.swift` and `apps/ios/Zeron/Theme/Motion.swift`.
 
 MIT License
@@ -157,7 +157,7 @@ SOFTWARE.
 
 ## Octicons
 
-The Copilot provider icon (`DroppyCode/Resources/Assets.xcassets/provider-copilot.imageset/copilot.svg`) is
+The Copilot provider icon (`Tivano/Resources/Assets.xcassets/provider-copilot.imageset/copilot.svg`) is
 the `copilot` mark from GitHub's Octicons, https://github.com/primer/octicons, `icons/copilot-24.svg`,
 with its artboard resized to match the other provider marks.
 
@@ -185,7 +185,7 @@ SOFTWARE.
 
 ## TourKit
 
-The welcome tour (`DroppyCode/App/Views/Tour/`) is a port of TourKit by Ram Patra,
+The welcome tour (`Tivano/App/Views/Tour/`) is a port of TourKit by Ram Patra,
 https://github.com/rampatra/TourKit: the slideshow card, its page indicator, its top controls
 and its floating window controller, carried over to the app's glass and asset catalog.
 
