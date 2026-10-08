@@ -78,7 +78,7 @@ final class WindowManager {
     }
 
     private func makeSettingsWindow() -> NSWindow {
-        let window = makeWindow(title: "Settings", size: Size.settings, resizable: false, windowClass: SecondaryWindow.self) { SettingsView() }
+        let window = makeWindow(title: Chrome.localized("Settings"), size: Size.settings, resizable: false, windowClass: SecondaryWindow.self) { SettingsView() }
         window.center()
         return window
     }

@@ -1213,7 +1213,7 @@ struct CodeBlock: View {
         let hoverBox = hover
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(language ?? "code")
+                Text(verbatim: language ?? Chrome.localized("code"))
                     .font(.chat(.caption))
                     .foregroundStyle(Chrome.secondaryText)
                 Spacer()
@@ -1233,7 +1233,7 @@ struct CodeBlock: View {
                     .padding(.top, 4)
             }
             if lineCount > Self.collapsedLineLimit {
-                Button(showsAll ? "Show less" : "Show all \(lineCount) lines") {
+                Button(showsAll ? Chrome.localized("Show less") : String(format: Chrome.localized("Show all %lld lines"), lineCount)) {
                     showsAll.toggle()
                 }
                 .buttonStyle(.link)
@@ -1309,7 +1309,7 @@ struct TableBlock: View {
                 .padding(12)
             }
             if !showsAll, rows.count > Self.collapsedRowLimit {
-                Button("Show all \(rows.count) rows") {
+                Button(String(format: Chrome.localized("Show all %lld rows"), rows.count)) {
                     showsAll.toggle()
                 }
                 .buttonStyle(.link)
@@ -1420,6 +1420,6 @@ struct CopyButton: View {
         }
         .buttonStyle(.borderless)
         .foregroundStyle(Chrome.secondaryText)
-        .help(label)
+        .help(Text(verbatim: Chrome.localized(label)))
     }
 }

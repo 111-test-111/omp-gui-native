@@ -92,7 +92,7 @@ struct ModelEffortButton: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                     if let current, !current.efforts.isEmpty {
-                        Text(verbatim: ModelOption.effortTitle(thread.effort ?? current.defaultEffort ?? ""))
+                        Text(verbatim: Chrome.localized(ModelOption.effortTitle(thread.effort ?? current.defaultEffort ?? "")))
                             .foregroundStyle(Chrome.primaryText.opacity(0.72))
                             .lineLimit(1)
                             .fixedSize()
@@ -115,8 +115,8 @@ struct ModelEffortButton: View {
         .onChange(of: isPresented) { _, isOpen in
             lockedWidth = isOpen ? naturalWidth : nil
         }
-        .help(helpText(current: current, pair: pair))
-        .accessibilityLabel(Text(helpText(current: current, pair: pair)))
+        .help(Text(verbatim: helpText(current: current, pair: pair)))
+        .accessibilityLabel(Text(verbatim: helpText(current: current, pair: pair)))
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             ModelEffortPanel(threadID: thread.id, hasHistory: hasHistory)
                 .presentedChrome()
@@ -142,7 +142,7 @@ struct ModelEffortButton: View {
     private func helpText(current: ModelOption?, pair: HydraPair?) -> String {
         var parts = [current?.shortName ?? thread.model ?? thread.provider.displayName]
         if let current, !current.efforts.isEmpty {
-            parts.append(ModelOption.effortTitle(thread.effort ?? current.defaultEffort ?? ""))
+            parts.append(Chrome.localized(ModelOption.effortTitle(thread.effort ?? current.defaultEffort ?? "")))
         }
         if let pair { parts.append(HydraPairSummary.title(pair, registry: model.providers)) }
         return parts.joined(separator: " · ")
@@ -391,7 +391,7 @@ private struct HydraPairListRow: View {
                         .font(.system(size: 14))
                         .foregroundStyle(Chrome.primaryText)
                         .lineLimit(1)
-                    Text(verbatim: detail)
+                    Text(verbatim: Chrome.localized(detail))
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
@@ -493,13 +493,13 @@ struct EffortPairLook: Hashable {
     init(_ pair: HydraPair, registry: ProviderRegistry, resolvedHeadsEffort: String?) {
         title = HydraPairSummary.title(pair, registry: registry)
         brand = EffortPairBrand(pair)
-        headsEffort = (pair.workerEffort ?? resolvedHeadsEffort).map { ModelOption.effortTitle($0).lowercased() }
+        headsEffort = (pair.workerEffort ?? resolvedHeadsEffort).map { Chrome.localizedLowercased(ModelOption.effortTitle($0)) }
     }
 
     /// Whose effort the slider sets, and what the heads run at.
     var caption: String {
-        if let headsEffort { return "The lead's effort · heads run at \(headsEffort) effort" }
-        return "The lead's effort · heads keep their own"
+        if let headsEffort { return String(format: Chrome.localized("The lead's effort · heads run at %@ effort"), headsEffort) }
+        return Chrome.localized("The lead's effort · heads keep their own")
     }
 }
 
@@ -529,8 +529,8 @@ struct EffortSliderCard: View {
     }
 
     private var title: String {
-        guard !efforts.isEmpty else { return "Standard" }
-        return ModelOption.effortTitle(efforts[resolvedIndex])
+        guard !efforts.isEmpty else { return Chrome.localized("Standard") }
+        return Chrome.localized(ModelOption.effortTitle(efforts[resolvedIndex]))
     }
 
     private var isFast: Bool { supportsFast && fastMode }
@@ -594,7 +594,7 @@ struct EffortSliderCard: View {
                     .onHover { hovering in
                         withAnimation(Chrome.hover) { isTitleHovering = hovering }
                     }
-                    .help(onTitleTap == nil ? "" : "Choose a model")
+                    .help(Text(verbatim: onTitleTap == nil ? "" : Chrome.localized("Choose a model")))
 
                     // In a pair the line under the effort is the pair itself, behind the
                     // Hydra mark: the slider is the lead's, and the lead is named first.
@@ -676,9 +676,9 @@ private struct FastModeButton: View {
         }
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
-        .help(isOn ? "Fast mode is on" : "Fast mode")
+        .help(Text(verbatim: isOn ? Chrome.localized("Fast mode is on") : Chrome.localized("Fast mode")))
         .accessibilityLabel(Text("Fast mode"))
-        .accessibilityValue(Text(isOn ? "On" : "Off"))
+        .accessibilityValue(Text(verbatim: isOn ? Chrome.localized("On") : Chrome.localized("Off")))
     }
 }
 
@@ -702,8 +702,8 @@ private struct RoundIconButton: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
     }
 }
 
@@ -819,7 +819,7 @@ struct EffortSlider: View {
         }
         .frame(height: Self.thumbSize)
         .accessibilityElement()
-        .accessibilityLabel(Text(pair == nil ? "Reasoning effort" : "The lead's reasoning effort"))
+        .accessibilityLabel(Text(verbatim: pair == nil ? Chrome.localized("Reasoning effort") : Chrome.localized("The lead's reasoning effort")))
         .accessibilityValue(Text(verbatim: accessibilityTitle))
         .accessibilityAdjustableAction { direction in
             switch direction {

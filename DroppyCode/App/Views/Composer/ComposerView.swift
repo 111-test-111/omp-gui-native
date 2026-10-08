@@ -274,17 +274,17 @@ struct ComposerView: View {
 
     private func placeholder(for thread: ChatThread?) -> String {
         guard let thread else { return "" }
-        if thread.interactionMode == .plan { return "Describe what you want to plan" }
+        if thread.interactionMode == .plan { return Chrome.localized("Describe what you want to plan") }
         if model.hydraIsOn(thread) {
             // With every message sent to a head, the lead never works the message itself:
             // it goes straight out and comes back as a report, which is worth saying here
             // because nothing else in the box shows it.
             if model.settings.hydraAlwaysHeads {
-                return "Goes to a head; \(thread.provider.displayName) leads and reports back"
+                return String(format: Chrome.localized("Goes to a head; %@ leads and reports back"), thread.provider.displayName)
             }
-            return "Ask \(thread.provider.displayName) for anything; big jobs go out to a team of heads"
+            return String(format: Chrome.localized("Ask %@ for anything; big jobs go out to a team of heads"), thread.provider.displayName)
         }
-        return "Ask \(thread.provider.displayName) to build, fix or explain. @ for files, / for commands"
+        return String(format: Chrome.localized("Ask %@ to build, fix or explain. @ for files, / for commands"), thread.provider.displayName)
     }
 
     /// Whether the next message is handed to a head rather than worked by the lead.
@@ -511,10 +511,10 @@ struct ComposerView: View {
         if dropped > 0 {
             let isImage = sources.count == 1 && { if case .image = sources[0] { return true }; return false }()
             note(isImage
-                ? "The image was left out: a message holds \(Self.maxAttachments) attachments"
+                ? String(format: Chrome.localized("The image was left out: a message holds %d attachments"), Self.maxAttachments)
                 : dropped == 1
-                    ? "One file was left out: a message holds \(Self.maxAttachments) attachments"
-                    : "\(dropped) files were left out: a message holds \(Self.maxAttachments) attachments")
+                    ? String(format: Chrome.localized("One file was left out: a message holds %d attachments"), Self.maxAttachments)
+                    : String(format: Chrome.localized("%d files were left out: a message holds %d attachments"), dropped, Self.maxAttachments))
         }
         controller.focus()
     }
@@ -527,7 +527,7 @@ struct ComposerView: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
-        panel.prompt = "Attach"
+        panel.prompt = Chrome.localized("Attach")
         guard panel.runModal() == .OK else { return }
         attach(panel.urls.map(AttachmentSource.file))
     }
@@ -729,11 +729,11 @@ private struct ContextMeter: View {
             }
             .buttonStyle(.plain)
             .focusable(false)
-            .help(helpText(fraction: fraction, hasCredits: hasCredits))
-            .accessibilityLabel(Text(label(fraction: fraction, hasCredits: hasCredits)))
+            .help(Text(verbatim: helpText(fraction: fraction, hasCredits: hasCredits)))
+            .accessibilityLabel(Text(verbatim: label(fraction: fraction, hasCredits: hasCredits)))
             // The ring is the only reading of the context window on screen, so the number
             // behind it is spoken rather than left to the tooltip.
-            .accessibilityValue(Text(fraction.map { "\(Int($0 * 100))% of the context window used" } ?? ""))
+            .accessibilityValue(Text(verbatim: fraction.map { String(format: Chrome.localized("%d%% of the context window used"), Int($0 * 100)) } ?? ""))
             .popover(isPresented: $isPresented, arrowEdge: .bottom) {
                 VStack(spacing: 0) {
                     // The same limits as a floating panel beside every chat (see
@@ -762,13 +762,13 @@ private struct ContextMeter: View {
     }
 
     private func helpText(fraction: Double?, hasCredits: Bool) -> String {
-        if let fraction { return "\(Int(fraction * 100))% of the context window used" }
-        return hasCredits ? "Remaining credits" : "Usage limits"
+        if let fraction { return String(format: Chrome.localized("%d%% of the context window used"), Int(fraction * 100)) }
+        return hasCredits ? Chrome.localized("Remaining credits") : Chrome.localized("Usage limits")
     }
 
     private func label(fraction: Double?, hasCredits: Bool) -> String {
-        if fraction != nil { return "Context window" }
-        return hasCredits ? "Remaining credits" : "Usage limits"
+        if fraction != nil { return Chrome.localized("Context window") }
+        return hasCredits ? Chrome.localized("Remaining credits") : Chrome.localized("Usage limits")
     }
 }
 
@@ -839,8 +839,8 @@ private struct SendDraftState: View {
         .focusable(false)
         .disabled(!isEnabled || runtime.isReverting)
         .padding(.leading, 4)
-        .help(helpText(isRunning: isRunning, headsWorking: headsWorking))
-        .accessibilityLabel(Text(isRunning ? "Stop" : (goesToHead ? "Send to a head" : "Send")))
+        .help(Text(verbatim: helpText(isRunning: isRunning, headsWorking: headsWorking)))
+        .accessibilityLabel(Text(verbatim: isRunning ? Chrome.localized("Stop") : (goesToHead ? Chrome.localized("Send to a head") : Chrome.localized("Send"))))
     }
 
     /// The chords come from the one cached lookup above, so the help never promises
@@ -852,15 +852,15 @@ private struct SendDraftState: View {
             // message lands rather than promising a stop that never comes.
             if headsWorking {
                 return queueGoesToHead
-                    ? "Heads are at work: your message goes to a head"
-                    : "Heads are at work: your message waits for the lead"
+                    ? Chrome.localized("Heads are at work: your message goes to a head")
+                    : Chrome.localized("Heads are at work: your message waits for the lead")
             }
-            var parts = ["Stop\(SendShortcutText.stop)", "Return steers"]
-            if let queues { parts.append("\(queues) queues") }
+            var parts = [String(format: Chrome.localized("Stop%@"), SendShortcutText.stop), Chrome.localized("Return steers")]
+            if let queues { parts.append(String(format: Chrome.localized("%@ queues"), queues)) }
             return parts.joined(separator: " · ")
         }
-        var parts = [goesToHead ? "Send to a head (Return) · the lead reports back" : "Send (Return)"]
-        if let queues { parts.append(headsWorking ? "\(queues) queues until the heads report" : "\(queues) queues while running") }
+        var parts = [goesToHead ? Chrome.localized("Send to a head (Return) · the lead reports back") : Chrome.localized("Send (Return)")]
+        if let queues { parts.append(String(format: Chrome.localized(headsWorking ? "%@ queues until the heads report" : "%@ queues while running"), queues)) }
         return parts.joined(separator: " · ")
     }
 }
@@ -902,7 +902,7 @@ private struct DraftChips: View {
                             .accessibilityLabel(Text("Remove command"))
                         }
                         .modifier(ChipChrome())
-                        .help(command.detail)
+                        .help(Text(verbatim: Chrome.localized(command.detail)))
                         .accessibilityElement(children: .combine)
                     }
                     ForEach(quotes) { quote in

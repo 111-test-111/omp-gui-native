@@ -36,7 +36,7 @@ struct UsageFloatingPanel: View {
                         .padding(.bottom, 8)
                 }
             } else {
-                Text(verbatim: "Nothing to show for \(provider.displayName) yet.")
+                Text(verbatim: String(format: Chrome.localized("Nothing to show for %@ yet."), provider.displayName))
                     .font(.system(.body))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.top, HydraPanel.stripHeight)

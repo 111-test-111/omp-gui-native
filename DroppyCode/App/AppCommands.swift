@@ -86,7 +86,7 @@ struct AppCommands: Commands {
                 .keyboardShortcut(shortcuts.keyboardShortcut(for: .previousThread))
             Button("Next thread") { model.selectThread(offset: 1) }
                 .keyboardShortcut(shortcuts.keyboardShortcut(for: .nextThread))
-            Button(model.topScript.map { "Run \($0.name)" } ?? "Run top script") {
+            Button(model.topScript.map { String(format: Chrome.localized("Run %@"), $0.name) } ?? Chrome.localized("Run top script")) {
                 guard let script = model.topScript, let threadID = model.selectedThreadID else { return }
                 model.runScript(script, threadID: threadID)
             }
@@ -97,13 +97,13 @@ struct AppCommands: Commands {
                     .keyboardShortcut(KeyEquivalent(Character(String(number))), modifiers: .command)
             }
             Divider()
-            Button(model.finishActionTitle) { model.finishSelectedThread() }
+            Button(Chrome.localized(model.finishActionTitle)) { model.finishSelectedThread() }
                 .keyboardShortcut(shortcuts.keyboardShortcut(for: .finishThread))
                 .disabled(model.selectedThreadID == nil)
             Button("Archive thread…") { model.askToArchiveSelectedThread() }
                 .keyboardShortcut(shortcuts.keyboardShortcut(for: .archiveThread))
                 .disabled(model.selectedThreadID == nil)
-            Button(model.selectedThread?.isSettled == true ? "Reopen thread" : "Settle thread") { model.settleSelectedThread() }
+            Button(Chrome.localized(model.selectedThread?.isSettled == true ? "Reopen thread" : "Settle thread")) { model.settleSelectedThread() }
                 .keyboardShortcut(shortcuts.keyboardShortcut(for: .settleThread))
                 .disabled(model.selectedThread.map { $0.isHelper } ?? true)
         }

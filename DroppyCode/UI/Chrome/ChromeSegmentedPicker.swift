@@ -68,7 +68,7 @@ private struct ChromeSegment: View {
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityLabel(Text(verbatim: title))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(title)))
     }
 
     @ViewBuilder
@@ -76,7 +76,7 @@ private struct ChromeSegment: View {
         if let symbol {
             Image(systemName: symbol)
         } else {
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
         }
     }
 }

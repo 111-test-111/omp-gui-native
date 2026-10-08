@@ -179,7 +179,7 @@ final class UpdateChecker {
                 notifyOnce(about: found)
             }
         } catch {
-            lastError = (error as? UpdateError)?.errorDescription ?? "Couldn't reach GitLab."
+            lastError = (error as? UpdateError)?.errorDescription ?? Chrome.localized("Couldn't reach GitLab.")
             lastCheckedAt = .now
             UserDefaults.standard.set(lastCheckedAt, forKey: Keys.lastChecked)
         }
@@ -247,8 +247,8 @@ final class UpdateChecker {
         guard defaults.string(forKey: Keys.notifiedVersion) != update.version else { return }
         defaults.set(update.version, forKey: Keys.notifiedVersion)
         let content = UNMutableNotificationContent()
-        content.title = "Droppy Code \(update.version) is available"
-        content.body = "Open Settings › About to update and restart."
+        content.title = String(format: Chrome.localized("Droppy Code %@ is available"), update.version)
+        content.body = Chrome.localized("Open Settings › About to update and restart.")
         content.userInfo = ["update": update.version]
         let request = UNNotificationRequest(identifier: "update-\(update.version)", content: content, trigger: nil)
         Task {
@@ -268,8 +268,8 @@ enum UpdateError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noRelease: "No release with a disk image was found."
-        case .badResponse(let status): "GitLab answered with HTTP \(status)."
+        case .noRelease: Chrome.localized("No release with a disk image was found.")
+        case .badResponse(let status): String(format: Chrome.localized("GitLab answered with HTTP %lld."), status)
         }
     }
 }

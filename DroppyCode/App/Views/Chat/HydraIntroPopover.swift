@@ -79,9 +79,9 @@ private func hydraIntroStep(glyph: AnyView, title: String, line: String) -> some
     HStack(alignment: .top, spacing: 12) {
         glyph.frame(width: 30, height: 30)
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
                 .font(.system(.body, weight: .semibold))
-            Text(verbatim: line)
+            Text(verbatim: Chrome.localized(line))
                 .font(.system(.callout))
                 .foregroundStyle(Chrome.secondaryText)
         }
@@ -101,9 +101,9 @@ struct HydraInfoPopover: View {
                     }
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(topic == .hydra ? "Hydra" : "Heads")
+                    Text(verbatim: topic == .hydra ? "Hydra" : Chrome.localized("Heads"))
                         .font(.system(.title3, weight: .semibold))
-                    Text(topic == .hydra ? "One chat leads a team of heads on big jobs." : "The helpers a chat sends out, one brief each.")
+                    Text(verbatim: Chrome.localized(topic == .hydra ? "One chat leads a team of heads on big jobs." : "The helpers a chat sends out, one brief each."))
                         .font(.system(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }

@@ -158,13 +158,13 @@ private struct TourBottomPanelSizingView: View {
             VStack(spacing: 0) {
                 Spacer(minLength: 12)
 
-                Text(verbatim: page.title)
+                Text(verbatim: Chrome.localized(page.title))
                     .font(.system(size: 28, weight: .bold))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Chrome.primaryText)
                     .fixedSize(horizontal: false, vertical: true)
 
-                Text(verbatim: page.description)
+                Text(verbatim: Chrome.localized(page.description))
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Chrome.secondaryText)
@@ -175,7 +175,7 @@ private struct TourBottomPanelSizingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Text(verbatim: buttonTitle)
+            Text(verbatim: Chrome.localized(buttonTitle))
                 .font(.system(.title3, weight: .semibold))
                 .frame(width: 220, height: 42)
         }

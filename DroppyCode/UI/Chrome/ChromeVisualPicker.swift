@@ -69,13 +69,13 @@ struct ChromeVisualTile<Content: View>: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .accessibilityLabel(Text(verbatim: title))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(title)))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     /// The option's name under its tile: the symbol alone does not say what the choice is.
     private var caption: some View {
-        Text(verbatim: title)
+        Text(verbatim: Chrome.localized(title))
             .font(.system(.subheadline))
             .foregroundStyle(isSelected ? Chrome.primaryText : Chrome.secondaryText)
             .multilineTextAlignment(.center)

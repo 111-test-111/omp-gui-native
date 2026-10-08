@@ -82,7 +82,7 @@ struct SidebarView: View {
             HStack(spacing: 6) {
                 SidebarSearchField(
                     text: $search,
-                    prompt: "Search threads",
+                    prompt: Chrome.localized("Search threads"),
                     onSubmit: {
                         if let first = searchResults(helpers: helpers).first?.threads.first {
                             model.selectedThreadID = first.id
@@ -502,8 +502,8 @@ struct SidebarView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = true
-        panel.prompt = "Add project"
-        panel.message = "Choose a folder for your agents to work in."
+        panel.prompt = Chrome.localized("Add project")
+        panel.message = Chrome.localized("Choose a folder for your agents to work in.")
         guard panel.runModal() == .OK else { return }
         var added: Project?
         for url in panel.urls { added = model.addProject(at: url) }
@@ -675,8 +675,8 @@ struct SidebarView: View {
     }
 
     private static func dayTitle(for date: Date, calendar: Calendar) -> String {
-        if calendar.isDateInToday(date) { return "Today" }
-        if calendar.isDateInYesterday(date) { return "Yesterday" }
+        if calendar.isDateInToday(date) { return Chrome.localized("Today") }
+        if calendar.isDateInYesterday(date) { return Chrome.localized("Yesterday") }
         let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: .now)).day ?? 0
         if days < 7 { return date.formatted(.dateTime.weekday(.wide)) }
         if calendar.isDate(date, equalTo: .now, toGranularity: .year) {
@@ -1260,9 +1260,9 @@ private struct ProjectPairMenuItems: View {
                 model.setHydraPair(pairID, forProject: projectID)
             } label: {
                 if selectedID == pair.id {
-                    Label(pair.title, systemImage: "checkmark")
+                    Label(Chrome.localized(pair.title), systemImage: "checkmark")
                 } else {
-                    Text(pair.title)
+                    Text(verbatim: Chrome.localized(pair.title))
                 }
             }
         }
@@ -1488,7 +1488,7 @@ private struct HeadCardsRow: View {
                                     withAnimation(Chrome.hover) { hoveredID = hovering ? head.id : (hoveredID == head.id ? nil : hoveredID) }
                                     if hovering { model.warmDocuments([head.id]) }
                                 }
-                                .help("\(info.persona.name) · \(info.task)")
+                                .help(Text(verbatim: "\(info.persona.name) · \(info.task)"))
                                 // Snapshots only: the menu builder must not capture the row, so the AppKit menu
                                 // it builds cannot pin the row's state storage (and its responder with it).
                                 .contextMenu { [head, model, menuRequests] in
@@ -1522,7 +1522,7 @@ private struct HeadCardsRow: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .help(showsAllHeads ? "Show fewer heads" : "Show all \(heads.count) heads")
+                    .help(Text(verbatim: showsAllHeads ? Chrome.localized("Show fewer heads") : String(format: Chrome.localized("Show all %d heads"), heads.count)))
                 }
             }
             .padding(ThreadRowMetrics.headCardPadding)
@@ -1574,8 +1574,7 @@ private struct HelperStubRow: View {
             return runtime?.isRunning == true || runtime?.isHydraMerging == true
         }
         // A team of heads is called that; merges alone stay "helpers".
-        let noun = if helpers.allSatisfy(\.isHydraHead) { "head" }
-            else { "helper" }
+        let isHeads = helpers.allSatisfy(\.isHydraHead)
         // A helper goes out of sight the moment its parent's ghost takes off, so it never
         // lingers under the rows closing up.
         let isHidden = RowGlideAnimator.shared.isHiding(parentSnapshot.id)
@@ -1588,7 +1587,7 @@ private struct HelperStubRow: View {
                 HStack(spacing: 5) {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 8, weight: .bold))
-                    Text(verbatim: count == 1 ? "1 \(noun)" : "\(count) \(noun)s")
+                    Text(verbatim: count == 1 ? Chrome.localized(isHeads ? "1 head" : "1 helper") : String(format: Chrome.localized(isHeads ? "%d heads" : "%d helpers"), count))
                         .font(.system(.subheadline))
                     Spacer(minLength: 4)
                     if working {
@@ -1611,8 +1610,8 @@ private struct HelperStubRow: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(count == 1 ? "Show the \(noun)" : "Show \(count) \(noun)s")
-        .accessibilityLabel(Text(count == 1 ? "1 folded \(noun)" : "\(count) folded \(noun)s"))
+        .help(Text(verbatim: count == 1 ? Chrome.localized(isHeads ? "Show the head" : "Show the helper") : String(format: Chrome.localized(isHeads ? "Show %d heads" : "Show %d helpers"), count)))
+        .accessibilityLabel(Text(verbatim: count == 1 ? Chrome.localized(isHeads ? "1 folded head" : "1 folded helper") : String(format: Chrome.localized(isHeads ? "%d folded heads" : "%d folded helpers"), count)))
         .opacity(isHidden ? 0 : 1)
     }
 }
@@ -1809,8 +1808,8 @@ private struct SidebarThreadRow: View, Equatable {
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing, ThreadRowMetrics.foldInset)
-                .help(folded ? "Show helpers" : "Hide helpers")
-                .accessibilityLabel(Text(folded ? "Show helpers" : "Hide helpers"))
+                .help(Text(verbatim: folded ? Chrome.localized("Show helpers") : Chrome.localized("Hide helpers")))
+                .accessibilityLabel(Text(verbatim: folded ? Chrome.localized("Show helpers") : Chrome.localized("Hide helpers")))
             }
         }
         .onHover { hovering in
@@ -1868,7 +1867,7 @@ private struct SidebarThreadRow: View, Equatable {
             if request.reopens { reopen() } else { settle() }
         }
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
-        .accessibilityValue(Text(isSettled ? "Settled" : ""))
+        .accessibilityValue(Text(verbatim: isSettled ? Chrome.localized("Settled") : ""))
     }
 
     private static func fill(isSelected: Bool, isHovering: Bool) -> Double {
@@ -1980,7 +1979,7 @@ private struct SidebarThreadRow: View, Equatable {
     /// What the team's merge is doing, with an ellipsis, while it runs; nil otherwise.
     static func mergeStage(of runtime: ThreadRuntime?) -> String? {
         guard let runtime, runtime.isHydraMerging else { return nil }
-        return (runtime.hydraMergeStage ?? "Merging") + "\u{2026}"
+        return MergeStageText.localized(runtime.hydraMergeStage ?? "Merging") + "\u{2026}"
     }
 
     // MARK: Archiving
@@ -2135,8 +2134,8 @@ private struct SettleCheck: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(isSettled ? "Reopen thread" : "Settle thread")
-        .accessibilityLabel(Text(isSettled ? "Reopen thread" : "Settle thread"))
+        .help(Text(verbatim: isSettled ? Chrome.localized("Reopen thread") : Chrome.localized("Settle thread")))
+        .accessibilityLabel(Text(verbatim: isSettled ? Chrome.localized("Reopen thread") : Chrome.localized("Settle thread")))
     }
 }
 
@@ -2336,9 +2335,9 @@ private struct ActivityViewToggle: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help((isOn ? "Turn off activity view" : "Turn on activity view") + chord)
+        .help(Text(verbatim: (isOn ? Chrome.localized("Turn off activity view") : Chrome.localized("Turn on activity view")) + chord))
         .accessibilityLabel(Text("Activity view"))
-        .accessibilityValue(Text(isOn ? "On" : "Off"))
+        .accessibilityValue(Text(verbatim: isOn ? Chrome.localized("On") : Chrome.localized("Off")))
     }
 }
 
@@ -2347,7 +2346,7 @@ private struct ActivityHeader: View {
     let isFirst: Bool
 
     var body: some View {
-        Text(verbatim: title)
+        Text(verbatim: Chrome.localized(title))
             .font(.system(.callout, weight: .semibold))
             .foregroundStyle(Chrome.secondaryText)
             .padding(.horizontal, Chrome.rowHorizontalPadding)
@@ -2377,7 +2376,7 @@ private struct SettledHeader: View {
                     .font(.system(.caption2, weight: .semibold))
                     .rotationEffect(.degrees(collapsed ? 0 : 90))
                     .animation(Chrome.panelSlide, value: collapsed)
-                Text(verbatim: "Settled")
+                Text(verbatim: Chrome.localized("Settled"))
                     .font(.system(.callout, weight: .semibold))
                 // Update the digits without a separate roll while the whole header moves.
                 // Keep the inherited layout animation so the count travels with the title.
@@ -2398,9 +2397,9 @@ private struct SettledHeader: View {
             .animation(Chrome.panelSlide, value: isFirst)
         }
         .buttonStyle(.plain)
-        .help(collapsed ? "Show settled threads" : "Hide settled threads")
-        .accessibilityLabel(Text("Settled, \(count) threads"))
-        .accessibilityValue(Text(collapsed ? "Collapsed" : "Expanded"))
+        .help(Text(verbatim: collapsed ? Chrome.localized("Show settled threads") : Chrome.localized("Hide settled threads")))
+        .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("Settled, %d threads"), count)))
+        .accessibilityValue(Text(verbatim: collapsed ? Chrome.localized("Collapsed") : Chrome.localized("Expanded")))
         .accessibilityAddTraits(.isButton)
     }
 }

@@ -3,6 +3,25 @@ import SwiftUI
 
 /// Tokens and building blocks shared with Droppy's settings panel, so the two apps read as one family.
 enum Chrome {
+    /// Catalog keys stay plain strings; unknown keys and user data are displayed unchanged.
+    static func localized(_ key: String) -> String {
+        Bundle.main.localizedString(forKey: key, value: key, table: "Localizable")
+    }
+
+    /// A term set inside a sentence: lowercased only while it is still English, so a
+    /// translation (and the "API" in it) keeps its own case.
+    static func localizedLowercased(_ key: String) -> String {
+        let text = localized(key)
+        return text == key ? text.lowercased() : text
+    }
+
+    /// A one-`%@` template's text before and after the value, for a value that is a view of
+    /// its own (a button, a styled name) rather than a string.
+    static func localizedAround(_ template: String) -> (before: String, after: String) {
+        let parts = localized(template).components(separatedBy: "%@")
+        return (parts.first ?? "", parts.count > 1 ? parts[1] : "")
+    }
+
     // MARK: Window
 
     static let windowCornerRadius: CGFloat = 26
@@ -376,8 +395,8 @@ struct ChromeIconButton: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
         .background { NoWindowDragArea() }
     }
 }
@@ -400,8 +419,8 @@ struct ChromeMenuButton<Content: View>: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu { content }
         }
@@ -430,8 +449,8 @@ struct ChromeCircleButton: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
         .background { NoWindowDragArea() }
     }
 }
@@ -460,8 +479,8 @@ struct ChromeCircleMenu<Content: View>: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu { content }
         }
@@ -486,7 +505,7 @@ struct ChromeTextMenu<Content: View>: View {
             HStack(spacing: 6) {
                 Image(systemName: symbol)
                     .font(Chrome.inlineIconFont)
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(size: 12.5, weight: .medium))
                     .lineLimit(1)
                 Image(systemName: "chevron.down")
@@ -505,7 +524,7 @@ struct ChromeTextMenu<Content: View>: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
+        .help(Text(verbatim: Chrome.localized(help)))
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu { content }
         }
@@ -530,7 +549,7 @@ struct ChromeTextButton: View {
             HStack(spacing: 6) {
                 Image(systemName: symbol)
                     .font(Chrome.inlineIconFont)
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(size: 12.5, weight: .medium))
                     .lineLimit(1)
             }
@@ -547,8 +566,8 @@ struct ChromeTextButton: View {
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
         .background { NoWindowDragArea() }
     }
 
@@ -634,7 +653,7 @@ struct ChromeCompactTitle: View {
 
     var body: some View {
         let progress = model.progress
-        Text(verbatim: title)
+        Text(verbatim: Chrome.localized(title))
             .font(.system(.title3, weight: .semibold))
             .foregroundStyle(Chrome.primaryText)
             .lineLimit(1)
@@ -713,7 +732,7 @@ struct SidebarRow<Icon: View, Accessory: View>: View {
             HStack(spacing: 8) {
                 icon
                     .frame(width: Chrome.iconSize, alignment: .center)
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(.body, weight: isSelected || isEmphasized ? .medium : .regular))
                     .foregroundStyle(Chrome.primaryText.opacity(isSelected ? 1 : 0.92))
                     .lineLimit(1)
@@ -898,7 +917,7 @@ struct GlassPickerButton<Value: Hashable>: View {
                         .font(.system(.callout, weight: .medium))
                         .foregroundStyle(Chrome.secondaryText)
                 }
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(size: 12.5, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -1037,7 +1056,7 @@ struct ChromeSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Chrome.sectionHeaderSpacing) {
             HStack(spacing: 4) {
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(.body, weight: .semibold))
                     .foregroundStyle(Chrome.secondaryText)
                 if let accessory { accessory }
@@ -1060,11 +1079,11 @@ struct ChromeRow<Control: View>: View {
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(.body))
                     .foregroundStyle(Chrome.primaryText)
                 if let detail, !detail.isEmpty {
-                    Text(verbatim: detail)
+                    Text(verbatim: Chrome.localized(detail))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)

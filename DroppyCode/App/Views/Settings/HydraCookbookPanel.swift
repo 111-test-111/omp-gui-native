@@ -86,17 +86,17 @@ private struct HydraCookbookRow: View {
             )
             .frame(width: 52, alignment: .leading)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: pair.map { HydraPairSummary.title($0, registry: registry) } ?? recipe.title)
+                Text(verbatim: pair.map { HydraPairSummary.title($0, registry: registry) } ?? Chrome.localized(recipe.title))
                     .font(.system(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
-                Text(verbatim: recipe.tagline)
+                Text(verbatim: Chrome.localized(recipe.tagline))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 if let pair {
                     // A same-provider pair with no efforts set has nothing to say here; an empty
                     // Text would still take a line and leave the row with blank space below it.
-                    let providersLine: String? = pair.headsProvider == pair.provider ? nil : "\(pair.provider.displayName) lead, \(pair.headsProvider.displayName) heads"
+                    let providersLine: String? = pair.headsProvider == pair.provider ? nil : String(format: Chrome.localized("%@ lead, %@ heads"), pair.provider.displayName, pair.headsProvider.displayName)
                     let detail = [providersLine, HydraPairSummary.efforts(pair)].compactMap { $0 }.joined(separator: " · ")
                     if !detail.isEmpty {
                         Text(verbatim: detail)
@@ -105,7 +105,7 @@ private struct HydraCookbookRow: View {
                             .lineLimit(2)
                     }
                 } else if let missing {
-                    Text(verbatim: "Set up \(missing.displayName) to add this pair.")
+                    Text(verbatim: String(format: Chrome.localized("Set up %@ to add this pair."), missing.displayName))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText.opacity(0.8))
                 }

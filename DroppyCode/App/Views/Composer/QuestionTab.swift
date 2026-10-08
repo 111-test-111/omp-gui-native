@@ -10,7 +10,7 @@ struct QuestionBadgeRow: View {
     var body: some View {
         let count = request.questions.count
         ChatBadge(
-            title: count == 1 ? "1 question" : "\(count) questions",
+            title: count == 1 ? Chrome.localized("1 question") : String(format: Chrome.localized("%d questions"), count),
             caption: "to answer",
             needsAttention: true,
             isPresented: $isShowingQuestions,
@@ -92,7 +92,7 @@ struct QuestionSheet: View {
                         .buttonStyle(.plain)
                     }
                     Spacer()
-                    Text(verbatim: "\(page + 1) of \(count)")
+                    Text(verbatim: String(format: Chrome.localized("%d of %d"), page + 1, count))
                         .font(.system(.subheadline)).monospacedDigit()
                         .foregroundStyle(Chrome.secondaryText)
                 }
@@ -130,7 +130,7 @@ struct QuestionSheet: View {
                     .help("Previous question")
                 }
                 if unanswered > 0 {
-                    Text(verbatim: unanswered == 1 ? "1 question still to answer" : "\(unanswered) questions still to answer")
+                    Text(verbatim: unanswered == 1 ? Chrome.localized("1 question still to answer") : String(format: Chrome.localized("%d questions still to answer"), unanswered))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                         .lineLimit(1)
@@ -157,9 +157,9 @@ struct QuestionSheet: View {
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut(.defaultAction)
                         .disabled(!isComplete)
-                        .help(isComplete
-                            ? "Sends your answers"
-                            : (count == 1 ? "Answer the question to send" : "Answer all \(count) questions to send"))
+                        .help(Text(verbatim: isComplete
+                            ? Chrome.localized("Sends your answers")
+                            : (count == 1 ? Chrome.localized("Answer the question to send") : String(format: Chrome.localized("Answer all %d questions to send"), count))))
                 }
             }
             .controlSize(.regular)
@@ -231,7 +231,7 @@ private struct QuestionPage: View {
                     if question.isSecret {
                         SecureField("Your answer", text: binding)
                     } else {
-                        TextField(question.choices.isEmpty ? "Your answer" : "Something else", text: binding)
+                        TextField(question.choices.isEmpty ? LocalizedStringKey("Your answer") : LocalizedStringKey("Something else"), text: binding)
                     }
                 }
                 .textFieldStyle(.roundedBorder)

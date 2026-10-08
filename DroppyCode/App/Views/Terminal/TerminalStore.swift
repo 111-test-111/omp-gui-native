@@ -118,7 +118,7 @@ final class TerminalStore {
     @discardableResult
     func open(threadID: UUID, directory: String, title: String? = nil, command: String? = nil) -> TerminalSession {
         let number = sessions(for: threadID).count + 1
-        let session = TerminalSession(threadID: threadID, directory: directory, title: title ?? "Terminal \(number)", command: command)
+        let session = TerminalSession(threadID: threadID, directory: directory, title: title ?? String(format: Chrome.localized("Terminal %lld"), number), command: command)
         sessions[threadID, default: []].append(session)
         selection[threadID] = session.id
         return session

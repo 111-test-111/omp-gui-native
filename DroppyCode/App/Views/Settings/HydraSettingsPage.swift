@@ -60,7 +60,7 @@ struct HydraSettingsPage: View {
                     ChromeRowDivider()
                     ChromeRow(
                         title: "Heads at once",
-                        detail: settings.hydraMaxHeads.map { "At most \($0) heads in parallel." } ?? "As many heads as the job needs."
+                        detail: settings.hydraMaxHeads.map { String(format: Chrome.localized("At most %lld heads in parallel."), $0) } ?? "As many heads as the job needs."
                     ) {
                         ChromeSegmentedPicker(
                             options: [ChromeSegmentedOption(value: Int?.none, title: "No cap", symbol: "infinity")]
@@ -305,13 +305,13 @@ private struct HydraPairRow: View {
         if pair.customName != nil { parts.insert(HydraPairSummary.modelsTitle(pair, registry: registry), at: 0) }
         if let efforts = HydraPairSummary.efforts(pair) { parts.append(efforts) }
         if let cap = pair.maxHeads {
-            parts.append(cap == 1 ? "One head at a time" : "Up to \(cap) heads")
+            parts.append(cap == 1 ? Chrome.localized("One head at a time") : String(format: Chrome.localized("Up to %lld heads"), cap))
         }
         // Heads on a provider this Mac cannot run stay on the lead's, on the chat's own
         // model (see `AppModel.hydraHeadsProvider`); the row says so rather than promising
         // a team that would fail.
         if pair.sendsHeadsElsewhere, model.hydraHeadsProvider(of: pair) == pair.provider {
-            parts.append("\(pair.headsProvider.displayName) is not set up, heads stay on \(pair.provider.displayName)")
+            parts.append(String(format: Chrome.localized("%@ is not set up, heads stay on %@"), pair.headsProvider.displayName, pair.provider.displayName))
         }
         return parts.joined(separator: " · ")
     }
@@ -460,7 +460,7 @@ private struct HydraPairEditor: View {
                 }
                 editorRow("Model") {
                     GlassPickerButton(
-                        options: [(String?.none, pair.sendsHeadsElsewhere ? "\(pair.headsProvider.displayName)'s default" : "Same as the chat")] + headsOptions.map { (Optional($0.id), $0.shortName) },
+                        options: [(String?.none, pair.sendsHeadsElsewhere ? String(format: Chrome.localized("%@'s default"), pair.headsProvider.displayName) : "Same as the chat")] + headsOptions.map { (Optional($0.id), $0.shortName) },
                         selection: Binding(
                             get: { pair.workerModel },
                             set: { id in
@@ -479,7 +479,7 @@ private struct HydraPairEditor: View {
                     editorRow("Effort") {
                         effortPicker(
                             efforts: workerEfforts,
-                            inherit: pair.sendsHeadsElsewhere ? "\(pair.headsProvider.displayName)'s default" : "Same as the chat",
+                            inherit: pair.sendsHeadsElsewhere ? String(format: Chrome.localized("%@'s default"), pair.headsProvider.displayName) : "Same as the chat",
                             selection: Binding(
                                 get: { pair.workerEffort },
                                 set: { effort in model.updateHydraPair(pairID) { $0.workerEffort = effort } }
@@ -498,7 +498,7 @@ private struct HydraPairEditor: View {
                 }
                 ForEach(Self.catalogProviders(pair), id: \.self) { provider in
                     if registry.models(for: provider).isEmpty {
-                        Text(registry.loadingCatalogs.contains(provider) ? "Loading \(provider.displayName)'s models…" : "No models loaded for \(provider.displayName) yet.")
+                        Text(verbatim: String(format: Chrome.localized(registry.loadingCatalogs.contains(provider) ? "Loading %@'s models…" : "No models loaded for %@ yet."), provider.displayName))
                             .font(.system(.subheadline))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 14)
@@ -522,13 +522,13 @@ private struct HydraPairEditor: View {
     private func editorRow<Control: View>(_ title: String, detail: String? = nil, @ViewBuilder control: () -> Control) -> some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(verbatim: title)
+                Text(verbatim: Chrome.localized(title))
                     .font(.system(.body))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 if let detail {
-                    Text(verbatim: detail)
+                    Text(verbatim: Chrome.localized(detail))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
@@ -548,7 +548,7 @@ private struct HydraPairEditor: View {
             Divider()
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
                 .font(.system(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .padding(.horizontal, 14)

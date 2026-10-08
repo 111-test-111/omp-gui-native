@@ -57,12 +57,12 @@ struct PromptEditor<Extra: View, Actions: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(verbatim: title)
+            Text(verbatim: Chrome.localized(title))
                 .font(.system(.title2, weight: .semibold))
             ComposerTextView(
                 text: $text,
                 height: $textHeight,
-                placeholder: "Message",
+                placeholder: Chrome.localized("Message"),
                 controller: controller,
                 onKey: handleKey,
                 onAttach: attach,
@@ -118,7 +118,7 @@ struct PromptEditor<Extra: View, Actions: View>: View {
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
-        panel.prompt = "Attach"
+        panel.prompt = Chrome.localized("Attach")
         guard panel.runModal() == .OK else { return }
         attach(panel.urls.map(AttachmentSource.file))
     }

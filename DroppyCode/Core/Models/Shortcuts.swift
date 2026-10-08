@@ -328,7 +328,7 @@ final class ShortcutStore {
         if chord.keyboardShortcut == nil { return "Menus cannot use this key." }
         if Self.reserved.contains(chord) { return "macOS or Droppy Code already uses this chord." }
         if let owner = AppShortcut.allCases.first(where: { $0 != shortcut && self.chord(for: $0) == chord }) {
-            return "\(owner.title) already uses this chord."
+            return String(format: AppText.localized("%@ already uses this chord."), AppText.localized(owner.title))
         }
         return nil
     }

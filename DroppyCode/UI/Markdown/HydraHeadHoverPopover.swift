@@ -69,7 +69,7 @@ private struct HydraHeadHoverCard: View {
                     .font(.system(.callout))
                     .foregroundStyle(Chrome.primaryText)
                     .lineLimit(3)
-                Text(verbatim: statusLine)
+                Text(verbatim: Chrome.localized(statusLine))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }

@@ -126,7 +126,7 @@ private struct MCPLeadCard: View {
             Image(systemName: symbol)
                 .foregroundStyle(Chrome.accent)
                 .frame(width: 14)
-            Text(verbatim: text)
+            Text(verbatim: Chrome.localized(text))
         }
         .font(.system(.callout))
         .foregroundStyle(Chrome.primaryText.opacity(0.9))
@@ -157,7 +157,7 @@ private struct MCPConnectedRow: View {
                 Text(verbatim: entry.name)
                     .font(.system(.body, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
-                Text(verbatim: "\(toolCount) tools · \(connection?.serverVersion ?? entry.vendor)")
+                Text(verbatim: String(format: Chrome.localized("%lld tools · %@"), toolCount, connection?.serverVersion ?? entry.vendor))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
@@ -204,7 +204,7 @@ private struct MCPConnectedRow: View {
 
     private var toolsPopover: some View {
             PopoverMenu {
-                PopoverSectionHeader("\(entry.name) tools")
+                PopoverSectionHeader(String(format: Chrome.localized("%@ tools"), entry.name))
                 let tools = connection?.tools ?? []
                 if tools.isEmpty {
                     PopoverNote("No tools listed yet.")
@@ -254,7 +254,7 @@ private struct MCPServerCard: View {
                 headerRow
                 // Every card keeps the same shape: two lines held for the summary whether
                 // it needs them or not, one line of tools, so the grid reads as a grid.
-                Text(verbatim: entry.summary)
+                Text(verbatim: Chrome.localized(entry.summary))
                     .font(.system(.callout))
                     .foregroundStyle(Chrome.secondaryText)
                     .lineLimit(2, reservesSpace: true)
@@ -273,7 +273,7 @@ private struct MCPServerCard: View {
                         .lineLimit(3)
                 }
                 if case .needsSetup(let guide) = state {
-                    Text(verbatim: guide.title)
+                    Text(verbatim: Chrome.localized(guide.title))
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.warning)
                         .lineLimit(2)
@@ -325,13 +325,13 @@ private struct MCPServerCard: View {
             // Sign in for a server that signs in; Connect for the rest. A server that
             // needs a key gets the floating key panel, which opens the page the key is
             // made on and takes the paste (see `MCPKeyPanel`); the card stays clean.
-            Button(entry.isOAuth ? "Sign in" : "Connect") { begin() }
+            Button(Chrome.localized(entry.isOAuth ? "Sign in" : "Connect")) { begin() }
                 .buttonStyle(.glass)
                 .controlSize(.small)
         case .connecting:
             HStack(spacing: 6) {
                 WorkingSpinner(cellSize: 3)
-                Text(entry.isOAuth ? "Waiting" : "Connecting")
+                Text(verbatim: Chrome.localized(entry.isOAuth ? "Waiting" : "Connecting"))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
                     .fixedSize()
@@ -343,7 +343,7 @@ private struct MCPServerCard: View {
                 .buttonStyle(.glassProminent)
                 .controlSize(.small)
         case .failed:
-            Button(entry.isOAuth ? "Sign in again" : "Try again") { begin() }
+            Button(Chrome.localized(entry.isOAuth ? "Sign in again" : "Try again")) { begin() }
                 .buttonStyle(.glass)
                 .controlSize(.small)
         }
@@ -363,7 +363,7 @@ private struct MCPServerCard: View {
                 .font(.system(size: 34))
                 .foregroundStyle(Chrome.success)
                 .scaleEffect(successPopped ? 1 : 0.5)
-            Text(verbatim: "Connected · \(toolCount) tools")
+            Text(verbatim: String(format: Chrome.localized("Connected · %lld tools"), toolCount))
                 .font(.system(.callout, weight: .medium))
                 .foregroundStyle(Chrome.primaryText)
         }
@@ -483,7 +483,7 @@ private struct MCPCustomRow: View {
     private var statusLine: some View {
         switch state {
         case .connected:
-            Text(verbatim: "\(toolCount) tools · \(connection?.serverVersion ?? entry.vendor)")
+            Text(verbatim: String(format: Chrome.localized("%lld tools · %@"), toolCount, connection?.serverVersion ?? entry.vendor))
                 .font(.system(.subheadline))
                 .foregroundStyle(Chrome.secondaryText)
         case .failed(let message):
@@ -697,7 +697,7 @@ private struct MCPCustomEditor: View {
             }
             HStack {
                 Spacer(minLength: 0)
-                Button(server == nil ? "Add server" : "Save") { save() }
+                Button(Chrome.localized(server == nil ? "Add server" : "Save")) { save() }
                     .buttonStyle(.glassProminent)
             }
         }
@@ -707,10 +707,10 @@ private struct MCPCustomEditor: View {
         HStack(alignment: .top, spacing: 10) {
             MCPIcon(entry: draft.catalogEntry(), size: 26)
             VStack(alignment: .leading, spacing: 1) {
-                Text(verbatim: server?.name ?? "New server")
+                Text(verbatim: server?.name ?? Chrome.localized("New server"))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Chrome.primaryText)
-                Text("Custom · \(kind == .stdio ? "stdio" : "http")")
+                Text(verbatim: String(format: Chrome.localized("Custom · %@"), kind == .stdio ? "stdio" : "http"))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
@@ -746,7 +746,7 @@ private struct MCPCustomEditor: View {
     /// A labeled editor row, the key panel's field shape: small caps-ish label over the control.
     private func field<Control: View>(_ label: String, @ViewBuilder control: () -> Control) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(verbatim: label)
+            Text(verbatim: Chrome.localized(label))
                 .font(.system(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
             control()
@@ -811,7 +811,7 @@ private struct MCPCustomEditor: View {
                             .contentShape(.rect)
                     }
                     .buttonStyle(.plain)
-                    .help(variable.isSecret ? "Kept in the Keychain" : "Stored in mcp.json; click to keep it in the Keychain instead")
+                    .help(Text(verbatim: Chrome.localized(variable.isSecret ? "Kept in the Keychain" : "Stored in mcp.json; click to keep it in the Keychain instead")))
                     Button {
                         variables.removeAll { $0.id == variable.id }
                     } label: {
@@ -828,7 +828,7 @@ private struct MCPCustomEditor: View {
             Button {
                 variables.append(VariableDraft())
             } label: {
-                Label(addLabel, systemImage: "plus")
+                Label { Text(verbatim: Chrome.localized(addLabel)) } icon: { Image(systemName: "plus") }
                     .font(.system(.callout, weight: .medium))
                     .foregroundStyle(Chrome.accent)
             }
@@ -903,7 +903,7 @@ private struct MCPInfoButton: View {
     let entry: MCPCatalogEntry
 
     var body: some View {
-        MCPHoverInfoButton(label: "About \(entry.name)") {
+        MCPHoverInfoButton(label: String(format: Chrome.localized("About %@"), entry.name)) {
             MCPInfoPopover(entry: entry)
         }
     }
@@ -933,7 +933,7 @@ private struct MCPHoverInfoButton<Content: View>: View {
         }
         .buttonStyle(.plain)
         .focusable(false)
-        .accessibilityLabel(Text(verbatim: label))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(label)))
         .onHover { over in
             isOverButton = over
             reconsider()
@@ -978,12 +978,12 @@ private struct MCPInfoPopover: View {
                     Text(verbatim: entry.name)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
-                    Text(verbatim: "\(entry.vendor) · \(entry.category.title)")
+                    Text(verbatim: "\(entry.vendor) · \(Chrome.localized(entry.category.title))")
                         .font(.system(.subheadline))
                         .foregroundStyle(Chrome.secondaryText)
                 }
             }
-            Text(verbatim: entry.summary)
+            Text(verbatim: Chrome.localized(entry.summary))
                 .font(.system(.callout))
                 .foregroundStyle(Chrome.primaryText.opacity(0.9))
                 .fixedSize(horizontal: false, vertical: true)
@@ -1000,7 +1000,7 @@ private struct MCPInfoPopover: View {
                 }
             }
             if let optional = entry.fields.first(where: { !$0.isRequired }) {
-                Button("Change the \(optional.label.lowercased())…") {
+                Button(String(format: Chrome.localized("Change the %@…"), Chrome.localizedLowercased(optional.label))) {
                     MCPKeyPanel.shared.present(entry: entry, model: model)
                 }
                 .font(.system(.callout, weight: .medium))
@@ -1025,7 +1025,7 @@ private struct MCPInfoPopover: View {
 
     private func detail(_ label: String, _ value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(verbatim: label)
+            Text(verbatim: Chrome.localized(label))
                 .font(.system(.subheadline, weight: .semibold))
                 .foregroundStyle(Chrome.secondaryText)
                 .frame(width: 58, alignment: .leading)
@@ -1040,23 +1040,23 @@ private struct MCPInfoPopover: View {
         switch entry.transport {
         case .stdio(let command, let args):
             let package = args.first { !$0.hasPrefix("-") } ?? command
-            return "Runs on this Mac through \(command) (\(package))."
+            return String(format: Chrome.localized("Runs on this Mac through %@ (%@)."), command, package)
         case .http(let url, _):
-            return "Remote server at \(Self.host(of: url))."
+            return String(format: Chrome.localized("Remote server at %@."), Self.host(of: url))
         case .oauth(let url):
-            return "Remote server at \(Self.host(of: entry.fill(url, values: [:]))). You sign in once in your browser."
+            return String(format: Chrome.localized("Remote server at %@. You sign in once in your browser."), Self.host(of: entry.fill(url, values: [:])))
         }
     }
 
     private var needs: String {
-        let required = entry.fields.filter(\.isRequired).map(\.label)
-        let optional = entry.fields.filter { !$0.isRequired }.map(\.label)
+        let required = entry.fields.filter(\.isRequired).map { Chrome.localized($0.label) }
+        let optional = entry.fields.filter { !$0.isRequired }.map { Chrome.localizedLowercased($0.label) }
         if required.isEmpty && optional.isEmpty {
-            return entry.isOAuth ? "Only your sign-in." : "Nothing — press Connect."
+            return Chrome.localized(entry.isOAuth ? "Only your sign-in." : "Nothing — press Connect.")
         }
         var parts = required
-        if !optional.isEmpty { parts.append("optional: " + optional.joined(separator: ", ").lowercased()) }
-        return parts.joined(separator: "; ") + "."
+        if !optional.isEmpty { parts.append(String(format: Chrome.localized("optional: %@"), optional.joined(separator: Chrome.localized(", ")))) }
+        return parts.joined(separator: Chrome.localized("; ")) + Chrome.localized(".")
     }
 
     private static func host(of url: String) -> String {

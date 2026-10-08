@@ -115,7 +115,7 @@ struct WallpaperCard: View {
                         .controlSize(.small)
                         .disabled(store.isInstalling)
                 }
-                Button(store.hasWallpaper ? "Change…" : "Choose…") { choose() }
+                Button(Chrome.localized(store.hasWallpaper ? "Change…" : "Choose…")) { choose() }
                     .buttonStyle(.glass)
                     .controlSize(.small)
                     .disabled(store.isInstalling)
@@ -171,8 +171,8 @@ struct WallpaperCard: View {
         panel.allowedContentTypes = WallpaperStore.acceptedTypes
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
-        panel.message = "Choose a picture for the window"
-        panel.prompt = "Use as Wallpaper"
+        panel.message = Chrome.localized("Choose a picture for the window")
+        panel.prompt = Chrome.localized("Use as Wallpaper")
         if let window = NSApp.keyWindow {
             panel.beginSheetModal(for: window) { response in
                 if response == .OK, let url = panel.url {

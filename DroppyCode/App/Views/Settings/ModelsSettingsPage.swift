@@ -64,7 +64,7 @@ struct ModelsSettingsPage: View {
                         }
                     }
                     if trimmed.isEmpty {
-                        Text("\(pins.count) of \(AppSettings.modelListLimit). Click a model to set its reasoning effort and fast mode for every new chat.")
+                        Text(verbatim: String(format: Chrome.localized("%lld of %lld. Click a model to set its reasoning effort and fast mode for every new chat."), pins.count, AppSettings.modelListLimit))
                             .font(.system(size: 11))
                             .foregroundStyle(Chrome.secondaryText)
                             .padding(.horizontal, 4)
@@ -84,7 +84,7 @@ struct ModelsSettingsPage: View {
             }
 
             if !trimmed.isEmpty, visiblePins.isEmpty, providers.isEmpty {
-                Text(verbatim: "No models match “\(trimmed)”.")
+                Text(verbatim: String(format: Chrome.localized("No models match “%@”."), trimmed))
                     .font(.system(size: 13))
                     .foregroundStyle(Chrome.secondaryText)
                     .padding(.horizontal, 4)
@@ -266,9 +266,9 @@ private struct PinnedModelRow: View {
     private func summary(option: ModelOption?, preference: ModelPreference) -> String {
         var parts = [pin.provider.displayName]
         if let option, !option.efforts.isEmpty {
-            parts.append(ModelOption.effortTitle(preference.effort ?? option.defaultEffort ?? "") + " effort")
+            parts.append(String(format: Chrome.localized("%@ effort"), Chrome.localized(ModelOption.effortTitle(preference.effort ?? option.defaultEffort ?? ""))))
         }
-        if preference.fastMode, option?.supportsFast == true { parts.append("Fast") }
+        if preference.fastMode, option?.supportsFast == true { parts.append(Chrome.localized("Fast")) }
         return parts.joined(separator: " · ")
     }
 }
@@ -290,8 +290,8 @@ private struct RowControl: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.35)
-        .help(help)
-        .accessibilityLabel(Text(help))
+        .help(Text(verbatim: Chrome.localized(help)))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
     }
 }
 
@@ -383,8 +383,8 @@ private struct ProviderModelsSection: View {
                                     // A plain button does not dim itself; the same 0.35 as
                                     // every other disabled control on this page.
                                     .opacity(!isAdded && isFull ? 0.35 : 1)
-                                    .help(isAdded ? "Remove from the picker" : (isFull ? "The picker holds up to \(AppSettings.modelListLimit) models" : "Add to the picker"))
-                                    .accessibilityLabel(Text(isAdded ? "Remove \(option.shortName) from the picker" : "Add \(option.shortName) to the picker"))
+                                    .help(Text(verbatim: isAdded ? Chrome.localized("Remove from the picker") : (isFull ? String(format: Chrome.localized("The picker holds up to %lld models"), AppSettings.modelListLimit) : Chrome.localized("Add to the picker"))))
+                                    .accessibilityLabel(Text(verbatim: String(format: Chrome.localized(isAdded ? "Remove %@ from the picker" : "Add %@ to the picker"), option.shortName)))
                                 }
                             }
                         }
@@ -439,10 +439,10 @@ struct CollapsibleProviderHeader: View {
         }
         .buttonStyle(ChromeQuietButtonStyle())
         .frame(height: 22)
-        .help(isExpanded ? "Hide the \(subject)" : "Show the \(subject)")
-        .accessibilityLabel(Text(provider.displayName))
-        .accessibilityValue(Text(isExpanded ? "Expanded" : "Collapsed"))
-        .accessibilityHint(Text("Shows or hides the \(subject)"))
+        .help(Text(verbatim: String(format: Chrome.localized(isExpanded ? "Hide the %@" : "Show the %@"), Chrome.localized(subject))))
+        .accessibilityLabel(Text(verbatim: provider.displayName))
+        .accessibilityValue(Text(verbatim: Chrome.localized(isExpanded ? "Expanded" : "Collapsed")))
+        .accessibilityHint(Text(verbatim: String(format: Chrome.localized("Shows or hides the %@"), Chrome.localized(subject))))
         .accessibilityAddTraits(.isHeader)
     }
 }

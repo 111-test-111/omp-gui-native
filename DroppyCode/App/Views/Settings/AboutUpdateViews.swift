@@ -43,9 +43,9 @@ enum ReleaseNoteCategory: CaseIterable, Identifiable {
 
     func countSummary(_ count: Int) -> String {
         switch self {
-        case .newFeatures: count == 1 ? "1 addition" : "\(count) additions"
-        case .bugFixes: "\(count) fixed"
-        case .refinements: "\(count) improved"
+        case .newFeatures: count == 1 ? Chrome.localized("1 addition") : String(format: Chrome.localized("%lld additions"), count)
+        case .bugFixes: String(format: Chrome.localized("%lld fixed"), count)
+        case .refinements: String(format: Chrome.localized("%lld improved"), count)
         }
     }
 
@@ -216,10 +216,10 @@ struct UpdateReleaseSectionCards: View {
                     .interpolation(.high)
                     .scaledToFit()
                     .frame(width: 26, height: 26)
-                Text(verbatim: category.cardTitle)
+                Text(verbatim: Chrome.localized(category.cardTitle))
                     .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(Chrome.primaryText)
-                Text(verbatim: section.map { category.countSummary($0.changeCount) } ?? "Nothing here")
+                Text(verbatim: section.map { category.countSummary($0.changeCount) } ?? Chrome.localized("Nothing here"))
                     .font(.system(.subheadline))
                     .foregroundStyle(Chrome.secondaryText)
             }
@@ -236,8 +236,8 @@ struct UpdateReleaseSectionCards: View {
         .buttonStyle(.plain)
         .disabled(section == nil)
         .opacity(section == nil ? 0.45 : 1)
-        .help(section == nil ? "Nothing here" : "Every change in \(category.sectionTitle.lowercased())")
-        .accessibilityLabel(Text(category.sectionTitle))
+        .help(Text(verbatim: section == nil ? Chrome.localized("Nothing here") : String(format: Chrome.localized("Every change in %@"), Chrome.localizedLowercased(category.sectionTitle))))
+        .accessibilityLabel(Text(verbatim: Chrome.localized(category.sectionTitle)))
         .popover(isPresented: Binding(
             get: { presented == category },
             set: { if $0 { presented = category } else if presented == category { presented = nil } }
@@ -265,7 +265,7 @@ private struct UpdateReleaseSectionPopover: View {
                     .scaledToFit()
                     .frame(width: 24, height: 24)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(verbatim: section.category.sectionTitle)
+                    Text(verbatim: Chrome.localized(section.category.sectionTitle))
                         .font(.system(.body, weight: .semibold))
                         .foregroundStyle(Chrome.primaryText)
                     Text(verbatim: version)
@@ -566,7 +566,7 @@ private struct AboutIdentityPill: View {
         .frame(height: Chrome.capsuleContentHeight)
         .padding(.vertical, Chrome.capsuleVerticalPadding)
         .chromeGlassCapsule()
-        .accessibilityLabel(Text("Droppy Code \(AppInfo.version)"))
+        .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("Droppy Code %@"), AppInfo.version)))
     }
 }
 
@@ -651,7 +651,7 @@ private struct AboutVersionPill: View {
                             Image(systemName: standing.symbol)
                                 .font(Chrome.inlineIconFont)
                                 .foregroundStyle(standing.tint)
-                            Text(verbatim: standing.title)
+                            Text(verbatim: Chrome.localized(standing.title))
                                 .font(.system(.callout, weight: .semibold))
                                 .foregroundStyle(Chrome.primaryText)
                         }
@@ -675,10 +675,10 @@ private struct AboutVersionPill: View {
                 .chromeGlassCapsule()
                 // The seal is not a button, but it is still worth saying what it means
                 // rather than showing an empty tooltip.
-                .help(isReady
-                    ? "Installs Droppy Code \(checker.update?.version ?? "") and relaunches"
-                    : standingHelp)
-                .accessibilityLabel(Text(accessibilityLabel))
+                .help(Text(verbatim: isReady
+                    ? String(format: Chrome.localized("Installs Droppy Code %@ and relaunches"), checker.update?.version ?? "")
+                    : standingHelp))
+                .accessibilityLabel(Text(verbatim: accessibilityLabel))
                 .accessibilityAddTraits(isReady ? .isButton : [])
             }
         }
@@ -692,14 +692,14 @@ private struct AboutVersionPill: View {
     /// The seal is not a button, but it is still worth saying what it means.
     private var standingHelp: String {
         switch standing {
-        case .upToDate: "Droppy Code \(AppInfo.version) is the latest version"
-        case .failed: checker.lastError ?? "The last check did not reach GitLab"
-        case .unchecked: "Droppy Code has not asked GitLab for a release yet"
+        case .upToDate: String(format: Chrome.localized("Droppy Code %@ is the latest version"), AppInfo.version)
+        case .failed: checker.lastError ?? Chrome.localized("The last check did not reach GitLab")
+        case .unchecked: Chrome.localized("Droppy Code has not asked GitLab for a release yet")
         }
     }
 
     private var accessibilityLabel: String {
-        isReady ? "Update & restart" : "Droppy Code \(AppInfo.version), \(standing.title.lowercased())"
+        isReady ? Chrome.localized("Update & restart") : String(format: Chrome.localized("Droppy Code %@, %@"), AppInfo.version, Chrome.localizedLowercased(standing.title))
     }
 }
 
@@ -781,12 +781,12 @@ struct AboutSoftwareUpdateSection: View {
     private func releaseDetail(_ update: AvailableUpdate) -> String {
         var parts: [String] = []
         if let date = update.releasedAt {
-            parts.append("Released \(date.formatted(date: .long, time: .omitted))")
+            parts.append(String(format: Chrome.localized("Released %@"), date.formatted(date: .long, time: .omitted)))
         }
         if let size = update.size {
             parts.append(ByteCountFormatStyle(style: .file).format(size))
         }
-        parts.append("Update & restart installs it in place and relaunches.")
+        parts.append(Chrome.localized("Update & restart installs it in place and relaunches."))
         return parts.joined(separator: " · ")
     }
 
@@ -824,7 +824,7 @@ struct AboutUpdateCheckRow: View {
 
     var body: some View {
         ChromeRow(title: "Software update", detail: detail) {
-            Button(checker.isChecking ? "Checking…" : "Check now") {
+            Button(Chrome.localized(checker.isChecking ? "Checking…" : "Check now")) {
                 Task { await checker.check() }
             }
             .buttonStyle(.glass)
@@ -834,12 +834,12 @@ struct AboutUpdateCheckRow: View {
     }
 
     private var detail: String {
-        if checker.isChecking { return "Asking GitLab for the latest release…" }
-        let checked = checker.lastCheckedAt.map { "Checked \($0.formatted(.relative(presentation: .named)))." } ?? "Not checked yet."
+        if checker.isChecking { return Chrome.localized("Asking GitLab for the latest release…") }
+        let checked = checker.lastCheckedAt.map { String(format: Chrome.localized("Checked %@."), $0.formatted(.relative(presentation: .named))) } ?? Chrome.localized("Not checked yet.")
         if let error = checker.lastError { return "\(error) \(checked)" }
         if checker.updateAvailable, let version = checker.update?.version {
-            return "Droppy Code \(version) is ready to install. \(checked)"
+            return String(format: Chrome.localized("Droppy Code %@ is ready to install. %@"), version, checked)
         }
-        return "Droppy Code checks GitLab for new versions a few times a day. \(checked)"
+        return String(format: Chrome.localized("Droppy Code checks GitLab for new versions a few times a day. %@"), checked)
     }
 }
