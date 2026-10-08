@@ -1,0 +1,68 @@
+# Local package contract
+
+An owner-requested build/package produces a package **and updates the corresponding
+installed app**, unless explicitly requested as build-only. Agent-initiated
+verification builds remain build-only. None of these authorize launching, quitting
+or publishing anything.
+
+```bash
+scripts/package_local.sh --both     # current request: install both editions
+scripts/package_local.sh --dev      # only the requested Dev build
+scripts/package_local.sh --release  # only the requested Release build
+```
+
+The script verifies all requested builds before installing any; keeps prior apps
+under `build.noindex/install-backups/`; stages each verified bundle before a swap;
+and refuses to replace a running target. It never copies or deletes live session
+data. Both local editions use the same persistent self-signed certificate, with
+separate stable bundle IDs and install paths:
+
+| Edition | Installed app | Bundle ID | Initial display version |
+| --- | --- | --- | --- |
+| Release | `/Applications/Tivano.app` | `dev.tivano.Tivano` | `0.0.1` |
+| Dev | `/Applications/Tivano Dev.app` | `dev.tivano.Tivano.dev` | `dev-0.0.1` |
+
+Local ZIPs are in `build.noindex/packages/`. The local Release build explicitly
+overrides the public Developer ID/hardened-runtime settings with local signing;
+that is not a distributable/notarized release. No public upload happens here.
+The public `release.sh` pipeline also installs its verified/notarized Release
+without launching it, and keeps its temporary outputs separate from local app backups.
+
+## Independent versions
+
+The authoritative version/build files are `config/release.xcconfig` and
+`config/dev.xcconfig`, attached to the corresponding target configurations in both
+the Xcode project and XcodeGen spec. Apple's `CFBundleShortVersionString` stays
+numeric; Dev's UI and package filenames add `dev-`.
+
+```bash
+scripts/set_version.py dev 0.0.2
+scripts/package_local.sh --dev
+# Release remains unchanged.
+```
+
+Packaging alone does not invent a new version or synchronize editions. Version
+changes are explicit; the setter increments that edition's internal build number.
+
+When the owner approves Dev and asks Release to catch up:
+
+```bash
+scripts/set_version.py release catch-up-dev
+scripts/package_local.sh --release
+```
+
+Before building, use the approved Dev code revision; copying a version number
+alone does not promote code. The release display name and unbadged icon remain
+Release's even when the numeric version catches up.
+
+## Shared real data
+
+See [shared library](shared-library.md). Editions are for switching, not concurrent
+writers. The owner accepts the risk of Dev modifying the real store, including
+schema changes that an older Release may not understand. Keep backups before
+risky experiments; the writer lease prevents concurrent overwrite but cannot
+make arbitrary schema downgrades safe.
+
+Source: [Apple CFBundleShortVersionString](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleshortversionstring)
+requires three period-separated integers, so `dev-` is intentionally not stored
+in that system field.
