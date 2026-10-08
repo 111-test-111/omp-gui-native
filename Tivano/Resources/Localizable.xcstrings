@@ -4346,6 +4346,17 @@
         }
       }
     },
+    "Dark · Avocado" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深色 · 牛油果绿"
+          }
+        }
+      }
+    },
     "Dark · Blue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5776,6 +5787,17 @@
         }
       }
     },
+    "Follows your Mac · Avocado" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随你的 Mac · 牛油果绿"
+          }
+        }
+      }
+    },
     "For example: use conventional commit prefixes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6872,6 +6894,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "浅色"
+          }
+        }
+      }
+    },
+    "Light · Avocado" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浅色 · 牛油果绿"
           }
         }
       }
@@ -12757,6 +12790,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "窗口透明度"
+          }
+        }
+      }
+    },
+    "Windy Dark" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windy 深色"
+          }
+        }
+      }
+    },
+    "Windy Light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windy 浅色"
           }
         }
       }

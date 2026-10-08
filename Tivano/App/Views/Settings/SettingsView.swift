@@ -1210,8 +1210,9 @@ private struct ProjectMarksRow: View {
     }
 }
 
-/// The theme menu: System on top, then the dark and the light themes in their
-/// own sections, each with a swatch of its surface and accent.
+/// The theme menu: Windy (Tivano's own) and System on top, then the dark and the
+/// light themes in their own sections, each with a swatch of its surface and accent.
+/// Windy Dark and Windy Light lead their sections.
 private struct ThemePickerButton: View {
     @Binding var selection: AppTheme
 
@@ -1248,6 +1249,7 @@ private struct ThemePickerButton: View {
         }
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu {
+                item(.windy)
                 item(.system)
                 PopoverSectionHeader("Dark")
                 ForEach(Self.dark) { item($0) }

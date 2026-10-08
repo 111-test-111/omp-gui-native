@@ -842,7 +842,7 @@ final class AppSettings {
         // The old System/Light/Dark choice maps straight onto the same themes.
         let initialTheme = AppTheme(rawValue: defaults.string(forKey: Key.appTheme) ?? "")
             ?? AppTheme(rawValue: defaults.string(forKey: Key.appearance) ?? "")
-            ?? .system
+            ?? .windy
         theme = initialTheme
         ThemeManager.current = initialTheme
         appLanguage = AppLanguage(rawValue: defaults.string(forKey: Key.appLanguage) ?? "") ?? .system
