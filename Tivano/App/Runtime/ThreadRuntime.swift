@@ -497,8 +497,6 @@ final class ThreadRuntime {
     @ObservationIgnored private var saveNoticeID: String?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var historyLoad: Task<Void, Never>?
-    @ObservationIgnored private var historyGeneration = 0
-    var isReadOnly = false
     @ObservationIgnored private var persistenceEnabled = true
     @ObservationIgnored private var currentTurnID: UUID?
     /// The turn being closed (see `finishTurn`): its id is taken out of `currentTurnID`
@@ -589,11 +587,6 @@ final class ThreadRuntime {
     init(threadID: UUID, app: AppModel) {
         self.threadID = threadID
         self.app = app
-        isReadOnly = !ThreadAccess.shared.owns(threadID)
-        if isReadOnly {
-            refreshReadOnlyDocument()
-            return
-        }
         isLoadingHistory = true
         let prefetched = DocumentPrefetch.shared.take(threadID)
         if let prefetched { install(prefetched, prepared: true) }
@@ -635,17 +628,6 @@ final class ThreadRuntime {
     }
 
     private func install(_ document: ThreadDocument, prepared: Bool = false) {
-        if isReadOnly {
-            turns = document.turns
-            usage = document.usage
-            continuation = document.continuation
-            followUps = document.followUps
-            hydraMerges = document.hydraMerges
-            entries = document.items.map(TimelineEntry.init)
-            entryIndex = Dictionary(entries.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
-            lastSavedRevision = saveRevision
-            return
-        }
         installingHistory = true
         itemPositions.merge(document.itemPositions ?? [:]) { _, new in new }
         for reference in document.turnIndex ?? [] {
@@ -768,62 +750,6 @@ final class ThreadRuntime {
         if saveRevision != lastSavedRevision { scheduleSave() }
     }
 
-    private func refuseUnreadableHistory(generation: Int) {
-        guard generation == historyGeneration else { return }
-        isLoadingHistory = false
-        historyLoad = nil
-        isReadOnly = true
-        cancelPersistence()
-        ThreadAccess.shared.release(threadID)
-        app?.alert = AppAlert(title: "Conversation could not be read", message: "Its existing file was not overwritten. Restore or repair the file before editing this conversation.")
-    }
-
-    func becomeReadOnly() {
-        isReadOnly = true
-        cancelPersistence()
-    }
-
-    func refreshReadOnlyDocument() {
-        guard isReadOnly, !isLoadingHistory else { return }
-        historyLoad?.cancel()
-        historyGeneration += 1
-        let generation = historyGeneration
-        isLoadingHistory = true
-        historyLoad = Task.detached(priority: .userInitiated) { [threadID] in
-            let document = Storage.decodeDocument(threadID)
-            guard !Task.isCancelled else { return }
-            await self.finishReadOnlyLoad(document, generation: generation)
-        }
-    }
-
-    private func finishReadOnlyLoad(_ document: ThreadDocument?, generation: Int) {
-        guard isReadOnly, generation == historyGeneration else { return }
-        if let document { install(document) }
-        isLoadingHistory = false
-        historyLoad = nil
-    }
-
-    func takeEditing() {
-        guard isReadOnly, ThreadAccess.shared.owns(threadID) else { return }
-        historyLoad?.cancel()
-        historyGeneration += 1
-        historyLoad = nil
-        isLoadingHistory = false
-        let document = Storage.decodeDocument(threadID)
-        if document == nil, FileManager.default.fileExists(atPath: Storage.threadURL(threadID).path) {
-            refuseUnreadableHistory(generation: historyGeneration)
-            return
-        }
-        isReadOnly = false
-        persistenceEnabled = true
-        entries = []; entryIndex = [:]; turns = []; followUps = []; hydraMerges = []
-        usage = nil; continuation = nil
-        itemPositions = [:]; turnRevisions = [:]; savedTurnRevisions = [:]; nextTurnRevision = 0
-        install(document ?? ThreadDocument(threadID: threadID))
-    }
-
-    private var hasEditingAccess: Bool { !isReadOnly && ThreadAccess.shared.owns(threadID) }
-
     /// Anything that continues the history (a new turn) waits for it first.
     func ensureLoaded() async {
         if let historyLoad { await historyLoad.value }
@@ -831,7 +757,6 @@ final class ThreadRuntime {
 
     /// Installs context only while the destination has no conversation of its own.
     func installContinuation(_ value: ThreadContinuation) async -> Bool {
-        guard hasEditingAccess else { return false }
         await ensureLoaded()
         guard let thread, turns.isEmpty, entries.isEmpty, thread.providerSessionID == nil else { return false }
         // Selecting the new row can warm a session before the snapshot is installed.
@@ -884,7 +809,6 @@ final class ThreadRuntime {
     /// to it), or a rewind the provider refuses, the turn is only stopped and stays in
     /// the thread.
     func takeBackRunningTurn() {
-        guard hasEditingAccess else { return }
         guard draft.isEmpty, !hasWorkingHeads, let turnID = currentTurnID, let turn = turns.first(where: { $0.id == turnID }),
               let itemID = turn.userItemID, let entry = entryIndex[itemID],
               case .user(let message) = entry.item.content, !message.isFromHydra else {
@@ -931,7 +855,6 @@ final class ThreadRuntime {
     // MARK: - Sending
 
     func send() {
-        guard hasEditingAccess else { return }
         guard !isReverting, !draft.isEmpty, phase == .idle else { return }
         let attachments = draft.attachments
         let outgoing = draft.outgoingText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -946,7 +869,6 @@ final class ThreadRuntime {
     }
 
     func sendHydraBrief(_ text: String, attachments: [Attachment]) {
-        guard hasEditingAccess else { return }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !attachments.isEmpty,
               phase == .idle else { return }
         draft = ComposerDraft()
@@ -970,7 +892,6 @@ final class ThreadRuntime {
     /// every queued prompt runs in order. With nothing to queue behind, the draft simply
     /// goes out: the queue chord is never a dead key.
     func queueDraftAsFollowUp() {
-        guard hasEditingAccess else { return }
         guard !isReverting, !draft.isEmpty else { return }
         guard canQueue else {
             send()
@@ -999,7 +920,6 @@ final class ThreadRuntime {
     /// if the turn finished on its own in the meantime). With heads at work the
     /// turn is left alone and the draft queues instead: see `hasWorkingHeads`.
     func interruptAndSend() {
-        guard hasEditingAccess else { return }
         guard !isReverting, !draft.isEmpty, phase != .idle else { return }
         // With every message going to a head, Return while the lead works sends the
         // draft to a head and leaves the lead's turn alone.
@@ -1026,7 +946,6 @@ final class ThreadRuntime {
     /// carry the target's bundle (or a fresh one), and the dragged prompt moves to sit
     /// right after the bundle's last prompt.
     func bundleFollowUp(_ id: UUID, onto target: UUID) {
-        guard hasEditingAccess else { return }
         guard id != target,
               let targetIndex = followUps.firstIndex(where: { $0.id == target }),
               followUps.firstIndex(where: { $0.id == id }) != nil else { return }
@@ -1044,7 +963,6 @@ final class ThreadRuntime {
     /// Takes a prompt out of its bundle on purpose (the link tapped, or the row dragged
     /// out): it goes as its own message again, and a bundle left with one prompt dissolves.
     func unbundleFollowUp(_ id: UUID) {
-        guard hasEditingAccess else { return }
         guard let index = followUps.firstIndex(where: { $0.id == id }), followUps[index].bundleID != nil else { return }
         followUps[index].bundleID = nil
         tidyBundles()
@@ -1147,7 +1065,6 @@ final class ThreadRuntime {
     /// Tivano-run heads live on through a stop, so with only those out the turn stops for
     /// the prompt as it would with none: "now" means now.
     func sendFollowUpNow(_ id: UUID) {
-        guard hasEditingAccess else { return }
         guard !isReverting else { return }
         guard let index = followUps.firstIndex(where: { $0.id == id }) else { return }
         var start = index
@@ -1186,7 +1103,6 @@ final class ThreadRuntime {
     }
 
     func enqueueFollowUp(text: String, attachments: [Attachment]) {
-        guard hasEditingAccess else { return }
         let prompt = FollowUpPrompt(
             text: text.trimmingCharacters(in: .whitespacesAndNewlines),
             attachments: attachments
@@ -1269,7 +1185,6 @@ final class ThreadRuntime {
     }
 
     func removeFollowUp(_ id: UUID) {
-        guard hasEditingAccess else { return }
         followUps.removeAll { $0.id == id }
         tidyBundles()
         saveRevision += 1
@@ -1281,7 +1196,6 @@ final class ThreadRuntime {
     /// Moves a follow-up to sit right before or after `target`; returns whether the queue changed.
     @discardableResult
     func moveFollowUp(_ id: UUID, to target: UUID, placeAfter: Bool) -> Bool {
-        guard hasEditingAccess else { return false }
         guard id != target,
               let from = followUps.firstIndex(where: { $0.id == id }),
               let to = followUps.firstIndex(where: { $0.id == target }) else { return false }
@@ -1297,7 +1211,6 @@ final class ThreadRuntime {
     }
 
     func updateFollowUp(_ id: UUID, text: String, attachments: [Attachment]) {
-        guard hasEditingAccess else { return }
         guard let index = followUps.firstIndex(where: { $0.id == id }) else { return }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty, attachments.isEmpty {
@@ -1339,7 +1252,6 @@ final class ThreadRuntime {
     }
 
     func implementPlan(_ entryID: String) {
-        guard hasEditingAccess else { return }
         guard phase == .idle, let entry = entryIndex[entryID], case .plan(var plan) = entry.item.content else { return }
         plan.state = .accepted
         entry.item.content = .plan(plan)
@@ -1349,7 +1261,6 @@ final class ThreadRuntime {
     }
 
     func dismissPlan(_ entryID: String) {
-        guard hasEditingAccess else { return }
         guard let entry = entryIndex[entryID], case .plan(var plan) = entry.item.content else { return }
         plan.state = .dismissed
         entry.item.content = .plan(plan)
@@ -1379,7 +1290,6 @@ final class ThreadRuntime {
         // A new turn must not race a provider-side archive. This wait occurs before
         // claiming the idle runtime, and the same session is restored before sending.
         await providerHistoryOperation?.value
-        guard hasEditingAccess else { return }
         guard phase == .idle, !isReverting else {
             enqueueFollowUp(text: text, attachments: attachments)
             return
@@ -1621,7 +1531,6 @@ final class ThreadRuntime {
     /// Only for CLI providers without a session; a send in the meantime waits for the
     /// warm-up instead of starting a second process.
     func warmSession() {
-        guard hasEditingAccess else { return }
         guard phase == .idle, session == nil, warmup == nil, !isReverting,
               let app, let thread = app.thread(threadID), !thread.isArchived, !thread.provider.isAPIKeyBased,
               let project = app.project(thread.projectID) else { return }
@@ -1636,7 +1545,6 @@ final class ThreadRuntime {
     }
 
     private func ensureSession(directory: String, allowNewSession: Bool = true) async throws -> any ProviderSession {
-        guard hasEditingAccess else { throw SharedJSONConflict(path: "read-only conversation") }
         guard let app, let thread = app.thread(threadID) else { throw ProviderError.notRunning }
         // Copilot switches modes live, except that Auto's assisted-approval judge is a
         // session flag: entering or leaving Auto resumes the session with it set right.
@@ -1879,7 +1787,6 @@ final class ThreadRuntime {
     /// A restarted or re-steered head owns its own shutdown; this completion cannot stop it.
     func stopCompletedCodexHeadSession(_ completed: CodexHeadCompletionSession) async {
         await waitForProviderHistory()
-        guard hasEditingAccess else { return }
         // A rewind may have acquired the same idle session as the archive finished.
         // Let it release that session, or clean it up after a failed rewind returns.
         while isCurrentCompletionSession(completed), phase == .idle, isReverting {
@@ -1914,7 +1821,6 @@ final class ThreadRuntime {
     /// Triggered only by a newly completed head, never by settings changes, startup,
     /// sidebar hiding, or local archive. No historical sweep or automatic retry.
     func archiveCodexHeadHistory(completion: CodexHeadCompletionSession) {
-        guard hasEditingAccess else { return }
         guard isCurrentCompletionSession(completion),
               thread?.providerSessionID == completion.providerSessionID,
               providerHistoryOperation == nil, canArchiveCompletedHeadHistory,
@@ -2080,7 +1986,6 @@ final class ThreadRuntime {
     // MARK: - Controls
 
     func interrupt() {
-        guard hasEditingAccess else { return }
         guard phase != .idle else { return }
         let turnID = currentTurnID
         interruptWatchdog?.cancel()
@@ -2111,7 +2016,6 @@ final class ThreadRuntime {
     }
 
     func resolve(_ request: ApprovalRequest, option: ApprovalRequest.Option) {
-        guard hasEditingAccess else { return }
         approvals.removeAll { $0.id == request.id }
         if request.kind == .plan, let itemID = request.toolItemID,
            let entry = entryIndex[itemID], case .plan(var plan) = entry.item.content {
@@ -2126,7 +2030,6 @@ final class ThreadRuntime {
     }
 
     func answer(_ request: QuestionRequest, answers: [String: [String]]) {
-        guard hasEditingAccess else { return }
         questions.removeAll { $0.id == request.id }
         let delivered = answerDeliveryHandler()
         guard let session else { delivered(false); return }
@@ -2142,7 +2045,6 @@ final class ThreadRuntime {
     }
 
     func compact() {
-        guard hasEditingAccess else { return }
         guard phase == .idle else { return }
         guard let session, session.isRunning else {
             appendNotice(.info, "Nothing to compact yet.")
@@ -2225,7 +2127,6 @@ final class ThreadRuntime {
     /// leaves the conversation as it was. Rewound but with the files not restored, the edit
     /// waits in the composer beside the notice instead of going out against the wrong tree.
     func resend(_ turnID: UUID, text: String, attachments: [Attachment], restoreFiles: Bool) async throws {
-        guard hasEditingAccess else { throw SharedJSONConflict(path: "read-only conversation") }
         let restored = try await revert(to: turnID, restoreFiles: restoreFiles)
         let edited = ComposerDraft(text: text, attachments: attachments)
         guard restored else {
@@ -2243,7 +2144,6 @@ final class ThreadRuntime {
     /// were restored as asked, a failure there being reported in the thread.
     @discardableResult
     func revert(to turnID: UUID, restoreFiles: Bool) async throws -> Bool {
-        guard hasEditingAccess else { return false }
         // Rewind restores/resumes and mutates the provider's same history. Acquire its
         // idle turn only after a prior archive has finished, just as a new send does.
         await waitForProviderHistory()
@@ -2491,7 +2391,6 @@ final class ThreadRuntime {
     /// Only the session observed last is listened to: one observed before it may still
     /// speak as it closes, and nothing it says reaches the thread.
     func observe(_ provider: any ProviderSession) {
-        guard hasEditingAccess else { return }
         sessionEpoch += 1
         let epoch = sessionEpoch
         provider.onEvent = { [weak self] event in
@@ -3045,7 +2944,6 @@ final class ThreadRuntime {
     /// The auto-merge has landed these turns' work: the next merge starts from what came
     /// after them, rather than offering the same files again.
     func markHydraMerged(_ turnIDs: [UUID]) {
-        guard hasEditingAccess else { return }
         let ids = Set(turnIDs)
         var changed = false
         for index in turns.indices where ids.contains(turns[index].id) && !turns[index].hydraMerged {
@@ -3064,7 +2962,6 @@ final class ThreadRuntime {
 
     /// The auto-merge's latest outcome for this thread, kept for the lead's next message.
     func recordHydraMerge(_ record: HydraMergeRecord) {
-        guard hasEditingAccess else { return }
         hydraMerges.append(record)
         if hydraMerges.count > 20 { hydraMerges.removeFirst(hydraMerges.count - 20) }
         saveRevision += 1
@@ -3204,7 +3101,6 @@ final class ThreadRuntime {
 
     /// Asks the session to stop a native head. Returns whether it could.
     func stopNativeHead(_ nativeID: String) async -> Bool {
-        guard hasEditingAccess else { return false }
         guard let session else { return false }
         return await session.stopAgent(nativeID)
     }
@@ -3214,7 +3110,6 @@ final class ThreadRuntime {
     /// batch is complete. A head reporting again (steered on from the panel) replaces
     /// any report of its own still waiting.
     func hydraHeadFinished(_ headID: UUID, info: HydraHeadInfo, status: HydraHeadInfo.Status, summary: String?, landing: HydraLanding? = nil, copyPath: String? = nil) {
-        guard hasEditingAccess else { return }
         switch info.kind {
         case .native:
             guard let toolID = info.toolUseID, let entry = entryIndex[toolID], case .tool(let call) = entry.item.content, call.status == .running else { return }
@@ -3569,7 +3464,6 @@ final class ThreadRuntime {
     /// could not. Its first line is its title. An `id` lets the note land under an identity
     /// the timeline is already drawing (the merging pill, see `hydraMergeNoteID`).
     func appendHydraNote(_ text: String, id: String? = nil) {
-        guard hasEditingAccess else { return }
         append(TimelineItem(id: id ?? UUID().uuidString, turnID: nil, content: .user(UserMessage(text: text, hydraHeads: []))))
         app?.updateThread(threadID) { $0.updatedAt = .now }
         scheduleSave()
@@ -4185,7 +4079,7 @@ final class ThreadRuntime {
     // MARK: - Persistence
 
     func scheduleSave() {
-        guard persistenceEnabled, hasEditingAccess else { return }
+        guard persistenceEnabled else { return }
         guard phase != .idle else {
             saveTask?.cancel()
             saveTask = Task { [weak self] in
@@ -4219,7 +4113,7 @@ final class ThreadRuntime {
         saveTask?.cancel()
         saveTask = nil
         // A save before the history is installed would write an empty thread over the file.
-        guard persistenceEnabled, hasEditingAccess, !isLoadingHistory, saveRetryTask == nil else { return }
+        guard persistenceEnabled, !isLoadingHistory, saveRetryTask == nil else { return }
         // The periodic save fires every few seconds while a turn runs, even when the
         // turn's events changed nothing since the last write: skip the snapshot then.
         // `finishTurn` and friends still land on disk, as their mutations bump the
@@ -4268,7 +4162,7 @@ final class ThreadRuntime {
     /// The current document, or nil when the last save already holds it: quit writes
     /// only the threads that changed.
     func unsavedSnapshot() -> ThreadSave? {
-        guard hasEditingAccess, !isLoadingHistory, saveRevision != lastSavedRevision else { return nil }
+        guard !isLoadingHistory, saveRevision != lastSavedRevision else { return nil }
         return snapshotForSave()
     }
 
@@ -4296,8 +4190,6 @@ final class ThreadRuntime {
         flushTask?.cancel()
         flushTask = nil
     }
-
-    func snapshotForSharedSave() -> ThreadSave { snapshotForSave() }
 
     private func snapshotForSave() -> ThreadSave {
         flushDeltas(scheduleSave: false)

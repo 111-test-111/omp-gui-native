@@ -53,7 +53,7 @@ extension AppModel {
             .sorted { $0.id.uuidString < $1.id.uuidString }
         // Load every competitor before choosing the first winner. A cold runtime
         // must not keep a completed job looking unfinished until the next sweep.
-        for lead in leads where !ThreadAccess.shared.isOwnedElsewhere(lead.id) {
+        for lead in leads {
             await runtime(for: lead.id).ensureLoaded()
         }
         for lead in leads {
@@ -77,8 +77,6 @@ extension AppModel {
     /// Lands a lead's finished work, when the setting says so. Runs once per finished job;
     /// what happened lands in the lead's timeline as a note from Hydra.
     func autoMergeHydraWork(of leadID: UUID) async {
-        guard beginSharedThreadJob(leadID) else { return }
-        defer { endSharedThreadJob(leadID) }
         guard settings.hydraAutoMerge, let waiting = thread(leadID), hydraIsOn(waiting),
               let queued = existingRuntime(for: leadID), !queued.isHydraMerging, !queued.isHydraMergeQueued,
               queued.isReadyForHydraMerge else { return }
