@@ -201,7 +201,7 @@ final class UpdateChecker {
         for release in releases {
             guard !release.upcomingRelease, let version = AppVersion(release.tagName) else { continue }
             if let releasedAt = release.releasedAt, releasedAt > .now { continue }
-            guard let asset = release.assets.items.first(where: { $0.isDiskImage }) else { continue }
+            guard let asset = release.assets.first(where: { $0.isDiskImage }) else { continue }
             guard let downloadURL = URL(string: asset.browserDownloadURL) else { continue }
             let candidate = AvailableUpdate(
                 version: AppVersion.text(ofTag: release.tagName),
@@ -276,10 +276,6 @@ enum UpdateError: LocalizedError {
 
 /// The parts of a GitHub release the checker reads.
 struct GitHubRelease: Decodable, Sendable {
-    struct Assets: Decodable, Sendable {
-        var items: [Asset]
-    }
-
     struct Asset: Decodable, Sendable {
         var name: String
         var browserDownloadURL: String
@@ -300,7 +296,7 @@ struct GitHubRelease: Decodable, Sendable {
     var body: String?
     var releasedAt: Date?
     var upcomingRelease: Bool
-    var assets: Assets
+    var assets: [Asset]
 
     private enum CodingKeys: String, CodingKey {
         case tagName = "tag_name"
@@ -318,7 +314,7 @@ struct GitHubRelease: Decodable, Sendable {
         let isDraft = try container.decodeIfPresent(Bool.self, forKey: .draft) ?? false
         let isPrerelease = try container.decodeIfPresent(Bool.self, forKey: .prerelease) ?? false
         upcomingRelease = isDraft || isPrerelease
-        assets = try container.decodeIfPresent(Assets.self, forKey: .assets) ?? Assets(items: [])
+        assets = try container.decodeIfPresent([Asset].self, forKey: .assets) ?? []
     }
 
     /// GitHub writes `2026-09-13T18:28:42Z`; the fraction is optional.
