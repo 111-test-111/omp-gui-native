@@ -356,16 +356,18 @@ struct ChromeIconLabel: View {
     var isEnabled = true
     var isActive = false
     var isHovering = false
+    var prominent = false
 
     var body: some View {
         Image(systemName: symbol)
-            .font(Chrome.iconFont)
+            .font(prominent ? .ui(.title3, weight: .semibold) : Chrome.iconFont)
             .foregroundStyle(foreground)
-            .frame(width: Chrome.capsuleContentHeight, height: Chrome.capsuleContentHeight)
+            .frame(width: prominent ? Chrome.capsuleHeight : Chrome.capsuleContentHeight, height: prominent ? Chrome.capsuleHeight : Chrome.capsuleContentHeight)
             .background {
-                if isActive {
+                if isActive || (prominent && isHovering) {
                     Circle()
-                        .fill(Chrome.overlay(0.12))
+                        .fill(Chrome.overlay(isActive ? 0.12 : 0.08))
+                        .shadow(color: Chrome.primaryText.opacity(prominent && isHovering ? 0.1 : 0), radius: Chrome.capsuleVerticalPadding * 2, y: Chrome.capsuleVerticalPadding)
                         .padding(1)
                 }
             }
@@ -383,6 +385,7 @@ struct ChromeIconButton: View {
     let symbol: String
     var isEnabled = true
     var isActive = false
+    var prominent = false
     let help: String
     let action: () -> Void
 
@@ -390,7 +393,7 @@ struct ChromeIconButton: View {
 
     var body: some View {
         Button(action: action) {
-            ChromeIconLabel(symbol: symbol, isEnabled: isEnabled, isActive: isActive, isHovering: isHovering)
+            ChromeIconLabel(symbol: symbol, isEnabled: isEnabled, isActive: isActive, isHovering: isHovering, prominent: prominent)
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
@@ -400,6 +403,18 @@ struct ChromeIconButton: View {
         .help(Text(verbatim: Chrome.localized(help)))
         .accessibilityLabel(Text(verbatim: Chrome.localized(help)))
         .background { NoWindowDragArea() }
+    }
+}
+
+/// Lets a containing toolbar stay visible while one of its controls presents a menu.
+// SwiftUI preferences propagate child state to the container:
+// https://developer.apple.com/documentation/swiftui/preferences
+struct ChromePresentationPreference: PreferenceKey {
+    static let defaultValue = false
+
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        let next = nextValue()
+        value = value || next
     }
 }
 
@@ -426,6 +441,7 @@ struct ChromeMenuButton<Content: View>: View {
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu { content }
         }
+        .preference(key: ChromePresentationPreference.self, value: isPresented)
         .background { NoWindowDragArea() }
     }
 }
@@ -530,6 +546,7 @@ struct ChromeTextMenu<Content: View>: View {
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             PopoverMenu { content }
         }
+        .preference(key: ChromePresentationPreference.self, value: isPresented)
         .background { NoWindowDragArea() }
     }
 }

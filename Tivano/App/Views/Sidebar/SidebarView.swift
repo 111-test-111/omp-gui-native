@@ -73,31 +73,47 @@ struct SidebarView: View {
         let placements = threadPlacements
         let helpers = helpersByParent(placements: placements)
         VStack(alignment: .leading, spacing: 0) {
-            // Clears the native window buttons that float over the sidebar's top corner.
             if !inPopover {
-                Color.clear
-                    .frame(height: Chrome.trafficLightDiameter)
-                    .padding(.top, Chrome.trafficLightTop)
+                HStack {
+                    Spacer(minLength: Chrome.trafficLightLeading + Chrome.trafficLightsWidth + Chrome.trafficLightClearance)
+                    SidebarToggleButton()
+                }
+                .padding(.trailing, Chrome.chromeHorizontalPadding)
+                .frame(height: Chrome.capsuleHeight)
+                .padding(.top, Chrome.chromeTopPadding)
             }
 
             HStack(spacing: 6) {
-                SidebarSearchField(
-                    text: $search,
-                    prompt: Chrome.localized("Search threads"),
-                    onSubmit: {
-                        if let first = searchResults(helpers: helpers).first?.threads.first {
-                            model.selectedThreadID = first.id
-                        }
-                    },
-                    onMove: { moveSearchSelection(by: $0, helpers: helpers) }
-                )
+                if inPopover {
+                    SidebarSearchField(
+                        text: $search,
+                        prompt: Chrome.localized("Search threads"),
+                        onSubmit: {
+                            if let first = searchResults(helpers: helpers).first?.threads.first {
+                                model.selectedThreadID = first.id
+                            }
+                        },
+                        onMove: { moveSearchSelection(by: $0, helpers: helpers) }
+                    )
+                } else {
+                    ChromeIconButton(symbol: "square.and.pencil", prominent: true, help: Chrome.localized("New thread") + ShortcutStore.hint(for: .newThread)) {
+                        model.newThread()
+                    }
+                    ChromeIconButton(symbol: "magnifyingglass", prominent: true, help: "Search threads") {
+                        model.isCommandPalettePresented = true
+                    }
+                }
                 ActivityViewToggle(isOn: Binding(
                     get: { model.settings.sidebarActivityView },
                     set: { model.settings.sidebarActivityView = $0 }
                 ))
+                if !inPopover {
+                    Spacer(minLength: Chrome.trafficLightClearance)
+                }
             }
-            .padding(.horizontal, Chrome.listInset)
-            .padding(.top, inPopover ? 12 : 14)
+            .padding(.leading, inPopover ? Chrome.listInset : Chrome.listInset + Chrome.rowHorizontalPadding + (Chrome.iconSize - Chrome.capsuleHeight) / 2)
+            .padding(.trailing, Chrome.listInset)
+            .padding(.top, inPopover ? 12 : 0)
 
             ScrollViewReader { proxy in
                 ScrollView(.vertical) {
@@ -912,7 +928,16 @@ struct SidebarView: View {
                 }
             }
         ).equatable())))
-        .padding(.leading, isNested ? ThreadRowMetrics.folderIndent : 0)
+    }
+}
+
+struct SidebarToggleButton: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        ChromeCircleButton(symbol: "sidebar.left", help: Chrome.localized("Toggle sidebar") + ShortcutStore.hint(for: .toggleSidebar)) {
+            model.sidebar.toggle()
+        }
     }
 }
 
@@ -2031,17 +2056,19 @@ private struct ThreadRowFace<Badge: View>: View {
         let isSettled = thread.isSettled
         let isDetailed = projectName != nil && !isSettled
         HStack(spacing: 8) {
-            if !isDetailed, !isSettled {
-                Group {
+            Group {
+                if !isDetailed, !isSettled {
                     if let projectIcon {
                         ProjectIconMark(icon: projectIcon, size: 12)
                     } else {
                         badge
                     }
+                } else {
+                    Color.clear
                 }
-                .frame(width: Chrome.iconSize)
-                .transition(.opacity)
             }
+            .frame(width: Chrome.iconSize)
+            .transition(.opacity)
             VStack(alignment: .leading, spacing: 3) {
                 Text(verbatim: thread.title)
                     .font(.ui(size: isSettled ? 12 : 13, weight: !isSettled && (isSelected || thread.hasUnread) ? .medium : .regular))
@@ -2062,7 +2089,7 @@ private struct ThreadRowFace<Badge: View>: View {
             }
             Spacer(minLength: 4)
         }
-        .padding(.leading, Chrome.rowHorizontalPadding + (isSettled ? ThreadRowMetrics.settledTitleInset : 0))
+        .padding(.leading, Chrome.rowHorizontalPadding)
         .padding(.trailing, Chrome.rowHorizontalPadding + trailingClearance)
         .padding(.vertical, isDetailed ? ThreadRowMetrics.detailedVerticalPadding : 0)
         .frame(minHeight: isSettled ? ThreadRowMetrics.settledHeight : Chrome.rowHeight)
@@ -2100,7 +2127,7 @@ private struct ThreadGhostBadge: View {
                 SidebarSymbol("pin.fill", scale: 0.9)
                     .foregroundStyle(Chrome.danger.opacity(0.85))
             } else {
-                ProviderIcon(provider: thread.provider, size: 14)
+                Color.clear
             }
         }
     }
@@ -2159,7 +2186,7 @@ private struct ThreadBadge: View {
                 SidebarSymbol("pin.fill", scale: 0.9)
                     .foregroundStyle(Chrome.danger.opacity(0.85))
             } else {
-                ProviderIcon(provider: thread.provider, size: 14)
+                Color.clear
             }
         }
         .overlay(alignment: .topTrailing) {
@@ -2314,28 +2341,12 @@ private enum ThreadActions {
 /// The bell beside the search field that switches the sidebar between projects and activity.
 private struct ActivityViewToggle: View {
     @Binding var isOn: Bool
-    @State private var isHovering = false
 
     var body: some View {
         let chord = ShortcutStore.shared.chord(for: .toggleActivityView).map { " (\($0.description))" } ?? ""
-        Button {
+        ChromeIconButton(symbol: "bell", isActive: isOn, prominent: true, help: (isOn ? Chrome.localized("Turn off activity view") : Chrome.localized("Turn on activity view")) + chord) {
             withAnimation(Chrome.panelSlide) { isOn.toggle() }
-        } label: {
-            Image(systemName: "bell")
-                .font(Chrome.iconFont)
-                .foregroundStyle(isOn ? Chrome.accent : Chrome.secondaryText)
-                .frame(width: 30, height: 30)
-                .background {
-                    Circle()
-                        .fill(isOn ? Chrome.accent.opacity(0.16) : (isHovering ? Chrome.overlay(0.08) : Color.clear))
-                }
-                .contentShape(Circle())
         }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            withAnimation(Chrome.hover) { isHovering = hovering }
-        }
-        .help(Text(verbatim: (isOn ? Chrome.localized("Turn off activity view") : Chrome.localized("Turn on activity view")) + chord))
         .accessibilityLabel(Text("Activity view"))
         .accessibilityValue(Text(verbatim: isOn ? Chrome.localized("On") : Chrome.localized("Off")))
     }

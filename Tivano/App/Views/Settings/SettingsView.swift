@@ -422,14 +422,13 @@ private struct GeneralSettingsPage: View {
     }
 }
 
-/// The window's look: theme, transparency, sidebar and activity styling, the wallpaper
-/// behind the glass, and the base font sizes.
+/// The main interface, font sizes and other appearance settings.
 private struct AppearanceSettingsPage: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         @Bindable var settings = model.settings
-        ChromeSection(title: "Appearance") {
+        ChromeSection(title: "Main interface") {
             ChromeCard {
                 ChromeRow(title: "Theme", detail: settings.theme.detail) {
                     ThemePickerButton(selection: $settings.theme)
@@ -444,87 +443,57 @@ private struct AppearanceSettingsPage: View {
                 ChromeRow(title: "Performance Mode", detail: "Disable window transparency, blurs, glows and background effects for lowest GPU usage") {
                     SettingsSwitch(isOn: $settings.performanceMode)
                 }
-                ChromeRowDivider()
-                ChromeRow(title: "Sidebar", detail: settings.sidebarMode.detail) {
-                    ChromeVisualPicker(options: SidebarMode.allCases.map { ($0, $0.title) }, selection: $settings.sidebarMode) { mode in
-                        Image(systemName: mode == .column ? "sidebar.left" : (mode == .floating ? "macwindow.on.rectangle" : "macwindow"))
-                    }
+            }
+            WallpaperCard()
+        }
+        FontSizeSection()
+        ChromeSection(title: "Other") {
+            ChromeCard {
+                ChromeRow(title: "Auto-hide top controls", detail: "Show the upper-right controls only while the pointer is over their area") {
+                    SettingsSwitch(isOn: $settings.autoHideTopControls)
                 }
                 ChromeRowDivider()
-                ChromeRow(title: "Activity list", detail: settings.activityThreadStyle.detail) {
-                    ChromeVisualPicker(options: ActivityThreadStyle.allCases.map { ($0, $0.title) }, selection: $settings.activityThreadStyle) { style in
-                        Image(systemName: style == .icon ? "list.bullet" : "text.alignleft")
-                    }
-                }
-                ChromeRowDivider()
-                // Meaningless without a column: dimmed while only the panel is shown.
                 ChromeRow(title: "Open the sidebar at launch", detail: "Collapsed otherwise; the list button in the toolbar shows and hides it any time") {
                     SettingsSwitch(isOn: Binding(
                         get: { model.sidebar.startsOpen },
                         set: { model.sidebar.startsOpen = $0 }
                     ))
                 }
-                .disabled(settings.sidebarMode == .panelOnly)
-                .opacity(settings.sidebarMode == .panelOnly ? 0.5 : 1)
             }
-            WallpaperCard()
         }
-        FontSizeSection()
     }
 }
 
-/// Interface, Content and Code. The header stays collapsed until it is opened;
-/// Reset is inert while every size is still the stock one.
+/// Font sizes use the same section and card spacing as the other settings.
 private struct FontSizeSection: View {
     @Environment(AppModel.self) private var model
-    @State private var isExpanded = false
 
     var body: some View {
         @Bindable var settings = model.settings
         ChromeSection(
-            title: "Advanced",
-            accessory: AnyView(disclosure),
+            title: "Font sizes",
             trailing: AnyView(
-                Button("Reset to defaults") { settings.resetFontSizes() }
+                Button("Reset font sizes") { settings.resetFontSizes() }
                     .font(.ui(.body))
                     .buttonStyle(.glass)
                     .controlSize(.small)
                     .disabled(settings.isDefault)
             )
         ) {
-            if isExpanded {
-                ChromeCard {
-                    ChromeRow(title: "Interface font size", detail: "Adjust Tivano's base font size") {
-                        FontSizeField(value: $settings.uiFontSize, range: TypeScale.uiRange)
-                    }
-                    ChromeRowDivider()
-                    ChromeRow(title: "Content font size", detail: "Adjust the base font size of conversations") {
-                        FontSizeField(value: $settings.contentFontSize, range: TypeScale.contentRange)
-                    }
-                    ChromeRowDivider()
-                    ChromeRow(title: "Code font size", detail: "Adjust the base font size of code in chat and diff views") {
-                        FontSizeField(value: $settings.codeFontSize, range: TypeScale.codeRange)
-                    }
+            ChromeCard {
+                ChromeRow(title: "Interface font size", detail: "Adjust Tivano's base font size") {
+                    FontSizeField(value: $settings.uiFontSize, range: TypeScale.uiRange)
+                }
+                ChromeRowDivider()
+                ChromeRow(title: "Content font size", detail: "Adjust the base font size of conversations") {
+                    FontSizeField(value: $settings.contentFontSize, range: TypeScale.contentRange)
+                }
+                ChromeRowDivider()
+                ChromeRow(title: "Code font size", detail: "Adjust the base font size of code in chat and diff views") {
+                    FontSizeField(value: $settings.codeFontSize, range: TypeScale.codeRange)
                 }
             }
         }
-    }
-
-    private var disclosure: some View {
-        Button {
-            withAnimation(Chrome.panelSlide) { isExpanded.toggle() }
-        } label: {
-            Image(systemName: "chevron.right")
-                .font(Font.ui(.subheadline, weight: .semibold))
-                .foregroundStyle(Chrome.secondaryText)
-                .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                .animation(Chrome.panelSlide, value: isExpanded)
-                .frame(width: 22, height: 22)
-                .contentShape(.rect)
-        }
-        .buttonStyle(ChromeQuietButtonStyle())
-        .accessibilityLabel(Text("Advanced"))
-        .accessibilityValue(Text(verbatim: Chrome.localized(isExpanded ? "Expanded" : "Collapsed")))
     }
 }
 
@@ -654,13 +623,15 @@ private struct ProvidersSettingsPage: View {
             if case .signedIn = model.providers.status(provider).auth { return true }
             return false
         }
+        let enabledProviders = ProviderKind.allCases.filter { model.settings.isEnabled($0) }
         // Eager on purpose: a handful of sections, and lazy ones were rebuilt while scrolling,
         // which reset their fields and re-ran every check they started on appear.
         VStack(alignment: .leading, spacing: Chrome.sectionSpacing) {
+            ProviderSelectionSection(settings: model.settings)
             // Configured providers lead, the rest follow; each group keeps allCases' own
             // order (a stable split, not a sort). An auth refresh reorders instantly —
             // only header clicks animate.
-            ForEach(ProviderKind.allCases.filter(configured) + ProviderKind.allCases.filter { !configured($0) }) { provider in
+            ForEach(enabledProviders.filter(configured) + enabledProviders.filter { !configured($0) }) { provider in
                 ProviderSettingsSection(
                     provider: provider,
                     isExpanded: Binding(
@@ -724,10 +695,6 @@ private struct ProviderSettingsSection: View {
                             }
                         }
                         Spacer()
-                        SettingsSwitch(isOn: Binding(
-                            get: { model.settings.isEnabled(provider) },
-                            set: { model.settings.setEnabled($0, for: provider) }
-                        ))
                     }
                     .padding(.leading, 16)
                     .padding(.trailing, Chrome.rowControlTrailingPadding)

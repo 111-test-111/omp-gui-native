@@ -3,25 +3,20 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
-    @State private var detailSize: CGSize = .zero
 
     var body: some View {
         let sidebar = model.sidebar
-        // With the sidebar floating, the collapsed column hands its list to a panel over
-        // the chat rather than the toolbar popover; only-floating drops the column altogether.
-        let onlyFloats = model.settings.sidebarFloats && model.settings.sidebarOnlyFloats
-        let floats = model.settings.sidebarFloats && (onlyFloats || !sidebar.isVisible)
         HStack(spacing: 0) {
             // The rows are laid out at the sidebar's width once, and the slide moves the clip
             // alone, so no row re-wraps per frame.
             SidebarView()
                 .frame(width: sidebar.width)
-                .frame(width: onlyFloats ? 0 : sidebar.renderedWidth, alignment: .trailing)
+                .frame(width: sidebar.renderedWidth, alignment: .trailing)
                 .clipped()
                 .onGeometryChange(for: CGFloat.self, of: { $0.size.width }) { sidebar.noteLaidOutWidth($0) }
                 .overlay(alignment: .trailing) {
                     SidebarResizeHandle(
-                        isActive: !onlyFloats && sidebar.isVisible,
+                        isActive: sidebar.isVisible,
                         onBegin: { sidebar.beginDrag() },
                         onChange: { sidebar.drag(by: $0) },
                         onEnd: { sidebar.endDrag() }
@@ -38,28 +33,28 @@ struct RootView: View {
                 // live resize all reach past the sheet for a few frames, and drew over the
                 // sidebar or off the window's edge until they landed.
                 .clipped()
-                .padding(.leading, sidebar.isVisible && !onlyFloats ? 0 : Chrome.sheetInset)
+                .padding(.leading, sidebar.isVisible ? 0 : Chrome.sheetInset)
                 .padding(.trailing, Chrome.sheetInset)
                 .padding(.vertical, Chrome.sheetInset)
-                .onGeometryChange(for: CGSize.self, of: { $0.size }) { detailSize = $0 }
-                .overlay(alignment: .topLeading) {
-                    if floats, detailSize != .zero {
-                        FloatingSidebarPanel(area: detailSize, canClose: !onlyFloats) { sidebar.toggle() }
-                            .transition(.scale(scale: 0.94).combined(with: .opacity))
-                    }
-                }
-                .animation(Chrome.panelSlide, value: floats)
         }
         // While the sidebar is hidden, dragging the window's leading edge pulls it back out.
         .overlay(alignment: .leading) {
             SidebarResizeHandle(
-                isActive: !onlyFloats && !sidebar.isVisible,
+                isActive: !sidebar.isVisible,
                 onBegin: { sidebar.beginDrag() },
                 onChange: { sidebar.drag(by: $0) },
                 onEnd: { sidebar.endDrag() }
             )
             .frame(width: SidebarResizeHandle.hitWidth)
             .padding(.top, Chrome.trafficLightTop + Chrome.trafficLightDiameter)
+        }
+        .overlay(alignment: .topLeading) {
+            if !sidebar.holdsTrafficLights,
+               model.selectedThreadID.flatMap({ model.thread($0) }) == nil {
+                SidebarToggleButton()
+                    .padding(.leading, Chrome.trafficLightsWidth + Chrome.trafficLightClearance + Chrome.chromeHorizontalPadding)
+                    .padding(.top, Chrome.chromeTopPadding)
+            }
         }
         .background { WindowBackdrop(opacity: model.settings.backdropOpacity, wallpaper: WallpaperStore.shared.image) }
         .background { WindowChromeConfigurator(sidebarVisible: sidebar.holdsTrafficLights, sidebarDragging: sidebar.isDragging, performanceMode: model.settings.performanceMode) }
@@ -302,7 +297,6 @@ struct WelcomeView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        @Bindable var settings = model.settings
         ScrollView {
             VStack(spacing: 30) {
                 VStack(spacing: 14) {
@@ -343,16 +337,6 @@ struct WelcomeView: View {
                         .font(.ui(.callout))
                         .foregroundStyle(Chrome.secondaryText)
                 }
-                ChromeSection(title: "Activity list") {
-                    ChromeCard {
-                        ChromeRow(title: "Project mark", detail: settings.activityThreadStyle.detail) {
-                            ChromeVisualPicker(options: ActivityThreadStyle.allCases.map { ($0, $0.title) }, selection: $settings.activityThreadStyle) { style in
-                                Image(systemName: style == .icon ? "list.bullet" : "text.alignleft")
-                            }
-                        }
-                    }
-                }
-                .frame(maxWidth: 480)
                 ChromeSection(title: "Providers") {
                     ProviderChecklist()
                 }

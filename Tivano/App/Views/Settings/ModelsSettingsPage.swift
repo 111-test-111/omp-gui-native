@@ -40,6 +40,13 @@ struct ModelsSettingsPage: View {
                             ) {
                                 EmptyView()
                             }
+                        } else if visiblePins.isEmpty, trimmed.isEmpty {
+                            ChromeRow(
+                                title: "No models from active providers",
+                                detail: "Enable a provider to restore its chosen models, or add models below."
+                            ) {
+                                EmptyView()
+                            }
                         } else {
                             // A plain stack, not the card's lazy one: a lazy stack
                             // rebuilds a row that changes slot and animates it in
@@ -107,7 +114,8 @@ struct ModelsSettingsPage: View {
     private func visiblePins(query: String) -> [ModelPin] {
         let registry = model.providers
         return model.settings.modelList.filter { pin in
-            Self.matches(registry.model(pin.modelID, for: pin.provider), id: pin.modelID, provider: pin.provider, query: query)
+            model.settings.isEnabled(pin.provider)
+                && Self.matches(registry.model(pin.modelID, for: pin.provider), id: pin.modelID, provider: pin.provider, query: query)
         }
     }
 
