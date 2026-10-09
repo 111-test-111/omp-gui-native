@@ -50,6 +50,9 @@ def previous_tag():
             tags = []
         if f"v{version}" in tags:
             rev = "HEAD^"
+    # A new or rewritten repository has no previous release in its ancestry.
+    if not run_git(["tag", "--merged", rev, "--list", "v*"]).strip():
+        return None
     return run_git(["describe", "--tags", "--abbrev=0", "--match", "v*", rev]).strip()
 
 
@@ -59,7 +62,7 @@ def commits_in_range(tag):
             "log",
             "--no-merges",
             "--format=%H%x1f%an%x1f%ae%x1f%s%x1f%(trailers:key=Co-authored-by,valueonly)",
-            f"{tag}..HEAD",
+            f"{tag}..HEAD" if tag else "HEAD",
         ]
     )
     commits = []
@@ -93,6 +96,8 @@ def commits_in_range(tag):
 
 
 def tag_date(tag):
+    if tag is None:
+        return None
     try:
         return run_git(["log", "-1", "--format=%cI", tag]).strip() or None
     except Exception:
@@ -113,10 +118,10 @@ def is_ancestor(sha, rev):
 
 
 def merged_in(sha, tag):
-    if is_ancestor(sha, "HEAD") and not is_ancestor(sha, tag):
+    if is_ancestor(sha, "HEAD") and (tag is None or not is_ancestor(sha, tag)):
         return True
     try:
-        if is_ancestor(sha, "origin/main") and not is_ancestor(sha, tag):
+        if is_ancestor(sha, "origin/main") and (tag is None or not is_ancestor(sha, tag)):
             return True
     except Exception:
         pass
@@ -126,7 +131,7 @@ def merged_in(sha, tag):
 def merged_requests(tag):
     shas = {c["sha"] for c in commits_in_range(tag)}
     date = tag_date(tag)
-    if not date:
+    if tag is not None and not date:
         return []
     url = f"repos/{PROJECT}/pulls?state=closed&sort=updated&direction=desc&per_page=100"
     try:
@@ -373,7 +378,7 @@ def main():
         if as_json:
             print("[]")
         else:
-            print(f"No outside contributors since {tag}.", file=sys.stderr)
+            print(f"No outside contributors since {tag or 'the start of this repository'}.", file=sys.stderr)
         return 0
     if as_json:
         print(

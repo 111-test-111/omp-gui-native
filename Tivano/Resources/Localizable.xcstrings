@@ -1,6 +1,127 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Active": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用"
+          }
+        }
+      }
+    },
+    "Active providers": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用的服务商"
+          }
+        }
+      }
+    },
+    "Choose providers": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择服务商"
+          }
+        }
+      }
+    },
+    "Choose your providers": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要启用的服务商"
+          }
+        }
+      }
+    },
+    "Click a provider to show or hide it. Your settings are kept.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击服务商即可显示或隐藏，原有配置会保留。"
+          }
+        }
+      }
+    },
+    "Enable a provider to restore its chosen models, or add models below.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用服务商即可恢复其已选模型，也可以在下方添加模型。"
+          }
+        }
+      }
+    },
+    "Hidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已隐藏"
+          }
+        }
+      }
+    },
+    "No models from active providers": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用的服务商中没有已选模型"
+          }
+        }
+      }
+    },
+    "Show only the providers you use in Settings and the model picker.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在设置和模型选择器中显示你使用的服务商。"
+          }
+        }
+      }
+    },
+    "Auto-hide top controls": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动隐藏顶部功能区"
+          }
+        }
+      }
+    },
+    "Show the upper-right controls only while the pointer is over their area": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在光标移入右上角功能区时显示其中的控件"
+          }
+        }
+      }
+    },
     "Shared library could not be refreshed": {
       "extractionState": "manual",
       "localizations": {
@@ -9349,6 +9470,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢复默认"
+          }
+        }
+      }
+    },
+    "Main interface" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主界面"
+          }
+        }
+      }
+    },
+    "Font sizes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字号"
+          }
+        }
+      }
+    },
+    "Other" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他"
+          }
+        }
+      }
+    },
+    "Reset font sizes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置字号"
           }
         }
       }

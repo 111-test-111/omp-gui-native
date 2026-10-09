@@ -49,20 +49,30 @@ struct ChromeVisualPicker<Value: Hashable, Preview: View>: View {
     }
 }
 
-/// One tile: a single symbol on a stage, accent on the symbol the chosen option carries.
+enum ChromeVisualTileLayout {
+    case stacked
+    case inline
+}
+
+/// One option, on a symbol stage or in a compact icon-and-name row.
 struct ChromeVisualTile<Content: View>: View {
     let title: String
     let isSelected: Bool
     var width: CGFloat = ChromeVisualTileMetrics.regularWidth
+    var layout: ChromeVisualTileLayout = .stacked
     let action: () -> Void
     @ViewBuilder var content: () -> Content
     @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: ChromeVisualTileMetrics.captionSpacing) {
-                stage
-                caption
+            if layout == .inline {
+                inlineLabel
+            } else {
+                VStack(spacing: ChromeVisualTileMetrics.captionSpacing) {
+                    stage
+                    caption
+                }
             }
         }
         .buttonStyle(.plain)
@@ -71,6 +81,34 @@ struct ChromeVisualTile<Content: View>: View {
         }
         .accessibilityLabel(Text(verbatim: Chrome.localized(title)))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var inlineLabel: some View {
+        HStack(spacing: Chrome.rowHorizontalPadding) {
+            content()
+                .foregroundStyle(isSelected ? Chrome.primaryText : Chrome.secondaryText)
+                .frame(width: Chrome.iconSize)
+            Text(verbatim: Chrome.localized(title))
+                .font(.ui(.callout))
+                .foregroundStyle(isSelected ? Chrome.primaryText : Chrome.secondaryText)
+                .lineLimit(1)
+                .layoutPriority(1)
+            Spacer(minLength: 0)
+            Image(systemName: "checkmark.seal.fill")
+                .font(.ui(.body, weight: .medium))
+                .foregroundStyle(Chrome.accent)
+                .frame(width: Chrome.iconSize)
+                .opacity(isSelected ? 1 : 0)
+                .accessibilityHidden(true)
+        }
+        .opacity(isSelected || isHovering ? 1 : 0.7)
+        .padding(.horizontal, Chrome.rowHorizontalPadding)
+        .frame(width: width, height: Chrome.rowHeight + ChromeVisualTileMetrics.captionSpacing * 2)
+        .background(
+            RoundedRectangle(cornerRadius: Chrome.rowCornerRadius, style: .continuous)
+                .fill(Chrome.overlay(isHovering ? 0.06 : 0))
+        )
+        .contentShape(.rect)
     }
 
     /// The option's name under its tile: the symbol alone does not say what the choice is.

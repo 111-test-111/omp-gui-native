@@ -238,7 +238,7 @@ final class UpdateInstallProgress {
 final class AppUpdater {
     static let shared = AppUpdater()
 
-    nonisolated static let teamID = "NARHG44L48"
+    nonisolated static let teamID = "5WF7HRPLRX"
     private static let relaunchVersionKey = "appUpdater_pendingRelaunchVersion"
     /// How long the app may stay alive after the handoff before the installer is called off.
     private static let handoffTimeout: TimeInterval = 25

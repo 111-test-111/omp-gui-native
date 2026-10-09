@@ -3,14 +3,23 @@
 # Never quits or launches the app.
 #
 #   scripts/release.sh
+#   scripts/release.sh --preflight  # checks setup without building or installing
 #
 # Needs Xcode, XcodeGen, a Developer ID Application certificate for the team below
 # and a notarytool keychain profile (NOTARY_PROFILE, "Tivano-Notarize" by default).
 set -euo pipefail
 
+PREFLIGHT_ONLY=0
+case "${1:-}" in
+  "") ;;
+  --preflight) PREFLIGHT_ONLY=1 ;;
+  *) echo "Usage: scripts/release.sh [--preflight]" >&2; exit 2 ;;
+esac
+[ "$#" -le 1 ] || { echo "Usage: scripts/release.sh [--preflight]" >&2; exit 2; }
+
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-TEAM_ID="NARHG44L48"
+TEAM_ID="5WF7HRPLRX"
 NOTARY_PROFILE="${NOTARY_PROFILE:-Tivano-Notarize}"
 APP_NAME="Tivano"
 # ".noindex" keeps Spotlight and Launchpad from listing the build copies of the app.
@@ -35,6 +44,37 @@ notarize() {
   echo "Notarization accepted for $(basename "$file")"
 }
 
+# Validate saved credentials without submitting an app; fail before archiving.
+# Apple: https://developer.apple.com/documentation/technotes/tn3147-migrating-to-the-latest-notarization-tool
+step "Checking Developer ID and notarization setup"
+[[ "$TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "Invalid release Team ID." >&2; exit 1; }
+UPDATER_TEAM=$(python3 - <<'PYTEAM'
+import re
+from pathlib import Path
+text = Path("Tivano/App/AppUpdater.swift").read_text()
+match = re.search(r'static let teamID = "([A-Z0-9]{10})"', text)
+print(match.group(1) if match else "")
+PYTEAM
+)
+RELEASE_TEAM=$(sed -nE 's/^[[:space:]]*DEVELOPMENT_TEAM[[:space:]]*=[[:space:]]*([A-Z0-9]{10})[[:space:]]*$/\1/p' config/release.xcconfig)
+[ "$UPDATER_TEAM" = "$TEAM_ID" ] && [ "$RELEASE_TEAM" = "$TEAM_ID" ] || {
+  echo "Release build, updater and packaging script must use the same Team ID." >&2
+  exit 1
+}
+IDENTITIES=$(security find-identity -v -p codesigning | sed -nE "s/^[[:space:]]*[0-9]+\) ([0-9A-F]{40}) \"Developer ID Application: .*\($TEAM_ID\)\".*/\1/p")
+IDENTITY_COUNT=$(printf '%s\n' "$IDENTITIES" | awk 'NF { n++ } END { print n+0 }')
+[ "$IDENTITY_COUNT" = 1 ] || {
+  echo "Expected one usable Developer ID Application identity for team $TEAM_ID; found $IDENTITY_COUNT." >&2
+  echo "Create/import the certificate and matching private key before packaging." >&2
+  exit 1
+}
+IDENTITY="$IDENTITIES"
+xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" --output-format json > /dev/null
+if [ "$PREFLIGHT_ONLY" = 1 ]; then
+  echo "Public release setup is usable; no app was built, submitted, installed or launched."
+  exit 0
+fi
+
 step "Generating the Xcode project"
 xcodegen generate --quiet
 
@@ -52,7 +92,10 @@ if ! xcodebuild archive \
   -skipMacroValidation \
   ARCHS=arm64 \
   EXCLUDED_ARCHS=x86_64 \
-  ONLY_ACTIVE_ARCH=NO > "$BUILD/archive.log" 2>&1; then
+  ONLY_ACTIVE_ARCH=NO \
+  DEVELOPMENT_TEAM="$TEAM_ID" \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="$IDENTITY" > "$BUILD/archive.log" 2>&1; then
   grep -E "error:" "$BUILD/archive.log" | head -40 || tail -40 "$BUILD/archive.log"
   exit 1
 fi
@@ -84,9 +127,11 @@ fi
 APP="$EXPORT/$APP_NAME.app"
 
 step "Verifying the signature"
-codesign --verify --deep --strict --verbose=2 "$APP"
+codesign --verify --deep --strict --verbose=2 \
+  -R="anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = \"$TEAM_ID\" and identifier \"dev.tivano.Tivano\"" "$APP"
 details=$(codesign -dv --verbose=4 "$APP" 2>&1)
 grep -q "Authority=Developer ID Application" <<< "$details"
+grep -qx "TeamIdentifier=$TEAM_ID" <<< "$details"
 grep -q "flags=.*runtime" <<< "$details"
 grep -q "Timestamp=" <<< "$details"
 archs=$(lipo -archs "$APP/Contents/MacOS/$APP_NAME")
@@ -103,7 +148,6 @@ xcrun stapler staple "$APP"
 step "Building the disk image"
 # The styled window (background, baked .DS_Store, volume icon) lives in release/dmg, see release/dmg/README.md.
 "$ROOT/scripts/package_dmg.sh" --app "$APP" --output "$DMG"
-IDENTITY=$(security find-identity -v -p codesigning | sed -nE "s/.*\"(Developer ID Application: .*\($TEAM_ID\))\".*/\1/p" | head -1)
 codesign --sign "$IDENTITY" --timestamp "$DMG"
 
 step "Notarizing the disk image"

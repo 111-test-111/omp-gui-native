@@ -630,6 +630,7 @@ private struct ComposerControls: View {
 
     var body: some View {
         HStack(spacing: 2) {
+            PermissionMenu(thread: thread)
             Button {
                 if recentDownloadsPicker {
                     showingRecents.toggle()
@@ -659,6 +660,22 @@ private struct ComposerControls: View {
             SendButton(runtime: runtime, goesToHead: goesToHead, queueGoesToHead: queueGoesToHead, send: onSend)
         }
         .fixedSize()
+    }
+}
+
+private struct PermissionMenu: View {
+    @Environment(AppModel.self) private var model
+    let thread: ChatThread
+
+    var body: some View {
+        ChromeMenuButton(symbol: thread.runtimeMode.symbol, help: "\(Chrome.localized(thread.runtimeMode.title)) · \(Chrome.localized(thread.runtimeMode.summary))") {
+            PopoverSectionHeader("Permissions")
+            ForEach(RuntimeMode.allCases) { mode in
+                PopoverItem(mode.title, symbol: mode.symbol, isChecked: thread.runtimeMode == mode) {
+                    model.updateThread(thread.id) { $0.runtimeMode = mode }
+                }
+            }
+        }
     }
 }
 

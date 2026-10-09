@@ -364,9 +364,8 @@ final class SidebarLayout {
 
     private(set) var width: CGFloat
     private(set) var isVisible: Bool
-    /// Whether the sidebar is open when the app starts (Settings › Appearance). Collapsed
-    /// by default: the list button in the toolbar shows and hides it any time, and that
-    /// choice lasts for the session alone.
+    /// Whether the sidebar is open when the app starts (Settings → Appearance → Other).
+    /// Open by default; toggling the sidebar only changes the current session.
     var startsOpen: Bool {
         didSet { persist() }
     }
@@ -404,7 +403,7 @@ final class SidebarLayout {
         let stored = (defaults.object(forKey: Key.width) as? Double).map { CGFloat($0) } ?? Self.defaultWidth
         restingWidth = min(Self.maximumWidth, max(Self.minimumWidth, stored))
         width = restingWidth
-        let visible = defaults.object(forKey: Key.startsOpen) as? Bool ?? false
+        let visible = defaults.object(forKey: Key.startsOpen) as? Bool ?? true
         startsOpen = visible
         isVisible = visible
         holdsTrafficLights = visible

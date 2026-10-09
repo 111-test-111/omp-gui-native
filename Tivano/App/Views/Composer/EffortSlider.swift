@@ -19,10 +19,12 @@ enum ModelCatalog {
             }
         } else {
             model.settings.modelList.compactMap { pin in
-                registry.model(pin.modelID, for: pin.provider).map { Entry(provider: pin.provider, option: $0) }
+                guard model.settings.isEnabled(pin.provider) else { return nil }
+                return registry.model(pin.modelID, for: pin.provider).map { Entry(provider: pin.provider, option: $0) }
             }
         }
-        if let thread, let current = registry.model(thread.model, for: thread.provider),
+        if let thread, model.settings.isEnabled(thread.provider),
+           let current = registry.model(thread.model, for: thread.provider),
            !result.contains(where: { $0.provider == thread.provider && $0.option.id == current.id }) {
             result.insert(Entry(provider: thread.provider, option: current), at: 0)
         }

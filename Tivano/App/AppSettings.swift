@@ -58,33 +58,6 @@ enum ThreadFinishAction: String, CaseIterable, Identifiable {
     }
 }
 
-/// How the thread list is shown: as a column beside the chat, as a floating panel whenever the column is collapsed, or as the floating panel alone.
-enum SidebarMode: String, CaseIterable, Identifiable {
-    case column
-    case floating
-    case panelOnly
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .column: "Column"
-        case .floating: "Floating"
-        case .panelOnly: "Panel only"
-        }
-    }
-
-    var detail: String {
-        switch self {
-        case .column: "A column beside the chat; the list button in the toolbar shows and hides it"
-        case .floating: "With the column collapsed, the thread list floats as a panel over the chat and stays where you leave it"
-        case .panelOnly: "No column and no toolbar button; the floating panel is the sidebar"
-        }
-    }
-}
-
-/// How the activity list shows which project a thread belongs to: the project's own mark
-/// in front of the thread's name on one line, or the project's name under it.
 enum TimelineHapticStyle: String, CaseIterable, Identifiable {
     case soft
     case strong
@@ -164,12 +137,12 @@ final class AppSettings {
         static let contentFontSize = "contentFontSize"
         static let codeFontSize = "codeFontSize"
         static let sidebarActivityView = "sidebarActivityView"
-        static let activityThreadStyle = "activityThreadStyle"
         static let settledCollapsed = "settledSectionCollapsed"
         static let appTheme = "appTheme"
         static let backdropOpacity = "backdropOpacity"
         static let appearance = "appearance"
         static let performanceMode = "performanceMode"
+        static let autoHideTopControls = "autoHideTopControls"
         static let binaryPaths = "providerBinaryPaths"
         static let disabledProviders = "disabledProviders"
         static let models = "lastModels"
@@ -205,8 +178,6 @@ final class AppSettings {
         static let hydraTempersHeadEffort = "hydraTempersHeadEffort"
         static let hydraMaxHeads = "hydraMaxHeads"
         static let showsUsagePanel = "showsUsagePanel"
-        static let sidebarFloats = "sidebarFloats"
-        static let sidebarOnlyFloats = "sidebarOnlyFloats"
         static let sidebarPanelOrigin = "sidebarPanelOrigin"
         static let sidebarPanelSize = "sidebarPanelSize"
         static let usagePanelDock = "usagePanelDock"
@@ -350,11 +321,8 @@ final class AppSettings {
         didSet { defaults.set(sidebarActivityView, forKey: Key.sidebarActivityView) }
     }
 
-    /// How the activity list marks each thread's project: the project's own icon before
-    /// the title on one line, or the project's name under it. The icon style is the default.
-    var activityThreadStyle: ActivityThreadStyle {
-        didSet { defaults.set(activityThreadStyle.rawValue, forKey: Key.activityThreadStyle) }
-    }
+    /// The activity list always shows the project's name under the thread title.
+    let activityThreadStyle: ActivityThreadStyle = .projectName
 
     /// The sidebar's Settled section is folded away. Expanded by default.
     var settledCollapsed: Bool {
@@ -393,6 +361,10 @@ final class AppSettings {
     /// Disables window transparency, blurs, glows and background effects for lowest GPU usage.
     var performanceMode: Bool {
         didSet { defaults.set(performanceMode, forKey: Key.performanceMode) }
+    }
+
+    var autoHideTopControls: Bool {
+        didSet { defaults.set(autoHideTopControls, forKey: Key.autoHideTopControls) }
     }
 
     var textGeneration: TextGenerationChoice {
@@ -738,30 +710,6 @@ final class AppSettings {
         didSet { defaults.set(showsUsagePanel, forKey: Key.showsUsagePanel) }
     }
 
-    /// The sidebar as a floating panel over the chat whenever its column is collapsed, in
-    /// place of the popover from the toolbar button; it stays where it was last left.
-    var sidebarFloats: Bool {
-        didSet { defaults.set(sidebarFloats, forKey: Key.sidebarFloats) }
-    }
-
-    /// Only the floating panel: the column and the toolbar button are gone; meaningful
-    /// with `sidebarFloats` on.
-    var sidebarOnlyFloats: Bool {
-        didSet { defaults.set(sidebarOnlyFloats, forKey: Key.sidebarOnlyFloats) }
-    }
-
-    /// The two sidebar switches as one choice: the settings page offers Column, Floating and Panel only.
-    var sidebarMode: SidebarMode {
-        get {
-            guard sidebarFloats else { return .column }
-            return sidebarOnlyFloats ? .panelOnly : .floating
-        }
-        set {
-            sidebarFloats = newValue != .column
-            sidebarOnlyFloats = newValue == .panelOnly
-        }
-    }
-
     /// Where the floating sidebar was last left, from the chat area's top-left.
     var sidebarPanelOrigin: CGPoint? {
         didSet {
@@ -825,10 +773,10 @@ final class AppSettings {
         contentFontSize = Self.clampedFontSize(defaults, key: Key.contentFontSize, stock: TypeScale.stockContent, range: TypeScale.contentRange)
         codeFontSize = Self.clampedFontSize(defaults, key: Key.codeFontSize, stock: TypeScale.stockCode, range: TypeScale.codeRange)
         sidebarActivityView = defaults.bool(forKey: Key.sidebarActivityView)
-        activityThreadStyle = ActivityThreadStyle(rawValue: defaults.string(forKey: Key.activityThreadStyle) ?? "") ?? .icon
         settledCollapsed = defaults.object(forKey: Key.settledCollapsed) as? Bool ?? true
         backdropOpacity = defaults.object(forKey: Key.backdropOpacity) as? Double ?? Self.defaultBackdropOpacity
         performanceMode = defaults.bool(forKey: Key.performanceMode)
+        autoHideTopControls = defaults.bool(forKey: Key.autoHideTopControls)
         // The old System/Light/Dark choice maps straight onto the same themes.
         let initialTheme = AppTheme(rawValue: defaults.string(forKey: Key.appTheme) ?? "")
             ?? AppTheme(rawValue: defaults.string(forKey: Key.appearance) ?? "")
@@ -879,8 +827,6 @@ final class AppSettings {
         hydraAutoPopsHeads = defaults.object(forKey: Key.hydraAutoPopsHeads) as? Bool ?? false
         hydraTempersHeadEffort = defaults.object(forKey: Key.hydraTempersHeadEffort) as? Bool ?? true
         showsUsagePanel = defaults.object(forKey: Key.showsUsagePanel) as? Bool ?? false
-        sidebarFloats = defaults.object(forKey: Key.sidebarFloats) as? Bool ?? false
-        sidebarOnlyFloats = defaults.object(forKey: Key.sidebarOnlyFloats) as? Bool ?? false
         if let stored = defaults.array(forKey: Key.sidebarPanelOrigin) as? [Double], stored.count == 2 {
             sidebarPanelOrigin = CGPoint(x: stored[0], y: stored[1])
         } else {

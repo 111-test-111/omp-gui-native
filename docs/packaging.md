@@ -14,7 +14,7 @@ scripts/package_local.sh --release  # only the requested Release build
 The script verifies all requested builds before installing any; keeps prior apps
 under `build.noindex/install-backups/`; stages each verified bundle before a swap;
 and refuses to replace a running target. It never copies or deletes live session
-data. Both local editions use the same persistent self-signed certificate, with
+data. Both local editions use the same Developer ID Application team, with
 separate stable bundle IDs and install paths:
 
 | Edition | Installed app | Bundle ID | Initial display version |
@@ -22,9 +22,9 @@ separate stable bundle IDs and install paths:
 | Release | `/Applications/Tivano.app` | `dev.tivano.Tivano` | `0.0.1` |
 | Dev | `/Applications/Tivano Dev.app` | `dev.tivano.Tivano.dev` | `dev-0.0.1` |
 
-Local ZIPs are in `build.noindex/packages/`. The local Release build explicitly
-overrides the public Developer ID/hardened-runtime settings with local signing;
-that is not a distributable/notarized release. No public upload happens here.
+Local ZIPs are in `build.noindex/packages/`. Both editions retain hardened
+runtime and secure timestamps. Local packaging does not submit to Apple
+notarization or upload publicly; public distribution uses the release pipeline.
 The public `release.sh` pipeline also installs its verified/notarized Release
 without launching it, and keeps its temporary outputs separate from local app backups.
 

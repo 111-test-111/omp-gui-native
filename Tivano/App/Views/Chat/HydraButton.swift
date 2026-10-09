@@ -90,6 +90,7 @@ struct HydraButton: View {
             HydraIntroPopover { model.settings.hasSeenHydraIntro = true; isIntroShown = false }
                 .interactiveDismissDisabled()
         }
+        .preference(key: ChromePresentationPreference.self, value: isExplaining || isHydraSwitchShown || isIntroShown)
         .onAppear { if !model.settings.hasSeenHydraIntro, isOn { isIntroShown = true } }
         // The capture run hangs the intro's still from the mark, where the app shows it.
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { frame in

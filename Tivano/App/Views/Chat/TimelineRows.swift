@@ -156,6 +156,7 @@ struct UserMessageRow: View {
                     // with its favicon in front. `hugsContent` keeps the bubble hugging its text
                     // instead of filling the row.
                     InlineText(promptExpanded ? parts.body : preview, hugsContent: true)
+                        .font(.system(size: TypeScale.shared.content(13)))
                         .textSelection(.enabled)
                         .padding(.leading, 14)
                         // The tail hangs past the body; the text keeps its inset from the body.

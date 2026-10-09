@@ -47,6 +47,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Automatic
+        OTHER_CODE_SIGN_FLAGS: "--timestamp"
         DEAD_CODE_STRIPPING: YES
         SWIFT_OBJC_BRIDGING_HEADER: Tivano/App/Window/Tivano-Bridging-Header.h
       configs:
@@ -56,8 +57,7 @@ targets:
           INFOPLIST_KEY_CFBundleDisplayName: "Tivano Dev"
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIconDev
           CODE_SIGN_STYLE: Manual
-          CODE_SIGN_IDENTITY: "Tivano Local Development"
-          ENABLE_HARDENED_RUNTIME: NO
+          CODE_SIGN_IDENTITY: Developer ID Application
         Release:
           CODE_SIGN_STYLE: Manual
           CODE_SIGN_IDENTITY: Developer ID Application
