@@ -6,7 +6,24 @@ All notable changes to Tivano are documented here, newest first. The format foll
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-09
+
+### New features
+
+- Search conversations from the sidebar toolbar in a floating search panel.
+- Choose which providers appear in settings and model pickers without losing their saved credentials or configuration.
+- Optionally hide the top conversation controls until needed.
+
+### Bug fixes
+
+- Decode GitHub release assets correctly so the Release edition can check for updates.
+- Apply the content font-size setting to sent messages.
+
 ### Refinements
+
+- Release and Dev share version 0.2.0, with stable Developer ID signing for both editions and a notarized Release disk image.
+- Simplify sidebar rows and options, expand the toolbar hover region, and organize appearance settings.
+
 
 - A new default theme, Breeze, takes the avocado green of the app icon as its accent, with Breeze Light and Breeze Dark variants; anyone who has already picked a theme keeps it.
 - Compatible Release and Dev editions can run together on the same library, with conflict-safe metadata updates.
@@ -15,6 +32,10 @@ All notable changes to Tivano are documented here, newest first. The format foll
 - Load the library after launch, preserve unreadable chat files for recovery, and release excess idle runtimes.
 - Compute timeline viewport frames on demand and debounce active-block resolution.
 - Dev packages are built with `-O` and whole-module optimization, for performance testing.
+
+### Thanks
+
+- No outside contributors since the start of this repository's retained history.
 
 ## [1.7.4] - 2026-10-07
 
