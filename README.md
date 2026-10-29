@@ -6,6 +6,18 @@ A native macOS desktop workspace for [Oh My Pi (OMP)](https://omp.sh), built wit
 
 **Source release:** early development. This repository publishes source code, not a signed or notarized installer. Automatic updates and inherited publishing scripts remain disabled. Historical upstream versions are not releases of this fork.
 
+## Screenshots
+
+Captured from the running macOS app with an isolated Orbit demo project and staged conversations.
+
+**Native workspace with Markdown and math previews**
+
+![OMP GUI Native showing a coding conversation beside a rendered Markdown checklist, table and mathematical formula](docs/screenshots/markdown-preview.jpg)
+
+| Projects and native chat | Source preview and integrated terminal |
+| --- | --- |
+| ![OMP GUI Native project sidebar, coding conversation and floating composer](docs/screenshots/chat.jpg) | ![OMP GUI Native showing a conversation, Swift source preview and a working terminal](docs/screenshots/workbench.jpg) |
+
 ## What it does
 
 - **Projects and conversations:** native project sidebar, conversation history, streaming responses, model selection, thinking controls, approvals and queued messages.

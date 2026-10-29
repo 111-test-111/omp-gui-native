@@ -6,6 +6,18 @@
 
 **源码发布状态：**早期开发。本仓库公开源码，不提供已签名／公证安装包。自动更新及继承的发布脚本保持关闭，上游历史版本不代表本 fork 的发行记录。
 
+## 应用截图
+
+实际启动 macOS 应用截取，使用独立的 Orbit 示例项目和预置演示会话。
+
+**原生工作区与 Markdown、数学公式预览**
+
+![OMP GUI Native 中的编码会话，以及并排显示的 Markdown 清单、表格与数学公式](docs/screenshots/markdown-preview.jpg)
+
+| 项目与原生聊天 | 源码预览与内嵌终端 |
+| --- | --- |
+| ![OMP GUI Native 的项目侧栏、编码会话与浮动输入框](docs/screenshots/chat.jpg) | ![OMP GUI Native 中并排显示的会话、Swift 源码预览和实际运行的终端](docs/screenshots/workbench.jpg) |
+
 ## 主要功能
 
 - **项目与会话：**原生项目侧栏、历史会话、流式回复、模型与思考级别选择、审批及消息队列。
