@@ -8,15 +8,19 @@
 
 ## 应用截图
 
-实际启动 macOS 应用截取，使用独立的 Orbit 示例项目和预置演示会话。
+当前 macOS 开发版的亮色模式实拍，使用独立的 Orbit 示例项目和预置演示会话。
 
 **原生工作区与 Markdown、数学公式预览**
 
-![OMP GUI Native 中的编码会话，以及并排显示的 Markdown 清单、表格与数学公式](docs/screenshots/markdown-preview.jpg)
+![亮色模式下的 OMP GUI Native 编码会话，以及并排显示的 Markdown 清单、表格与数学公式](docs/screenshots/light-markdown.jpg)
 
-| 项目与原生聊天 | 源码预览与内嵌终端 |
+| Git 变更 | 内嵌浏览器 |
 | --- | --- |
-| ![OMP GUI Native 的项目侧栏、编码会话与浮动输入框](docs/screenshots/chat.jpg) | ![OMP GUI Native 中并排显示的会话、Swift 源码预览和实际运行的终端](docs/screenshots/workbench.jpg) |
+| ![亮色模式下的 OMP GUI Native Git 侧栏，展示改动文件与增删行数](docs/screenshots/light-git.jpg) | ![亮色模式下的 OMP GUI Native 内嵌浏览器，实际运行本地项目预览](docs/screenshots/light-browser.jpg) |
+
+| 项目文件 | 侧栏终端 |
+| --- | --- |
+| ![亮色模式下的 OMP GUI Native 原生文件浏览器与展开的项目目录](docs/screenshots/light-files.jpg) | ![亮色模式下的 OMP GUI Native 侧栏终端，实际执行 Swift 排序样例并显示 Git 变更摘要](docs/screenshots/light-terminal.jpg) |
 
 ## 主要功能
 

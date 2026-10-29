@@ -8,15 +8,19 @@ A native macOS desktop workspace for [Oh My Pi (OMP)](https://omp.sh), built wit
 
 ## Screenshots
 
-Captured from the running macOS app with an isolated Orbit demo project and staged conversations.
+Captured in light mode from the current macOS development build, with an isolated Orbit sample project and staged conversations.
 
 **Native workspace with Markdown and math previews**
 
-![OMP GUI Native showing a coding conversation beside a rendered Markdown checklist, table and mathematical formula](docs/screenshots/markdown-preview.jpg)
+![OMP GUI Native in light mode, showing a coding conversation alongside a rendered Markdown checklist, table and mathematical formula](docs/screenshots/light-markdown.jpg)
 
-| Projects and native chat | Source preview and integrated terminal |
+| Git changes | Embedded browser |
 | --- | --- |
-| ![OMP GUI Native project sidebar, coding conversation and floating composer](docs/screenshots/chat.jpg) | ![OMP GUI Native showing a conversation, Swift source preview and a working terminal](docs/screenshots/workbench.jpg) |
+| ![OMP GUI Native in light mode with the Git sidebar listing changed files and line counts](docs/screenshots/light-git.jpg) | ![OMP GUI Native in light mode with a local project preview running in the embedded browser](docs/screenshots/light-browser.jpg) |
+
+| Project files | Sidebar terminal |
+| --- | --- |
+| ![OMP GUI Native in light mode with the native project file browser and expanded source folders](docs/screenshots/light-files.jpg) | ![OMP GUI Native in light mode with a sidebar terminal running a Swift ranking example and showing a Git change summary](docs/screenshots/light-terminal.jpg) |
 
 ## What it does
 
