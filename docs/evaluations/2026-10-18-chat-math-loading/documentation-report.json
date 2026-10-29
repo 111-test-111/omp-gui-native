@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "date": "2026-10-18T15:08:09.905155+00:00",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
+  "tools": {
+    "git": "/usr/bin/git"
+  },
+  "app_build": null,
+  "runtimes": [],
+  "checks": [
+    {
+      "id": "static:documentation",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "documentation",
+        "description": "Local Markdown targets, heading anchors and navigation reachability",
+        "tier": "static",
+        "sources": [],
+        "app": false,
+        "prepare": "",
+        "recipe": "python",
+        "inputs": [
+          "tests/tooling/documentation_tests.py",
+          "docs",
+          "README.md",
+          "README.zh-CN.md",
+          "AGENTS.md",
+          "CHANGELOG.md",
+          "THIRD_PARTY_NOTICES.md",
+          "TRADEMARK.md",
+          "LICENSE",
+          ".github",
+          "design",
+          "release",
+          "scripts",
+          "tests",
+          "OMPGUI",
+          "config",
+          "OMPGUI.xcodeproj",
+          "project.yml"
+        ],
+        "tools": [
+          "git"
+        ],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T150809Z-12a1617b/static/documentation",
+      "inputs_sha256": "f51f14367d55450a1c415e5de0d6dd5e189d57d2659fcd68004a783f246727cc",
+      "commands": [
+        {
+          "argv": [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/tooling/documentation_tests.py"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 0.245
+    }
+  ]
+}

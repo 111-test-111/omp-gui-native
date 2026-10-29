@@ -1,0 +1,2 @@
+{"path": "/v1/chat/completions", "user": [{"type": "text", "text": "<system-reminder>\nToday: 2026-10-18; current working directory: '/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/native-controls-live/20261018-210040-d961345a/workspace'. Do not repeat this information in your reply.\n</system-reminder>"}, {"type": "text", "text": "Q_BOOTSTRAP"}], "monotonic": 2.516589666}
+{"path": "/v1/chat/completions", "user": [{"type": "text", "text": "Q_MATH_STREAM"}], "monotonic": 3.45723425}

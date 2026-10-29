@@ -1,0 +1,87 @@
+{
+  "version": "0.1.133 (134)",
+  "base_commit": "b44f627",
+  "machine": {
+    "chip": "Apple M5",
+    "memory_bytes": 25769803776,
+    "macOS": "27.2 (26B5101f)",
+    "swift": "6.4, Swift 6 language mode"
+  },
+  "scope": "Same isolated owner-reported chat and default production history window as prior loading evaluation; 238 initial distinct render keys. One sample each, 50 ms main-actor sampling. Presentation state, not GPU pixels or latency distribution. No provider, live chat edits or owner app relaunch.",
+  "policy": {
+    "dense_count": 16,
+    "delay_ms": 180,
+    "minimum_visible_ms": 280,
+    "settle_ms": 120,
+    "maximum_wait_ms": 4000
+  },
+  "results": {
+    "cold-visible": {
+      "math_queue_drained": true,
+      "typeset": 238,
+      "disk_hits": 0,
+      "cached_reopen_typeset": 0,
+      "phases": {
+        "entry": {
+          "samples": 26,
+          "spinner_observed": true,
+          "final_hidden": false,
+          "final_pending": 0,
+          "first_observed_revealed_ms": 2055.2179582882673
+        },
+        "font_miss": {
+          "samples": 21,
+          "spinner_observed": true,
+          "final_hidden": false,
+          "final_pending": 0
+        },
+        "font_cached": {
+          "samples": 11,
+          "spinner_observed": false,
+          "final_hidden": false,
+          "final_pending": 0
+        },
+        "cached_reopen": {
+          "samples": 5,
+          "spinner_observed": true,
+          "final_hidden": false,
+          "final_pending": 0
+        }
+      }
+    },
+    "cached-visible": {
+      "math_queue_drained": true,
+      "typeset": 0,
+      "disk_hits": 238,
+      "cached_reopen_typeset": 0,
+      "phases": {
+        "entry": {
+          "samples": 16,
+          "spinner_observed": true,
+          "final_hidden": false,
+          "final_pending": 0,
+          "first_observed_revealed_ms": 1320.7918333355337
+        },
+        "font_miss": {
+          "samples": 15,
+          "spinner_observed": false,
+          "final_hidden": false,
+          "final_pending": 0
+        },
+        "font_cached": {
+          "samples": 12,
+          "spinner_observed": false,
+          "final_hidden": false,
+          "final_pending": 0
+        },
+        "cached_reopen": {
+          "samples": 6,
+          "spinner_observed": true,
+          "final_hidden": false,
+          "final_pending": 0
+        }
+      }
+    }
+  },
+  "verification_reuse": "Integration report predates copy-only and initial-history-gap policy edits; native image/layout paths stayed unchanged. Final preparation report and both visible traces use the final policy/build."
+}

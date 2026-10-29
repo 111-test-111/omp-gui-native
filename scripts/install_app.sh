@@ -5,8 +5,8 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 APP=${1:?Usage: install_app.sh <built.app> <dev|release>}
 EDITION=${2:?Usage: install_app.sh <built.app> <dev|release>}
 case "$EDITION" in
-  dev) NAME='Tivano Dev'; IDENTIFIER='dev.tivano.Tivano.dev' ;;
-  release) NAME='Tivano'; IDENTIFIER='dev.tivano.Tivano' ;;
+  dev) NAME='OMP GUI Dev'; IDENTIFIER='dev.ompgui.mac.dev' ;;
+  release) NAME='OMP GUI'; IDENTIFIER='dev.ompgui.mac' ;;
   *) echo 'Invalid edition' >&2; exit 1 ;;
 esac
 TARGET="/Applications/$NAME.app"
@@ -17,7 +17,7 @@ fi
 codesign --verify --deep --strict -R="identifier \"$IDENTIFIER\"" "$APP"
 VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")
 [[ "$VERSION" = "$("$ROOT/scripts/version.sh" "$EDITION")" ]] || { echo 'Source app does not match the requested edition version' >&2; exit 1; }
-STAGE=$(mktemp -d '/Applications/.tivano-install.XXXXXX')
+STAGE=$(mktemp -d '/Applications/.omp-gui-install.XXXXXX')
 trap 'rm -rf "$STAGE"' EXIT
 ditto "$APP" "$STAGE/$NAME.app"
 codesign --verify --deep --strict "$STAGE/$NAME.app"

@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "date": "2026-10-18T12:34:50.848878+00:00",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
+  "tools": {
+    "xcrun": "/usr/bin/xcrun",
+    "swift_version": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.2.0"
+  },
+  "app_build": {
+    "schema": 1,
+    "source_sha256": "91e6507147e20ff3114df6e01575665532cf2d93f70621547b73e1ff8956ed98",
+    "binary_sha256": "1469a3a3e0cd2100420cbb162ac54601f54988f0e6ca11f8d1c58eddd1be1adb"
+  },
+  "runtimes": [],
+  "checks": [
+    {
+      "id": "functional:markdown-math",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "markdown-math",
+        "description": "Shared MathJax attachments, native alignment, alpha, selection, scale, streaming and idle release",
+        "tier": "functional",
+        "sources": [
+          "tests/functional/markdown/math_tests.swift"
+        ],
+        "app": true,
+        "prepare": "",
+        "recipe": "capture",
+        "inputs": [
+          "OMPGUI/Resources/MarkdownPreview"
+        ],
+        "tools": [],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T123436Z-ff309848/functional/markdown-math",
+      "inputs_sha256": "8dbbf7b28e59e376e178d70eb6bf3c4395bcf5c79e529ace60f4055ccd58c9cb",
+      "app_binary_sha256": "1469a3a3e0cd2100420cbb162ac54601f54988f0e6ca11f8d1c58eddd1be1adb",
+      "commands": [
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "--version"
+          ],
+          "timeout_seconds": 15,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/module-cache",
+            "-I",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/functional/markdown/math_tests.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS/OMP GUI Dev.debug.dylib",
+            "-Xlinker",
+            "-rpath",
+            "-Xlinker",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS",
+            "-o",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/c1535c1642b57b5c/checks"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/c1535c1642b57b5c/checks",
+            "--website-captures",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T123436Z-ff309848/functional/markdown-math",
+            "--fixture",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/Resources/MarkdownPreview"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 3.3
+    },
+    {
+      "id": "functional:markdown-preview",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "markdown-preview",
+        "description": "Offline WebKit document host, revisions, links and release",
+        "tier": "functional",
+        "sources": [
+          "@Support.swift",
+          "OMPGUI/UI/Theme/TypeScale.swift",
+          "OMPGUI/Core/Models/FilePreview.swift",
+          "OMPGUI/UI/Preview/PreviewNativeGlass.swift",
+          "OMPGUI/UI/Preview/FilePreviewMarkdown.swift",
+          "tests/functional/preview/markdown_tests.swift"
+        ],
+        "app": false,
+        "prepare": "markdown-preview",
+        "recipe": "markdown-preview",
+        "inputs": [
+          "OMPGUI/UI/Preview/FilePreviewContent.swift",
+          "tests/benchmarks/math_renderers/corpus.py",
+          "OMPGUI/Resources/MarkdownPreview"
+        ],
+        "tools": [],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T123436Z-ff309848/functional/markdown-preview",
+      "inputs_sha256": "2f2202f799be5c063ccbf296ed024deb316f79d01aff899040506280a4a60c7f",
+      "commands": [
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/module-cache",
+            "-O",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/c6680857ef6b1954/Support.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/UI/Theme/TypeScale.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/Core/Models/FilePreview.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/UI/Preview/PreviewNativeGlass.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/UI/Preview/FilePreviewMarkdown.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/functional/preview/markdown_tests.swift",
+            "-o",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/c6680857ef6b1954/checks"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/c6680857ef6b1954/checks",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/Resources/MarkdownPreview",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T123436Z-ff309848/functional/markdown-preview"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 11.221
+    }
+  ]
+}

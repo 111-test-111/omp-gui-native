@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-16T04:19:02.114897+08:00",
+  "status": "passed",
+  "platform": {
+    "macOS": "27.2 (26B5101f)",
+    "Xcode": "27.0 (27A266a)"
+  },
+  "dev_version": "0.1.22",
+  "build": 23,
+  "native_version": "omp/18.3.2",
+  "model": "kimi-code/k3",
+  "dylib_sha256": "10d9c82152e316e7ff8568ab39a513080ac6b165431ba9c97037bbc5fc644c1d",
+  "driver_sha256": "6602279c690c737efedaf795908aea2d26a7586e6f4a44869096c735750850ba",
+  "build_note": "Built in the task worktree before the task integration commit; the binary hash identifies the actual GUI used.",
+  "isolation": "Fresh GUI library/defaults/session storage and scratch Git checkout. Native OMP reads its existing authentication. The active profile is not copied or modified. Only the isolated acceptance GUI is closed.",
+  "process_overrides": {
+    "compaction.keepRecentTokens": 128
+  },
+  "native_user_entry_count_before_branch": 3,
+  "one_time_approval_count": 2,
+  "context_tokens_before_branch": 5181,
+  "handoff": {
+    "completed": true,
+    "saved_path": null,
+    "note": "Native completion confirmed; no savedPath was returned, so no document file is claimed."
+  },
+  "actual_native_checks": [
+    "Both additional messages are admitted while native approval is still pending",
+    "Admitted drafts clear after native confirmation",
+    "Native history contains each of the three submitted inputs exactly once",
+    "Native follow-up preserves its image",
+    "Every native input group finishes",
+    "Additional inputs survive a real native approval wait",
+    "Real model follow-up produces the expected final answer",
+    "Native context paging reports actual messages",
+    "Native HTML export exists",
+    "Native automatic compaction override is reflected",
+    "Native branch and independently checked file restoration succeed",
+    "Branch before the first user input retains no later turns",
+    "File restoration returns only the test checkout to its initial content",
+    "Original conversation retains the unrelated composer draft",
+    "Original native session identity remains resumable",
+    "Branch adopts OMP's newly returned native session identity",
+    "Branch retains the native model",
+    "Old native cursor is rejected across branch identities",
+    "Branched session remains usable with the actual model",
+    "Custom compaction returns the native summary",
+    "Compacted session accepts a new native turn",
+    "Native handoff confirms completion"
+  ],
+  "gui_observations": [
+    "Previous ACCEPT_BASE_FINAL / ACCEPT_STEER_FINAL and subsequent ACCEPT_FOLLOW_FINAL remain visible together, including after reopening the preserved original conversation.",
+    "Preview narrows the chat without blanking final replies. Selected source adds the exact path, worktree and #L1 reference; zh-Hans sharing and clear controls are visible.",
+    "Original conversation retains Preserved unrelated acceptance draft after branching.",
+    "Native history/context/tree browsing and context statistics were inspected; Escape closes the native panels."
+  ],
+  "focused_regressions": {
+    "timeline_answers": 100,
+    "native_workflows": 68,
+    "p3_protocol": 32,
+    "p3_installed_native_config_cli": 14,
+    "p4": 43,
+    "native_history": "passed",
+    "file_preview": "5 groups passed",
+    "new_zh_Hans_keys": 64
+  },
+  "acceptance_repairs": [
+    "Keep the native background bash before-tree until settled; attribute actual edits to their original input groups.",
+    "Report restored versus kept files separately, return partial restoration as false, and isolate checkpoint refs with turn UUIDs.",
+    "Classify native async-result as an information notice so it cannot replace the assistant final; normalize strictly identified legacy main-session rows."
+  ],
+  "native_no_op_boundaries": [
+    "An otherwise empty short session correctly declined compaction. The acceptance-only process overlay uses keepRecentTokens=128 to exercise actual summary generation.",
+    "An unchanged freshly compacted leaf correctly declined handoff. A new native turn was added before successful handoff."
+  ],
+  "not_claimed": [
+    "P0 whole-application resource attribution or first-frame targets",
+    "P5 cross-version matrix and full VoiceOver/reduced-motion coverage",
+    "Real provider login or plugin installation/removal",
+    "Native MCP connected state or hidden-worker token streaming"
+  ]
+}

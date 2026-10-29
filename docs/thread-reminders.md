@@ -1,49 +1,31 @@
-# Thread reminders
+# 侧栏等待状态与未读提醒
 
-The sidebar separates live work, unresolved requests, and unread terminal results.
-`lastStatus` retains history. Reading never approves a request, answers a question,
-or settles a task.
+侧栏将未解决请求、实际工作和未读终态分开。`lastStatus`保留历史；查看消息不批准工具、不回答问题，也不手动结束任务。
 
-| Indicator | Condition | Opening the rendered conversation |
+会话标题与右侧时间标签按实际内容共同布局，时间保持完整单行并靠右，长标题使用剩余宽度后截断。时间不再占用固定宽度的空白；悬停操作按钮仍单独预留位置。
+
+| 标记 | 条件 | 打开实际可见时间线后的行为 |
 | --- | --- | --- |
-| Spinner | Turn, helper, background task, merge, or limit continuation still pending | Remains |
-| Yellow | Unresolved approval | Remains until resolved |
-| Purple | Unresolved question | Remains until resolved |
-| Green | Unread successful terminal result | Clears |
-| Red | Unread failed terminal result | Clears |
-| Grey outline | Unread unexpected interruption | Clears |
-| None | Read result, unused thread, or deliberate stop | None |
+| 琥珀色「等待批准」 | 当前存在原生审批；背景会话显示等待胶囊 | 保留到响应/取消/超时/退出 |
+| 紫色「等待回答」 | 当前存在原生问题；背景会话显示等待胶囊 | 保留到响应/取消/超时/退出 |
+| Spinner | 回合、原生工作、worker 或其他未完成活动 | 工作结束后才停止 |
+| 绿色 | 成功终态尚未读 | 阅读后清除 |
+| 红色 | 失败终态尚未读 | 阅读后清除 |
+| 灰色轮廓 | 意外中断尚未读 | 阅读后清除 |
+| 无终态提醒 | 已读、未使用或明确停止 | 不新增提醒 |
 
-Priority: approval, question, live work, unread terminal result.
+优先级：审批 → 问答 → 实际工作 → 未读终态。[ThreadActivityStatus](../OMPGUI/Core/Models/ThreadActivityStatus.swift)解析状态，[SidebarView](../OMPGUI/App/Views/Sidebar/SidebarView.swift)呈现；等待 capsule 复用 [Chrome](../OMPGUI/UI/Chrome/Chrome.swift)语义颜色和性能/减少透明度回退，保持非交互。
 
-Read receipts come from mounted timeline views in an active, visible window,
-after history loads. Hidden child conversations are not read merely by selecting
-the parent. Receipts compare `unreadRevision`; an older rendered snapshot cannot
-clear a newer result. `lastAttentionTurnID` suppresses repeated completion events.
-Pending work is persisted and recovered as an interruption after restart.
+## 阅读与生命周期
 
-## Verification (2026-10-09)
+回执来自激活、可见窗口中已挂载且历史加载完成的时间线。选中父会话不会把隐藏子会话标为已读；旧 `unreadRevision`不能清除更新结果。`lastAttentionTurnID`防止重复完成事件重复提醒。重启后持久化的未完成工作按中断恢复。
 
-41 temporary behavior checks exercised the actual status resolver and extracted
-AppModel methods: terminal read/unread, request precedence, live-work precedence,
-new completion after reading, stale receipts, redelivery, deliberate/unexpected
-stop, queued successor, limit wait, background task, merge, and helper completion.
-These use runtime stubs and do not establish real-window behavior.
+[OMPActivity](../OMPGUI/Core/Models/OMPActivity.swift)区分普通队列与 SDK 证明的 next-turn 上下文。仅余 deferred context 时不继续显示忙碌，但为保存这份原生上下文仍不允许闲置回收。单次 `agent_end`不能说明后台任务已全部结束；未确认原生状态不当作空闲。
 
-Debug xcodebuild passed. No application was installed or launched.
+审批/问答草稿归所属会话的活跃请求所有；表单回复、pipe 写入及未知送达的细节见[聊天工作流](chat-workflows.md)。没有跨会话收件箱、最近请求缓存或新的轮询机制。
 
-The following require real-window acceptance when the owner runs the build:
+## 验证边界
 
-- Finish while the current conversation is visible; no residual terminal dot.
-- Finish while viewing another conversation; opening clears its dot.
-- Finish while hidden/minimized/backgrounded; returning to the actual timeline clears it.
-- Open an already-selected conversation after background completion.
-- Leave a helper collapsed or its panel closed; opening its parent must not read it.
-- Open the helper itself; its reminder clears.
-- Resolve one of multiple approvals/questions; remaining requests retain their indicator.
-- Restart with read and unread results, and with pending work; read remains read,
-  unread remains unread, pending work is marked interrupted.
-- Revert a result or manually settle it; stale reminders and Dock count clear.
-- Final background task/merge completes or fails; only the final outcome reminds.
+选择受影响的 `interactions`或 `lifecycle`，不因状态文案变更自动运行原生/性能矩阵。[P6 实施记录](archive/p6-implementation.md)保存过去的检查范围，历史「卡片」描述不替代当前 badge/popover。
 
-The temporary status-control render is a component check, not a full sidebar screenshot.
+真实窗口仍需检查：前台完成后无残留提醒；后台完成后打开清除；隐藏/最小化与双窗口回执；父子会话独立阅读；多请求逐项解决；重启后的已读/未读/中断状态。现有 fixture 与离屏宿主不代替这些现场验收。

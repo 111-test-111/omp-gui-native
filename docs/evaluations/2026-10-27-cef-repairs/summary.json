@@ -1,0 +1,622 @@
+{
+  "status": "passed",
+  "date": "2026-10-27",
+  "scope": "Isolated visible CefWebView plus version-guarded local OMP/CefSwift source repairs; no model requests",
+  "ompVersion": "18.12.5 + local source patch",
+  "cefSwiftRevision": "ba6ebff9e232529289662a84704ade1240563031",
+  "cefVersion": "154.0.34",
+  "modelRequests": 0,
+  "globalInputsUnchanged": true,
+  "dependencyPatches": {
+    "omp": {
+      "version": "18.12.5",
+      "patchSHA256": "b64eb160670e841d1a1006234a3e2d699ea83a66f05d85ba73737427c5a0ff1f",
+      "source": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent"
+    },
+    "cef": {
+      "version": "ba6ebff9e232529289662a84704ade1240563031",
+      "patchSHA256": "71692db30a6a77254418486848991307bedcd4f868f6384610ac3519d092956b",
+      "source": "/Users/developer/.codex/worktrees/cef-browser-prototype/omp-gui-native/build.noindex/cef-prototype/CefSwift"
+    }
+  },
+  "checks": [
+    "Reference palette same/2 has the four intended distinct colours",
+    "Frame same at scale 2 belongs to the hosted A page",
+    "Frame same at scale 2 exercises top-page and child-frame scrolling",
+    "Frame same at scale 2 captures all four target quadrants",
+    "Reference palette cross/2 has the four intended distinct colours",
+    "Frame cross at scale 2 belongs to the hosted A page",
+    "Frame cross at scale 2 exercises top-page and child-frame scrolling",
+    "Frame cross at scale 2 captures all four target quadrants",
+    "The original Puppeteer element screenshot reproduces the wrong crop on this same page",
+    "Reference palette nested/2 has the four intended distinct colours",
+    "Frame nested at scale 2 belongs to the hosted A page",
+    "Frame nested at scale 2 exercises top-page and child-frame scrolling",
+    "Frame nested at scale 2 captures all four target quadrants",
+    "Reference palette same/1 has the four intended distinct colours",
+    "Frame same at scale 1 belongs to the hosted A page",
+    "Frame same at scale 1 exercises top-page and child-frame scrolling",
+    "Frame same at scale 1 captures all four target quadrants",
+    "Reference palette cross/1 has the four intended distinct colours",
+    "Frame cross at scale 1 belongs to the hosted A page",
+    "Frame cross at scale 1 exercises top-page and child-frame scrolling",
+    "Frame cross at scale 1 captures all four target quadrants",
+    "Reference palette nested/1 has the four intended distinct colours",
+    "Frame nested at scale 1 belongs to the hosted A page",
+    "Frame nested at scale 1 exercises top-page and child-frame scrolling",
+    "Frame nested at scale 1 captures all four target quadrants",
+    "AbortSignal interrupts an OMP operation while a real prompt is open",
+    "Cancellation cannot perform the late B write and the attached page recovers",
+    "The native owner can close A while its prompt is pending",
+    "Recreated A accepts input after pending-dialog close and B preserves its contents",
+    "Releasing OMP borrowed handles preserves the two native pages",
+    "A normal OMP click with accept policy settles confirm",
+    "OMP dismiss policy returns false to the page",
+    "A synchronous page prompt can be inspected and answered inside one OMP run",
+    "OMP inspects the native-owner-triggered pending prompt",
+    "Native host timer remains responsive while A has a pending dialog",
+    "OMP manual prompt reply returns exact text",
+    "OMP accepts alert and the page continues",
+    "Dismissing beforeunload cancels navigation without blocking the host",
+    "Accepting beforeunload allows navigation to finish",
+    "The native owner can quit the host with a prompt pending and OMP still attached"
+  ],
+  "checkCount": 40,
+  "frameCases": [
+    {
+      "kind": "same",
+      "scale": 2,
+      "top": {
+        "x": 40,
+        "y": 634.5,
+        "scale": 2
+      },
+      "child": {
+        "x": 0,
+        "y": 380
+      },
+      "marker": "same",
+      "identity": {
+        "instance": "9194A2D3-AC8B-45BA-B074-677032989AA6",
+        "cefBrowserID": "1"
+      },
+      "image": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 360
+      },
+      "referenceImage": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 360
+      },
+      "artifact": "same-2.png"
+    },
+    {
+      "kind": "cross",
+      "scale": 2,
+      "top": {
+        "x": 20,
+        "y": 1654.5,
+        "scale": 2
+      },
+      "child": {
+        "x": 0,
+        "y": 380
+      },
+      "marker": "cross",
+      "identity": {
+        "instance": "9194A2D3-AC8B-45BA-B074-677032989AA6",
+        "cefBrowserID": "1"
+      },
+      "image": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 360
+      },
+      "referenceImage": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 360
+      },
+      "artifact": "cross-2.png"
+    },
+    {
+      "kind": "nested",
+      "scale": 2,
+      "top": {
+        "x": 24,
+        "y": 2554.5,
+        "scale": 2
+      },
+      "child": {
+        "x": 40,
+        "y": 410
+      },
+      "marker": "nested",
+      "identity": {
+        "cefBrowserID": "1",
+        "instance": "9194A2D3-AC8B-45BA-B074-677032989AA6"
+      },
+      "image": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 360
+      },
+      "referenceImage": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 360
+      },
+      "artifact": "nested-2.png"
+    },
+    {
+      "kind": "same",
+      "scale": 1,
+      "top": {
+        "x": 40,
+        "y": 634.5,
+        "scale": 1
+      },
+      "child": {
+        "x": 0,
+        "y": 380
+      },
+      "marker": "same",
+      "identity": {
+        "cefBrowserID": "1",
+        "instance": "9194A2D3-AC8B-45BA-B074-677032989AA6"
+      },
+      "image": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            73
+          ],
+          [
+            105,
+            190,
+            116
+          ],
+          [
+            56,
+            92,
+            209
+          ],
+          [
+            249,
+            206,
+            85
+          ]
+        ],
+        "width": 360
+      },
+      "referenceImage": {
+        "height": 100,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 180
+      },
+      "artifact": "same-1.png"
+    },
+    {
+      "kind": "cross",
+      "scale": 1,
+      "top": {
+        "x": 20,
+        "y": 1654.5,
+        "scale": 1
+      },
+      "child": {
+        "x": 0,
+        "y": 380
+      },
+      "marker": "cross",
+      "identity": {
+        "instance": "9194A2D3-AC8B-45BA-B074-677032989AA6",
+        "cefBrowserID": "1"
+      },
+      "image": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            73
+          ],
+          [
+            105,
+            190,
+            116
+          ],
+          [
+            56,
+            92,
+            209
+          ],
+          [
+            249,
+            206,
+            85
+          ]
+        ],
+        "width": 360
+      },
+      "referenceImage": {
+        "height": 100,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 180
+      },
+      "artifact": "cross-1.png"
+    },
+    {
+      "kind": "nested",
+      "scale": 1,
+      "top": {
+        "x": 24,
+        "y": 2554.5,
+        "scale": 1
+      },
+      "child": {
+        "x": 40,
+        "y": 410
+      },
+      "marker": "nested",
+      "identity": {
+        "instance": "9194A2D3-AC8B-45BA-B074-677032989AA6",
+        "cefBrowserID": "1"
+      },
+      "image": {
+        "height": 200,
+        "samples": [
+          [
+            205,
+            76,
+            73
+          ],
+          [
+            105,
+            190,
+            116
+          ],
+          [
+            56,
+            92,
+            209
+          ],
+          [
+            249,
+            206,
+            85
+          ]
+        ],
+        "width": 360
+      },
+      "referenceImage": {
+        "height": 100,
+        "samples": [
+          [
+            205,
+            76,
+            74
+          ],
+          [
+            104,
+            190,
+            115
+          ],
+          [
+            55,
+            92,
+            207
+          ],
+          [
+            249,
+            206,
+            84
+          ]
+        ],
+        "width": 180
+      },
+      "artifact": "nested-1.png"
+    }
+  ],
+  "upstreamControl": {
+    "height": 200,
+    "samples": [
+      [
+        241,
+        82,
+        181
+      ],
+      [
+        241,
+        82,
+        181
+      ],
+      [
+        241,
+        82,
+        181
+      ],
+      [
+        241,
+        82,
+        181
+      ]
+    ],
+    "width": 360
+  },
+  "cancellation": {
+    "elapsedMs": 604,
+    "interrupted": "Error: Command aborted"
+  },
+  "recovered": {
+    "a": "REOPENED after prompt",
+    "b": "B lifecycle baseline",
+    "identity": {
+      "instance": "F649210B-EB09-45E1-B17B-B8DA113CD02E",
+      "cefBrowserID": "3"
+    }
+  },
+  "shutdownWithPendingDialog": true,
+  "runs": [
+    {
+      "id": "971ea704586341329e21f4ee0fa64ead",
+      "selected": "six frame cases only; later dialog failure excluded",
+      "runStatus": "failed",
+      "subsetStatus": "passed",
+      "checks": 25,
+      "hostShutdown": {
+        "exitCode": 0,
+        "forcedTermination": false
+      }
+    },
+    {
+      "id": "0c5a79fa7ad94c168254c87610136fc1",
+      "selected": "lifecycle",
+      "status": "passed",
+      "checks": 5,
+      "hostShutdown": {
+        "exitCode": 0,
+        "forcedTermination": false
+      }
+    },
+    {
+      "id": "5db2cd74e4e34b2590225f381a8a6b9b",
+      "selected": "dialogs,shutdown",
+      "status": "passed",
+      "checks": 10,
+      "hostShutdown": {
+        "exitCode": 0,
+        "forcedTermination": false
+      }
+    }
+  ],
+  "manualReview": "Native window showed recreated A browser ID 3 / REOPENED after prompt; B browser ID 2 retained B lifecycle baseline. No native alert was visible. Native quit then returned exit code 0.",
+  "artifacts": [
+    {
+      "path": "upstream-wrong.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 987,
+      "sha256": "8f42c604ce948eeaa082f08b2270609832cb82e705fd8369455e9b2ff7b809a5"
+    },
+    {
+      "path": "same-2.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1043,
+      "sha256": "8ca465979c1dac29bbcaa7f813a9a9b7bea45458f642e9b8317376789b50bd07"
+    },
+    {
+      "path": "cross-2.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1043,
+      "sha256": "8ca465979c1dac29bbcaa7f813a9a9b7bea45458f642e9b8317376789b50bd07"
+    },
+    {
+      "path": "nested-2.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1043,
+      "sha256": "8ca465979c1dac29bbcaa7f813a9a9b7bea45458f642e9b8317376789b50bd07"
+    },
+    {
+      "path": "same-1.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1070,
+      "sha256": "3d19e628eb8a9ce899af80ab92b3003468de748e83ab9fe382967c1769068302"
+    },
+    {
+      "path": "cross-1.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1112,
+      "sha256": "1698fd0d2d78ccc1c19ef800e1adfde1defb56bce56ba5fe5dd638f41a18f6fd"
+    },
+    {
+      "path": "nested-1.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1070,
+      "sha256": "3d19e628eb8a9ce899af80ab92b3003468de748e83ab9fe382967c1769068302"
+    },
+    {
+      "path": "reference.png",
+      "sourceRun": "971ea704586341329e21f4ee0fa64ead",
+      "bytes": 1038,
+      "sha256": "e7048e0afe7188392edcc2f9240c6a8e6abc3f9a23c26cd6301e4071c418b10f"
+    }
+  ],
+  "limits": [
+    "CDP-exclusive dialog mode requires an attached Page client; human-facing native dialog presentation is separate",
+    "Fresh OMP connection to a page already blocked by a dialog is not certified",
+    "Arbitrary transformed/oversized/clipped frame elements, external sites and permission prompts are not certified",
+    "Production signing/sandbox/performance and full GUI browser integration remain separate"
+  ]
+}

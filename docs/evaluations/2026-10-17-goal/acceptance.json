@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Hong_Kong",
+  "feature": "native-goal",
+  "base_commit": "2f65544",
+  "dev_version": "0.1.58",
+  "build": 59,
+  "build_evidence": {
+    "schema": 1,
+    "source_sha256": "db0a8f4e3cd235f75f1c93672810c0ad371ad992a18d3af862ff9adcafd58e1e",
+    "binary_sha256": "c001cc645a79d5a0b43e5918da7965b8aa106c770df468f595443ff1ad4d2998"
+  },
+  "production_sha256": {
+    "OMPGUI/Core/Models/OMPGoal.swift": "135b95998d828270e81403418e3b4330db574b054efb6635e2561906656c6b70",
+    "OMPGUI/Services/Providers/OMPSession+Goal.swift": "c76e1f42e26d074d00cbf74f29289175817012e381221dbb59054725d93aff5d",
+    "OMPGUI/App/Runtime/ThreadRuntime+OMPGoal.swift": "a44adef3535ecf13983dcc5648368692be8bd39ade9ff96d488c29a068bfa737",
+    "OMPGUI/App/Views/Chat/OMPGoalButton.swift": "63cb0cff88a61c64c8ec3b20d66340ae55bc9e472003b7d154f30f5d1e7a0b16",
+    "OMPGUI/Services/Providers/OMPSession.swift": "7d2c0c54e3812c25e5812755c53a4d459d8e3206ef4cd1398e9d83e2ff19e9ac",
+    "OMPGUI/App/Runtime/ThreadRuntime.swift": "62955b39fe502f5223eb99ff0de5c9ae50b2eead9200808833a3e1cc9e9e014e",
+    "OMPGUI/Core/Models/OMPCapabilities.swift": "a6174f0a4f04af1c2a56c04c75856262e3261348b0a7124256b96ae25bb96095"
+  },
+  "functional": {
+    "report": "build.noindex/verification/runs/20261016T164835Z-479c13aa/report.json",
+    "checks": 31,
+    "status": "passed",
+    "model_calls": 0,
+    "evidence_reuse": "Later production change only preserves unsubmitted goal drafts in holdsOnlyPersistedState; Goal API implementation and fixture unchanged."
+  },
+  "native": {
+    "report": "build.noindex/verification/runs/20261016T165152Z-c122bd81/report.json",
+    "summary": {
+      "checks": [
+        "Selected native OMP exposes public Goal RPC and an empty new goal state",
+        "An active native goal with RPC continuation disabled does not fabricate executing work",
+        "Native goal complete tool yields explicit terminal evidence before goal clears to null",
+        "Native goal accounting reports deterministic provider token consumption",
+        "Public native pause leaves the in-flight provider turn running",
+        "Public native drop clears the goal without aborting the provider turn",
+        "Native budget-limited is separate from completion and can exceed the requested budget",
+        "A new native process restores an active goal as paused without GUI replay",
+        "Explicit resume preserves the native goal identity without a GUI continuation loop",
+        "OMP RPC continuation starts a turn without a GUI prompt and suppresses another after no tool progress"
+      ],
+      "guiWindows": 0,
+      "provider": "local deterministic HTTP",
+      "status": "passed"
+    },
+    "local_provider_requests": 5,
+    "external_paid_model_requests": 0,
+    "asset": {
+      "version": "18.11.2",
+      "source": "https://github.com/can1357/oh-my-pi/releases/download/v18.11.2/omp-darwin-arm64",
+      "sha256": "dfbf52e9ec966e3066e5d8f6df31829dbb4882ca74d82b2fb511b659017f69cc",
+      "bytes": 194785312,
+      "systemInstallationModified": false
+    }
+  },
+  "static": {
+    "report": "build.noindex/verification/runs/20261016T165206Z-ebb1ebf2/report.json",
+    "passed": [
+      "documentation",
+      "harness",
+      "syntax"
+    ],
+    "harness_tests": 29
+  },
+  "prior_native_failures": [
+    {
+      "run": "20261016T164950Z-235c4090",
+      "cause": "Test provider exact text matcher missed a system-reminder content prefix; corrected marker matching, production unchanged."
+    },
+    {
+      "run": "20261016T165057Z-7b3dc486",
+      "cause": "Test asserted clear state before asynchronous get_state delivery; added an explicit native goal read after settlement, preserving the assertion."
+    }
+  ],
+  "not_run": [
+    "GUI launch and manual UI acceptance",
+    "Q whole-app latency/resource workloads",
+    "General RPC compatibility matrix",
+    "External paid providers"
+  ],
+  "ui_follow_up": {
+    "change": "Unconfirmed mutation errors remain owned by the native snapshot; readonly refresh success clears stale local sheet error.",
+    "verification": "One affected incremental make build passed; reuse unchanged API/fixture and native behavior evidence.",
+    "gui_launched": false
+  }
+}

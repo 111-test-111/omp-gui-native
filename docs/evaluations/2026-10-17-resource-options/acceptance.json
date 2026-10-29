@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Hong_Kong",
+  "feature": "native-resource-options",
+  "base_commit": "f90c874",
+  "dev_version": "0.1.60",
+  "build": 61,
+  "build_evidence": {
+    "schema": 1,
+    "source_sha256": "094c0469a942c80f61706375a7822f01f44e49b0d7a25d46824ca33b8e10df00",
+    "binary_sha256": "50deabc336c168608b0f2361b86ae29e5f6d5c5f389abae325779651e34a1bd7"
+  },
+  "production_sha256": {
+    "OMPGUI/Core/Models/OMPRunOptions.swift": "e44e4fa3b71735940aa7423f743040f8ed2fce0d05c7855efed55aef5e8e877b",
+    "OMPGUI/Core/Models/OMPCapabilities.swift": "bd558228a76fa944cc8af728b3183e79d145a91ca1caba262d3a1d4fb0ba7857",
+    "OMPGUI/Services/Providers/OMPSession+RunOptions.swift": "3a58538e3ac538a66457ecb9fcba8deb2f6be5f81bbd6bb5b91043d4ee375dd4",
+    "OMPGUI/App/Runtime/ThreadRuntime+OMPRunOptions.swift": "6a530c9b16f8dd0e1925c8ac2641ecc233dbc21eaea1e512281b54402778e427",
+    "OMPGUI/App/Views/Usage/OMPRunOptionsPanel.swift": "116cf0e349e671b7da7e67b7c56ad9e84c4bf5dfc9b7067bad94f6b0785652ac",
+    "OMPGUI/Resources/Localizable.xcstrings": "9b709503eca7f43fcbbbe30794c291b6a170335eefd62f4018357b89e2a64806",
+    "config/dev.xcconfig": "86d3eec2cea01e808d3410e35fd719c10a8de010272ea23cf7031197b42ffbd1"
+  },
+  "functional": {
+    "report": "build.noindex/verification/runs/20261016T171130Z-b9e7e36e/report.json",
+    "status": "passed",
+    "checks": {
+      "functional:resource-options": {
+        "assertions": 32,
+        "inputs_sha256": "d71d13e2576ae215db3bea403e61facf616226ee00af1f267ae96b973de7fe92"
+      },
+      "functional:run-options": {
+        "assertions": 39,
+        "inputs_sha256": "3e265d53a718c16267a02e31f653fd8667524b768403799b8aaf0fc756b48449"
+      },
+      "functional:rpc": {
+        "assertions": 95,
+        "inputs_sha256": "a55fa51b665bad3838f43f8730606276d971f14b3905164b0b71151225b58295"
+      }
+    },
+    "scope": "Isolated fixtures and production models/services, including stale Slow pre-read and Goal settlement displaced by explicit Fast rejection. No installed OMP or GUI."
+  },
+  "native": {
+    "report": "build.noindex/verification/runs/20261016T171130Z-a773e64c/report.json",
+    "matrix": "build.noindex/verification/runs/20261016T171130Z-a773e64c/native/resource-options/matrix.json",
+    "status": "passed",
+    "checks": 13,
+    "inputs_sha256": "799a0db3624a6232789cc965dadbcaa8f7aa18ecec0bf2f0d965ee8b97831505",
+    "tested_dylib_raw_sha256": "6801d9cd8715168065e8587eacd1bd70b10b0e68da5a42dfa0883a11c41e72f8",
+    "asset": {
+      "version": "18.11.2",
+      "source": "https://github.com/can1357/oh-my-pi/releases/download/v18.11.2/omp-darwin-arm64",
+      "sha256": "dfbf52e9ec966e3066e5d8f6df31829dbb4882ca74d82b2fb511b659017f69cc",
+      "bytes": 194785312,
+      "read_only_runtime_from": "N2 task worktree",
+      "system_installation_modified": false
+    },
+    "assertions": [
+      "Native resource controls use only this run's generated session",
+      "The local model reports unsupported Slow without a fabricated scope",
+      "The production scope guard rejects unsupported Slow before beginning a change",
+      "Actual native Slow rejects a model without a supported service policy",
+      "Actual native disable is a no-op on the unsupported local model",
+      "Actual native off acknowledgement confirms its session override",
+      "Actual native streaming acknowledgement confirms its session override",
+      "Actual native idle acknowledgement confirms its session override",
+      "Actual native off acknowledgement confirms its session override",
+      "Selecting a policy before any model request does not invent a warm refresh",
+      "Unsupported Slow and warming overrides leave isolated profile configuration unchanged",
+      "Resource-option interface checks make no model requests",
+      "Resource checks release their own native process"
+    ],
+    "model_requests": 0,
+    "profile_configuration_unchanged": true,
+    "scope": "One explicit native runtime, isolated profile/session, no inference. Global Slow writes, paid warming lifecycles and real-account model behavior are not exercised."
+  },
+  "benchmark": {
+    "report": "build.noindex/verification/runs/20261016T171220Z-586464f0/report.json",
+    "status": "passed",
+    "inputs_sha256": "95cf70b15025821531b059418e8fa32d9a6dd7bd1556f98e8299df45c2b49404",
+    "data": "event-projection-comparison.json",
+    "runs": 1,
+    "change": "Synthetic delta fixture now preserves message.role, matching native delta wire shape. Earlier N0 corpus omitted that role and its historical measurement retains its original scope.",
+    "scope": "One ordered full/delta synthetic comparison through production parse/decoder; no native wire, allocations, GUI, screen latency, p95 or parent-revision performance comparison."
+  },
+  "static": {
+    "selection": "make verify TIER=static AREAS=\"documentation harness syntax\"",
+    "status": "passed",
+    "report": "build.noindex/verification/runs/20261016T171339Z-9fcbb351/report.json",
+    "harness_tests": 29,
+    "documentation": {
+      "markdown_files": 64,
+      "local_links": 531
+    },
+    "syntax": {
+      ".js": 2,
+      ".mjs": 4,
+      ".py": 36,
+      ".sh": 9,
+      ".swift": 44
+    }
+  },
+  "prior_failed_checks": [],
+  "reused_evidence": "N2 Goal and N3 side-question native/lifecycle checks remain at their documented source scope. The changed run-option cross-feature settlement path is covered by the new resource-options fixture; no general Goal/native matrix rerun.",
+  "limitations": [
+    "Public Slow write has no atomic expected-model/scope compare-and-set; action-triggered fresh state and revision fencing reduce stale UI risk but cannot close the interval before native write.",
+    "No cache warming getter or precise activity/refresh identity exists in this protocol. UI retains only a confirmed session override and the latest bounded native event; optional cost is included in OMP total and never added again.",
+    "Global Slow writes and hit/miss/error/aborted warming lifecycles are fixture behavior only, not real-account or paid-model certification."
+  ],
+  "not_run": [
+    "GUI launch and keyboard/input-method/VoiceOver/narrow-layout acceptance",
+    "Q whole-app latency/resource workloads",
+    "External paid model requests or global Slow account configuration writes",
+    "General native RPC matrix, Goal or side-question reruns"
+  ]
+}

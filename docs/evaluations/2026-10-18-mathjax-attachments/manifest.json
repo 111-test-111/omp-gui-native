@@ -1,0 +1,74 @@
+{
+  "layout-comparison.png": {
+    "bytes": 262637,
+    "sha256": "d04e88ff52ea519cb4bdc156bb55f5b728fb8c447580d843ad9b74497624a317"
+  },
+  "measurements.json.gz": {
+    "bytes": 80481,
+    "sha256": "ea7841063b9195682a32f4ec7fc01fd4bd53024cf49e24d2c67054786145c792"
+  },
+  "native-280-dark.png": {
+    "bytes": 183779,
+    "sha256": "01fd207804f30b06487f7e6b23a53f823533f4cb23ff70230636a6bbd3755a80"
+  },
+  "native-696-light.png": {
+    "bytes": 223865,
+    "sha256": "eaad53775eb90e05c7e05b0e94e524f57d4c221a07553de7b1197f311d741704"
+  },
+  "native-zoom-4x.png": {
+    "bytes": 244232,
+    "sha256": "31eba54a9bac382058c7ea2e9cc62e6bf83cf5d31e6699ae5318881a9188e39d"
+  },
+  "pdf-280-dark.png": {
+    "bytes": 180085,
+    "sha256": "3e9e56aafc362afb80646b1648adb8b59fcadb83a82c9f1efecde63c76496edc"
+  },
+  "pdf-696-light.png": {
+    "bytes": 223361,
+    "sha256": "ecbbf361f779f35764429b8eb42bb3ac611de31016a0f5676d3440698550b59a"
+  },
+  "pdf-atlas-dark-0.pdf": {
+    "bytes": 17573,
+    "sha256": "6a6926af6715e52ba8df3825d9b9628918f3aee9644e17e3993e713e820673e1"
+  },
+  "pdf-atlas-dark-1.pdf": {
+    "bytes": 20393,
+    "sha256": "07157298c819996993f6f6c633aef9e8f27b0000c7b366a82478edadd270794b"
+  },
+  "pdf-atlas-light-0-check.png": {
+    "bytes": 72712,
+    "sha256": "28e1b7694c53286ea702111c45231452c2e1a320c34e42f6303ff286b43a29ad"
+  },
+  "pdf-atlas-light-0.pdf": {
+    "bytes": 17564,
+    "sha256": "410c602325f6da6624455e6d6ac174a414cc02158c58f97330e2293654916ca0"
+  },
+  "pdf-atlas-light-1-check.png": {
+    "bytes": 51638,
+    "sha256": "ede7725f8fd1360d9a35aa15a1ee364d48a2eab4e6487eb65b72490a19361d28"
+  },
+  "pdf-atlas-light-1.pdf": {
+    "bytes": 20381,
+    "sha256": "24ceec358b3f35cebd1bcfbf910bf948d9279e324379158be942ccb98a85329e"
+  },
+  "pdf-zoom-4x.png": {
+    "bytes": 251794,
+    "sha256": "2667f3340d43b8126f33b4b07f9f294cf0602db0d4abf61b9dce1b81ee708acd"
+  },
+  "png-280-dark.png": {
+    "bytes": 194121,
+    "sha256": "1458e7bd8881cc80ca73c5966bec4eb2e6b321e774cf3e990902347b1737ac6a"
+  },
+  "png-696-light.png": {
+    "bytes": 237558,
+    "sha256": "1f233734388c1a36c061a54e04e1cfa86bb26d2cbdd3897b9f0145989f7dad4b"
+  },
+  "png-zoom-4x.png": {
+    "bytes": 283851,
+    "sha256": "4da0c3e20caf41b77a6b9cc73bdfd6c00932455e3851b139d3280e1b9af76c13"
+  },
+  "summary.json": {
+    "bytes": 33618,
+    "sha256": "3b267394a7deec3ba13747f5aac6b492c3a6b36baf31f02df0e9a99ec87fecc0"
+  }
+}

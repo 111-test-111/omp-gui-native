@@ -1,0 +1,1383 @@
+{
+  "ompVersion": "18.12.5",
+  "rows": [
+    {
+      "id": "abliteration",
+      "name": "Abliteration",
+      "envVars": [
+        "ABLITERATION_API_KEY",
+        "ABLIT_KEY"
+      ],
+      "baseUrls": [
+        "https://api.abliteration.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "aiand",
+      "name": "ai&",
+      "envVars": [
+        "AIAND_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.aiand.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "aimlapi",
+      "name": "AIML API",
+      "envVars": [
+        "AIMLAPI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.aimlapi.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "aimlapi"
+    },
+    {
+      "id": "alibaba-coding-plan",
+      "name": "Alibaba Coding Plan",
+      "envVars": [
+        "ALIBABA_CODING_PLAN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://coding-intl.dashscope.aliyuncs.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "alibabacloud"
+    },
+    {
+      "id": "alibaba-token-plan",
+      "name": "QwenCloud Token Plan",
+      "envVars": [
+        "ALIBABA_TOKEN_PLAN_API_KEY",
+        "BAILIAN_TOKEN_PLAN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "alibabacloud"
+    },
+    {
+      "id": "amazon-bedrock",
+      "name": "Amazon Bedrock",
+      "envVars": [],
+      "baseUrls": [
+        "https://bedrock-runtime.us-east-1.amazonaws.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "bedrock"
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic (Claude Pro/Max)",
+      "envVars": [
+        "ANTHROPIC_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.anthropic.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "anthropic"
+    },
+    {
+      "id": "apple",
+      "name": "Apple Foundation Models (on-device)",
+      "envVars": [],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": "apple"
+    },
+    {
+      "id": "azure",
+      "name": "Azure OpenAI",
+      "envVars": [
+        "AZURE_OPENAI_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "azure"
+    },
+    {
+      "id": "baseten",
+      "name": "Baseten",
+      "envVars": [
+        "BASETEN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://inference.baseten.co/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "baseten"
+    },
+    {
+      "id": "bedrock-mantle",
+      "name": "Amazon Bedrock Mantle",
+      "envVars": [
+        "AWS_BEARER_TOKEN_BEDROCK"
+      ],
+      "baseUrls": [
+        "https://bedrock-mantle.{region}.api.aws/openai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "bedrock"
+    },
+    {
+      "id": "cerebras",
+      "name": "Cerebras",
+      "envVars": [
+        "CEREBRAS_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.cerebras.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "cerebras"
+    },
+    {
+      "id": "charm-hyper",
+      "name": "Charm Hyper",
+      "envVars": [
+        "CHARM_HYPER_API_KEY",
+        "HYPER_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "cline-pass",
+      "name": "ClinePass",
+      "envVars": [
+        "CLINE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.cline.bot/api/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "cline"
+    },
+    {
+      "id": "cloudflare-ai-gateway",
+      "name": "Cloudflare AI Gateway",
+      "envVars": [
+        "CLOUDFLARE_AI_GATEWAY_API_KEY"
+      ],
+      "baseUrls": [
+        "https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/anthropic",
+        "https://gateway.ai.cloudflare.com/v1/<account>/<gateway>/compat"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "cloudflare"
+    },
+    {
+      "id": "cloudflare-workers-ai",
+      "name": "Cloudflare Workers AI",
+      "envVars": [
+        "CLOUDFLARE_API_TOKEN",
+        "CLOUDFLARE_AUTH_TOKEN"
+      ],
+      "baseUrls": [
+        "https://api.cloudflare.com/client/v4/accounts/<account>/ai/run"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "workersai"
+    },
+    {
+      "id": "commandcode",
+      "name": "Command Code",
+      "envVars": [
+        "COMMAND_CODE_API_KEY",
+        "COMMANDCODE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.commandcode.ai/provider",
+        "https://api.commandcode.ai/provider/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "commandcode"
+    },
+    {
+      "id": "coralbricks",
+      "name": "CoralBricks",
+      "envVars": [
+        "CORAL_API_KEY",
+        "CORALBRICKS_API_KEY"
+      ],
+      "baseUrls": [
+        "https://inference.coralbricks.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "coreweave",
+      "name": "CoreWeave Serverless Inference",
+      "envVars": [
+        "COREWEAVE_API_KEY",
+        "WANDB_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.inference.wandb.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor (Claude, GPT, etc.)",
+      "envVars": [
+        "CURSOR_ACCESS_TOKEN"
+      ],
+      "baseUrls": [
+        "https://api2.cursor.sh"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "cursor"
+    },
+    {
+      "id": "deepinfra",
+      "name": "DeepInfra",
+      "envVars": [
+        "DEEPINFRA_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.deepinfra.com/v1/openai"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "deepinfra"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "envVars": [
+        "DEEPSEEK_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.deepseek.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "deepseek"
+    },
+    {
+      "id": "devin",
+      "name": "Devin",
+      "envVars": [
+        "DEVIN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://server.codeium.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "devin"
+    },
+    {
+      "id": "exa",
+      "name": "Exa",
+      "envVars": [
+        "EXA_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": "exa"
+    },
+    {
+      "id": "factory-droid",
+      "name": "Factory Droid",
+      "envVars": [],
+      "baseUrls": [
+        "https://api.factory.ai"
+      ],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "firepass",
+      "name": "Fire Pass (Fireworks subscription)",
+      "envVars": [
+        "FIREPASS_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.fireworks.ai/inference/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "fireworks"
+    },
+    {
+      "id": "fireworks",
+      "name": "Fireworks",
+      "envVars": [
+        "FIREWORKS_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.fireworks.ai/inference/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "fireworks"
+    },
+    {
+      "id": "github-copilot",
+      "name": "GitHub Copilot",
+      "envVars": [
+        "COPILOT_GITHUB_TOKEN"
+      ],
+      "baseUrls": [
+        "https://api.githubcopilot.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "githubcopilot"
+    },
+    {
+      "id": "gitlab-duo",
+      "name": "GitLab Duo Non-Agentic",
+      "envVars": [
+        "GITLAB_TOKEN"
+      ],
+      "baseUrls": [
+        "https://cloud.gitlab.com/ai/v1/proxy/anthropic/",
+        "https://cloud.gitlab.com/ai/v1/proxy/openai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "gitlab-duo-agent",
+      "name": "GitLab Duo Agent",
+      "envVars": [
+        "GITLAB_TOKEN"
+      ],
+      "baseUrls": [
+        "https://gitlab.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "gmi-cloud",
+      "name": "GMI Cloud",
+      "envVars": [
+        "GMI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.gmi-serving.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "gmicloud"
+    },
+    {
+      "id": "google",
+      "name": "Google Gemini",
+      "envVars": [
+        "GEMINI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://generativelanguage.googleapis.com/v1beta"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "google"
+    },
+    {
+      "id": "google-antigravity",
+      "name": "Google Antigravity (Gemini, Claude, GPT-OSS)",
+      "envVars": [],
+      "baseUrls": [
+        "https://daily-cloudcode-pa.googleapis.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "antigravity"
+    },
+    {
+      "id": "google-gemini-cli",
+      "name": "Google Cloud Code Assist (Gemini CLI)",
+      "envVars": [],
+      "baseUrls": [
+        "https://cloudcode-pa.googleapis.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "geminicli"
+    },
+    {
+      "id": "google-vertex",
+      "name": "Google Vertex AI",
+      "envVars": [],
+      "baseUrls": [
+        "https://{location}-aiplatform.googleapis.com",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/endpoints/openapi",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-fable-5-1@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-fable-5@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-haiku-4-5@20251001:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-haiku-5-5@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-opus-4-5@20251101:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-opus-4-6@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-opus-4-7@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-opus-4-8@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-opus-5-5@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-opus-5@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-sonnet-4-6@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-sonnet-5-5@default:streamRawPredict",
+        "https://{location}-aiplatform.googleapis.com/v1/projects/{project}/locations/{location}/publishers/anthropic/models/claude-sonnet-5@default:streamRawPredict"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "vertexai"
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "envVars": [
+        "GROQ_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.groq.com/openai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "groq"
+    },
+    {
+      "id": "helmcode",
+      "name": "Helmcode",
+      "envVars": [
+        "HELMCODE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.helmcode.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face Inference",
+      "envVars": [
+        "HUGGINGFACE_HUB_TOKEN",
+        "HF_TOKEN"
+      ],
+      "baseUrls": [
+        "https://router.huggingface.co/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "huggingface"
+    },
+    {
+      "id": "inception",
+      "name": "Inception",
+      "envVars": [
+        "INCEPTION_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.inceptionlabs.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "inception"
+    },
+    {
+      "id": "kagi",
+      "name": "Kagi",
+      "envVars": [
+        "KAGI_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": "kagi"
+    },
+    {
+      "id": "kilo",
+      "name": "Kilo Gateway",
+      "envVars": [
+        "KILO_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.kilo.ai/api/gateway"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "kilocode"
+    },
+    {
+      "id": "kimi-code",
+      "name": "Kimi Code",
+      "envVars": [],
+      "baseUrls": [
+        "https://api.kimi.com/coding/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "kimi"
+    },
+    {
+      "id": "litellm",
+      "name": "LiteLLM",
+      "envVars": [
+        "LITELLM_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "llama.cpp",
+      "name": "llama.cpp (Local OpenAI-compatible)",
+      "envVars": [
+        "LLAMA_CPP_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "lm-studio",
+      "name": "LM Studio (Local OpenAI-compatible)",
+      "envVars": [
+        "LM_STUDIO_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": "lmstudio"
+    },
+    {
+      "id": "local",
+      "name": "Local models",
+      "envVars": [],
+      "baseUrls": [
+        "local://inference"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "Category, not a single provider brand"
+    },
+    {
+      "id": "meta",
+      "name": "Meta Model API",
+      "envVars": [
+        "MODEL_API_KEY",
+        "META_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.meta.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "meta"
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax",
+      "envVars": [
+        "MINIMAX_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.minimax.io/anthropic"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "minimax"
+    },
+    {
+      "id": "minimax-cn",
+      "name": "minimax-cn",
+      "provider": false,
+      "authentication": false,
+      "baseUrls": [
+        "https://api.minimaxi.com/anthropic"
+      ],
+      "envVars": [],
+      "modelCatalogue": true,
+      "expectedBrand": "minimax",
+      "displayNameOverride": "MiniMax (China)"
+    },
+    {
+      "id": "minimax-code",
+      "name": "MiniMax Token Plan (International)",
+      "envVars": [
+        "MINIMAX_CODE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.minimax.io/anthropic",
+        "https://api.minimax.io/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "minimax"
+    },
+    {
+      "id": "minimax-code-cn",
+      "name": "MiniMax Token Plan (China)",
+      "envVars": [
+        "MINIMAX_CODE_CN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.minimaxi.com/anthropic",
+        "https://api.minimaxi.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "minimax"
+    },
+    {
+      "id": "mistral",
+      "name": "Mistral",
+      "envVars": [
+        "MISTRAL_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.mistral.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "mistral"
+    },
+    {
+      "id": "moonshot",
+      "name": "Moonshot (Kimi API)",
+      "envVars": [
+        "MOONSHOT_API_KEY",
+        "KIMI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.moonshot.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "moonshot"
+    },
+    {
+      "id": "muse-code",
+      "name": "Muse Code (Subscription)",
+      "envVars": [],
+      "baseUrls": [
+        "https://api.meta.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "nanogpt",
+      "name": "NanoGPT",
+      "envVars": [
+        "NANO_GPT_API_KEY"
+      ],
+      "baseUrls": [
+        "https://nano-gpt.com/api/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "novita",
+      "name": "Novita",
+      "envVars": [
+        "NOVITA_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.novita.ai/openai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "novita"
+    },
+    {
+      "id": "nvidia",
+      "name": "NVIDIA",
+      "envVars": [
+        "NVIDIA_API_KEY"
+      ],
+      "baseUrls": [
+        "https://integrate.api.nvidia.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "nvidia"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama (Local OpenAI-compatible)",
+      "envVars": [
+        "OLLAMA_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": "ollama"
+    },
+    {
+      "id": "ollama-cloud",
+      "name": "Ollama Cloud",
+      "envVars": [
+        "OLLAMA_CLOUD_API_KEY"
+      ],
+      "baseUrls": [
+        "https://ollama.com"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "ollama"
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "envVars": [
+        "OPENAI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.openai.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "openai"
+    },
+    {
+      "id": "openai-codex",
+      "name": "ChatGPT Plus/Pro (Codex Subscription)",
+      "envVars": [
+        "OPENAI_CODEX_OAUTH_TOKEN"
+      ],
+      "baseUrls": [
+        "https://chatgpt.com/backend-api"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "openai"
+    },
+    {
+      "id": "openai-codex-device",
+      "name": "ChatGPT Plus/Pro (Codex, headless/device)",
+      "storeAs": "openai-codex",
+      "envVars": [],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": "openai"
+    },
+    {
+      "id": "opencode-go",
+      "name": "OpenCode Go",
+      "envVars": [
+        "OPENCODE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://opencode.ai/inference/go",
+        "https://opencode.ai/inference/go/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "opencode"
+    },
+    {
+      "id": "opencode-zen",
+      "name": "OpenCode Zen",
+      "envVars": [
+        "OPENCODE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://opencode.ai/inference/google/v1beta",
+        "https://opencode.ai/zen",
+        "https://opencode.ai/zen/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "opencode"
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "envVars": [
+        "OPENROUTER_API_KEY"
+      ],
+      "baseUrls": [
+        "https://openrouter.ai/api/alpha",
+        "https://openrouter.ai/api/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "Owner-selected uppercase initial instead of a dedicated logo"
+    },
+    {
+      "id": "parallel",
+      "name": "Parallel",
+      "envVars": [
+        "PARALLEL_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "perplexity",
+      "name": "Perplexity (Pro/Max)",
+      "envVars": [
+        "PERPLEXITY_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": "perplexity"
+    },
+    {
+      "id": "qianfan",
+      "name": "Qianfan",
+      "envVars": [
+        "QIANFAN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://qianfan.baidubce.com/v2"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "baiducloud"
+    },
+    {
+      "id": "qwen-portal",
+      "name": "Qwen Portal",
+      "envVars": [
+        "QWEN_OAUTH_TOKEN",
+        "QWEN_PORTAL_API_KEY"
+      ],
+      "baseUrls": [
+        "https://portal.qwen.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "qwen"
+    },
+    {
+      "id": "sakana",
+      "name": "Sakana AI",
+      "envVars": [
+        "SAKANA_API_KEY",
+        "FUGU_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.sakana.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "sakana"
+    },
+    {
+      "id": "sambanova",
+      "name": "SambaNova",
+      "envVars": [
+        "SAMBANOVA_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.sambanova.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "sambanova"
+    },
+    {
+      "id": "siliconflow",
+      "name": "SiliconFlow",
+      "envVars": [
+        "SILICONFLOW_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": "siliconcloud"
+    },
+    {
+      "id": "siliconflow-cn",
+      "name": "SiliconFlow (China)",
+      "envVars": [
+        "SILICONFLOW_CN_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": "siliconcloud"
+    },
+    {
+      "id": "singularityapi-dev",
+      "name": "SingularityAPI",
+      "envVars": [
+        "SINGULARITYAPI_DEV_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "singularityapi-tech",
+      "name": "SingularityAPI Reserved Lanes",
+      "envVars": [
+        "SINGULARITYAPI_TECH_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "snowflake",
+      "name": "Snowflake Cortex",
+      "envVars": [
+        "SNOWFLAKE_PAT"
+      ],
+      "baseUrls": [
+        "https://snowflake-account.invalid/api/v2/cortex",
+        "https://snowflake-account.invalid/api/v2/cortex/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "snowflake"
+    },
+    {
+      "id": "stencil",
+      "name": "Stencil (invite only)",
+      "envVars": [
+        "STENCIL_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "stepfun",
+      "name": "StepFun",
+      "envVars": [
+        "STEPFUN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.stepfun.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "stepfun"
+    },
+    {
+      "id": "synthetic",
+      "name": "Synthetic",
+      "envVars": [
+        "SYNTHETIC_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.synthetic.new/openai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "tavily",
+      "name": "Tavily",
+      "envVars": [
+        "TAVILY_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": "tavily"
+    },
+    {
+      "id": "together",
+      "name": "Together",
+      "envVars": [
+        "TOGETHER_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.together.xyz/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "together"
+    },
+    {
+      "id": "typesafe",
+      "name": "TypeSafe",
+      "envVars": [
+        "TYPESAFE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.typesafe.ai"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "typesafeai"
+    },
+    {
+      "id": "umans",
+      "name": "Umans AI Coding Plan",
+      "envVars": [
+        "UMANS_AI_CODING_PLAN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.code.umans.ai"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "venice",
+      "name": "Venice",
+      "envVars": [
+        "VENICE_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.venice.ai/api/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "venice"
+    },
+    {
+      "id": "vercel-ai-gateway",
+      "name": "Vercel AI Gateway",
+      "envVars": [
+        "AI_GATEWAY_API_KEY"
+      ],
+      "baseUrls": [
+        "https://ai-gateway.vercel.sh"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "vercel"
+    },
+    {
+      "id": "vllm",
+      "name": "vLLM (Local OpenAI-compatible)",
+      "envVars": [
+        "VLLM_API_KEY"
+      ],
+      "baseUrls": [],
+      "provider": true,
+      "authentication": true,
+      "expectedBrand": "vllm"
+    },
+    {
+      "id": "wafer-serverless",
+      "name": "Wafer Serverless (pay-as-you-go)",
+      "envVars": [
+        "WAFER_SERVERLESS_API_KEY"
+      ],
+      "baseUrls": [
+        "https://pass.wafer.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "wafer"
+    },
+    {
+      "id": "web",
+      "name": "Web search engines",
+      "envVars": [],
+      "baseUrls": [
+        "web://search"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "Category, not a single provider brand"
+    },
+    {
+      "id": "xai",
+      "name": "xAI API",
+      "envVars": [
+        "XAI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.x.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "xai"
+    },
+    {
+      "id": "xai-oauth",
+      "name": "xAI Grok OAuth (SuperGrok or X Premium+)",
+      "envVars": [
+        "XAI_OAUTH_TOKEN",
+        "XAI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.x.ai/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "xai"
+    },
+    {
+      "id": "xiaomi",
+      "name": "Xiaomi MiMo",
+      "envVars": [
+        "XIAOMI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.xiaomimimo.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "xiaomimimo"
+    },
+    {
+      "id": "xiaomi-token-plan-ams",
+      "name": "Xiaomi Token Plan (Europe)",
+      "envVars": [
+        "XIAOMI_TOKEN_PLAN_AMS_API_KEY"
+      ],
+      "baseUrls": [
+        "https://token-plan-ams.xiaomimimo.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "xiaomimimo"
+    },
+    {
+      "id": "xiaomi-token-plan-cn",
+      "name": "Xiaomi Token Plan (China)",
+      "envVars": [
+        "XIAOMI_TOKEN_PLAN_CN_API_KEY"
+      ],
+      "baseUrls": [
+        "https://token-plan-cn.xiaomimimo.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "xiaomimimo"
+    },
+    {
+      "id": "xiaomi-token-plan-sgp",
+      "name": "Xiaomi Token Plan (Singapore)",
+      "envVars": [
+        "XIAOMI_TOKEN_PLAN_SGP_API_KEY"
+      ],
+      "baseUrls": [
+        "https://token-plan-sgp.xiaomimimo.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "xiaomimimo"
+    },
+    {
+      "id": "yolo-auto",
+      "name": "Yolo-Auto",
+      "envVars": [
+        "YOLO_AUTO_API_KEY"
+      ],
+      "baseUrls": [
+        "https://yolo-auto.com/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": null,
+      "fallbackReason": "No verified dedicated mark in the pinned library subset"
+    },
+    {
+      "id": "zai",
+      "name": "Z.AI (GLM Coding Plan)",
+      "envVars": [
+        "ZAI_API_KEY"
+      ],
+      "baseUrls": [
+        "https://api.z.ai/api/anthropic",
+        "https://api.z.ai/api/coding/paas/v4"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "zai"
+    },
+    {
+      "id": "zai-coding-plan",
+      "name": "Z.AI (GLM Coding Plan · Sign in)",
+      "storeAs": "zai",
+      "envVars": [],
+      "baseUrls": [],
+      "provider": false,
+      "authentication": true,
+      "expectedBrand": "zai"
+    },
+    {
+      "id": "zenmux",
+      "name": "ZenMux",
+      "envVars": [
+        "ZENMUX_API_KEY"
+      ],
+      "baseUrls": [
+        "https://zenmux.ai/api/anthropic",
+        "https://zenmux.ai/api/v1"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "zenmux"
+    },
+    {
+      "id": "zhipu-coding-plan",
+      "name": "Zhipu Coding Plan (智谱)",
+      "envVars": [
+        "ZHIPU_API_KEY"
+      ],
+      "baseUrls": [
+        "https://open.bigmodel.cn/api/coding/paas/v4"
+      ],
+      "provider": true,
+      "authentication": true,
+      "modelCatalogue": true,
+      "expectedBrand": "zai"
+    }
+  ],
+  "catalogueSha256": "bb4451bd5ab8fbdc3dc982554824f58240ce8111e1af12989b7350000a0cac91",
+  "checkedAt": "2026-10-26",
+  "scope": "Public installed model catalog and provider/authentication policies only; no account or credential reads",
+  "publicSources": [
+    {
+      "path": "node_modules/@oh-my-pi/pi-catalog/src/models.json",
+      "sha256": "bb4451bd5ab8fbdc3dc982554824f58240ce8111e1af12989b7350000a0cac91"
+    },
+    {
+      "path": "node_modules/@oh-my-pi/pi-catalog/src/compat/rules.json",
+      "sha256": "7fcfad0892c9c243ae9b7d52b758cb8a08247edef9ead8f127663335b94389f4"
+    }
+  ]
+}

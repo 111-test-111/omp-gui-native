@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "date": "2026-10-18T15:55:30.594854+00:00",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
+  "tools": {
+    "xcrun": "/usr/bin/xcrun",
+    "swift_version": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.2.0"
+  },
+  "app_build": {
+    "schema": 1,
+    "source_sha256": "1e494ba314e532e04fe76509828c5f900e6d12b60f9b82d31d4cddf8451379ab",
+    "binary_sha256": "082566617ddffdc1313e4170b2005d68c21ce39ed0dd4a11c01a9e65d9022594"
+  },
+  "runtimes": [],
+  "checks": [
+    {
+      "id": "functional:markdown-preparation",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "markdown-preparation",
+        "description": "Dense chat waiting, fast/small suppression, reentry, timeout and native scope isolation",
+        "tier": "functional",
+        "sources": [
+          "tests/functional/markdown/preparation_tests.swift"
+        ],
+        "app": true,
+        "prepare": "",
+        "recipe": "capture",
+        "inputs": [],
+        "tools": [],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T155529Z-b8fa00f6/functional/markdown-preparation",
+      "inputs_sha256": "c2b6ada75c0a95fed946e88823e897efc2785f49ffa21231cc94df7d23bd8b9b",
+      "app_binary_sha256": "082566617ddffdc1313e4170b2005d68c21ce39ed0dd4a11c01a9e65d9022594",
+      "commands": [
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "--version"
+          ],
+          "timeout_seconds": 15,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/module-cache",
+            "-I",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/functional/markdown/preparation_tests.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS/OMP GUI Dev.debug.dylib",
+            "-Xlinker",
+            "-rpath",
+            "-Xlinker",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS",
+            "-o",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/62c17f7d5e543e6d/checks"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/62c17f7d5e543e6d/checks",
+            "--website-captures",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T155529Z-b8fa00f6/functional/markdown-preparation"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 1.244
+    }
+  ]
+}

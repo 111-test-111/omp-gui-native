@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "workload": "omp-p0-v1",
+  "date": "2026-10-16T01:57:46.401645+08:00",
+  "revision": "6a62798c63f8ef40216c26892c8d5eea5e3b0dd4",
+  "dirty": true,
+  "machine": "arm64",
+  "os": "27.2",
+  "hardware": "Mac17,4",
+  "memory_bytes": 25769803776,
+  "fixture_sha256": "63aa29de087482a2fed510dfa7a565879213838f6a85218005d5941f003436f4",
+  "workload_sha256": "d571a291207b175f909a2f12285eec9c743d062b94cb082828b6df14e174cf05",
+  "source_sha256": "ac8be881026b7c566de15587a9614c3a94fd989a43d298a0f22e3cd98ff204d8",
+  "dylib_sha256": "790754e746b0979780977df5c3d936f7b2dc76293a8e8e1f47bd98ced065e9e5",
+  "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.2.0",
+  "build": "Debug production dylib; headless check executable",
+  "wall_seconds": 1.451985042,
+  "checks": {
+    "checks": 102,
+    "control_capabilities": {
+      "cancel_subagent": "supported",
+      "fixture_chunks": "supported",
+      "negotiate_protocol": "supported"
+    },
+    "history_bytes": 2557884,
+    "history_entries": 10000,
+    "legacy_capabilities": {
+      "cancel_subagent": "unsupported",
+      "get_available_commands": "unsupported",
+      "get_available_models": "unsupported",
+      "get_entries": "supported",
+      "get_state": "supported",
+      "negotiate_protocol": "supported",
+      "prompt": "supported",
+      "set_ask_dialog": "unsupported",
+      "set_subagent_subscription": "unsupported",
+      "steer_subagent": "unsupported"
+    },
+    "metrics": {
+      "historyRead": {
+        "count": 13,
+        "maximumMilliseconds": 57.108334,
+        "p50Milliseconds": 52.77,
+        "p95Milliseconds": 57.108334,
+        "retained": 13
+      },
+      "processShutdown": {
+        "count": 3,
+        "maximumMilliseconds": 0.767083,
+        "p50Milliseconds": 0.388458,
+        "p95Milliseconds": 0.767083,
+        "retained": 3
+      },
+      "rpcReassembly": {
+        "count": 12,
+        "maximumMilliseconds": 3.149416,
+        "p50Milliseconds": 2.482625,
+        "p95Milliseconds": 3.149416,
+        "retained": 12
+      },
+      "rpcRequest": {
+        "count": 42,
+        "maximumMilliseconds": 142.616458,
+        "p50Milliseconds": 0.149792,
+        "p95Milliseconds": 50.247375,
+        "retained": 42
+      },
+      "sessionStartup": {
+        "count": 2,
+        "maximumMilliseconds": 52.237708,
+        "p50Milliseconds": 50.234958,
+        "p95Milliseconds": 52.237708,
+        "retained": 2
+      },
+      "streamFlush": {
+        "count": 40,
+        "maximumMilliseconds": 0.017125,
+        "p50Milliseconds": 0.001583,
+        "p95Milliseconds": 0.003959,
+        "retained": 40
+      }
+    },
+    "rpc_chunk_payload_bytes": 2097152,
+    "rpc_chunk_repetitions": 12,
+    "schema": 1,
+    "scope": "headless production RPC, state, discovery, storage and stream checks; no GUI or model execution",
+    "workload": "omp-p0-v1"
+  },
+  "resources": {
+    "sample_count": 7,
+    "incomplete_samples": 0,
+    "observed_peak_physical_bytes": 46482392,
+    "observed_peak_by_role_bytes": {
+      "headless-helper": 34013784,
+      "unclassified-descendant": 23708032
+    },
+    "cpu_observations": {
+      "headless-helper": {
+        "cpu_seconds": 0.7852366666666667,
+        "observed_process_seconds": 1.1848294579999998
+      },
+      "unclassified-descendant": {
+        "cpu_seconds": 0.05810179166666666,
+        "observed_process_seconds": 0.233409959
+      }
+    },
+    "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only."
+  },
+  "unmeasured": [
+    "GUI first frame and input latency",
+    "GUI idle CPU",
+    "actual OMP and MCP",
+    "WebKit",
+    "100 chat switches and 20 preview cycles"
+  ],
+  "native_runtime": "deterministic RPC fixture, no installed OMP or model request",
+  "archive_note": "Summary of the verified dirty working tree on codex/omp-native-roadmap; revision is its parent commit. Source and binary fingerprints identify tested inputs. Raw PID samples stay in build.noindex/omp-p0-checks/baseline.json.",
+  "verification": {
+    "build": "make build: passed",
+    "default_metrics_checks": 2,
+    "resource_ledger_checks": 10,
+    "production_p0_checks": 102,
+    "eval_runtime_checks": 25,
+    "todo_sync_checks": 54,
+    "zh_Hans_entries": 4
+  }
+}

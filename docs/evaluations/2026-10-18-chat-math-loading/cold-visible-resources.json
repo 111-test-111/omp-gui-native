@@ -1,0 +1,1690 @@
+{
+  "samples": [
+    {
+      "ms": 0.012042000000000302,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 213112,
+          "cpu_seconds": 0.0007704166666666665,
+          "interrupt_wakeups": 0,
+          "read_bytes": 0,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 97.631834,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 10207928,
+          "cpu_seconds": 0.035020375,
+          "interrupt_wakeups": 0,
+          "read_bytes": 0,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 157.73895900000002,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 21906320,
+          "cpu_seconds": 0.08528562499999999,
+          "interrupt_wakeups": 0,
+          "read_bytes": 0,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 214.95237499999996,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 28574728,
+          "cpu_seconds": 0.138933375,
+          "interrupt_wakeups": 1,
+          "read_bytes": 0,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 275.007875,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 40977416,
+          "cpu_seconds": 0.1994405,
+          "interrupt_wakeups": 1,
+          "read_bytes": 0,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 335.05558399999995,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 51987512,
+          "cpu_seconds": 0.25694816666666664,
+          "interrupt_wakeups": 1,
+          "read_bytes": 4096,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 395.100834,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 66290744,
+          "cpu_seconds": 0.3317544166666666,
+          "interrupt_wakeups": 1,
+          "read_bytes": 4096,
+          "written_bytes": 0
+        }
+      ]
+    },
+    {
+      "ms": 455.188542,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 84165712,
+          "cpu_seconds": 0.44382562499999995,
+          "interrupt_wakeups": 4,
+          "read_bytes": 4096,
+          "written_bytes": 8192
+        }
+      ]
+    },
+    {
+      "ms": 557.821417,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 87016600,
+          "cpu_seconds": 0.5238335416666666,
+          "interrupt_wakeups": 9,
+          "read_bytes": 4096,
+          "written_bytes": 8192
+        }
+      ]
+    },
+    {
+      "ms": 617.875459,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 92128432,
+          "cpu_seconds": 0.5791479166666667,
+          "interrupt_wakeups": 13,
+          "read_bytes": 4096,
+          "written_bytes": 12288
+        }
+      ]
+    },
+    {
+      "ms": 669.793167,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 92570824,
+          "cpu_seconds": 0.5932291666666666,
+          "interrupt_wakeups": 30,
+          "read_bytes": 4096,
+          "written_bytes": 16384
+        }
+      ]
+    },
+    {
+      "ms": 729.838792,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 92521696,
+          "cpu_seconds": 0.5992968333333333,
+          "interrupt_wakeups": 52,
+          "read_bytes": 4096,
+          "written_bytes": 20480
+        }
+      ]
+    },
+    {
+      "ms": 784.2199169999999,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 95126752,
+          "cpu_seconds": 0.6536724166666666,
+          "interrupt_wakeups": 68,
+          "read_bytes": 4096,
+          "written_bytes": 24576
+        }
+      ]
+    },
+    {
+      "ms": 834.813959,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 103564512,
+          "cpu_seconds": 0.7047524583333332,
+          "interrupt_wakeups": 77,
+          "read_bytes": 4096,
+          "written_bytes": 24576
+        }
+      ]
+    },
+    {
+      "ms": 885.266209,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 118064376,
+          "cpu_seconds": 0.8167005833333333,
+          "interrupt_wakeups": 226,
+          "read_bytes": 4096,
+          "written_bytes": 24576
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 22987568,
+          "cpu_seconds": 0.140617625,
+          "interrupt_wakeups": 5,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4456928,
+          "cpu_seconds": 0.03303983333333333,
+          "interrupt_wakeups": 3,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 55722680,
+          "cpu_seconds": 0.07866083333333332,
+          "interrupt_wakeups": 3,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 998.5601249999999,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 124454136,
+          "cpu_seconds": 0.8728687499999999,
+          "interrupt_wakeups": 228,
+          "read_bytes": 4096,
+          "written_bytes": 24576
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 22987568,
+          "cpu_seconds": 0.14067966666666665,
+          "interrupt_wakeups": 6,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4456928,
+          "cpu_seconds": 0.03303983333333333,
+          "interrupt_wakeups": 3,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 55706296,
+          "cpu_seconds": 0.07870508333333333,
+          "interrupt_wakeups": 4,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1050.8697920000002,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 132121848,
+          "cpu_seconds": 0.9274836249999999,
+          "interrupt_wakeups": 230,
+          "read_bytes": 4096,
+          "written_bytes": 28672
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 24789808,
+          "cpu_seconds": 0.1462125,
+          "interrupt_wakeups": 8,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4424160,
+          "cpu_seconds": 0.03305920833333333,
+          "interrupt_wakeups": 4,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 55706296,
+          "cpu_seconds": 0.07870508333333333,
+          "interrupt_wakeups": 4,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1106.426625,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 132531448,
+          "cpu_seconds": 0.9664545833333332,
+          "interrupt_wakeups": 246,
+          "read_bytes": 4096,
+          "written_bytes": 32768
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 59212592,
+          "cpu_seconds": 0.1896230833333333,
+          "interrupt_wakeups": 8,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4522464,
+          "cpu_seconds": 0.0331905,
+          "interrupt_wakeups": 4,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 55689912,
+          "cpu_seconds": 0.07879599999999999,
+          "interrupt_wakeups": 5,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1166.486417,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 132711672,
+          "cpu_seconds": 0.9760763749999999,
+          "interrupt_wakeups": 260,
+          "read_bytes": 4096,
+          "written_bytes": 36864
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 78955360,
+          "cpu_seconds": 0.22612029166666664,
+          "interrupt_wakeups": 10,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4522464,
+          "cpu_seconds": 0.033245416666666666,
+          "interrupt_wakeups": 5,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 59540224,
+          "cpu_seconds": 0.08387724999999999,
+          "interrupt_wakeups": 6,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1222.9079590000001,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 133317904,
+          "cpu_seconds": 1.0332171666666665,
+          "interrupt_wakeups": 271,
+          "read_bytes": 4096,
+          "written_bytes": 45056
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 92095328,
+          "cpu_seconds": 0.27207791666666664,
+          "interrupt_wakeups": 10,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4522464,
+          "cpu_seconds": 0.033245416666666666,
+          "interrupt_wakeups": 5,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 59704064,
+          "cpu_seconds": 0.08600058333333332,
+          "interrupt_wakeups": 7,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1280.2766250000002,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 133334288,
+          "cpu_seconds": 1.0882092499999998,
+          "interrupt_wakeups": 284,
+          "read_bytes": 4096,
+          "written_bytes": 49152
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 93471584,
+          "cpu_seconds": 0.27880687499999995,
+          "interrupt_wakeups": 14,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4375008,
+          "cpu_seconds": 0.03327995833333333,
+          "interrupt_wakeups": 6,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 59704064,
+          "cpu_seconds": 0.08603741666666666,
+          "interrupt_wakeups": 7,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1333.638667,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 133645584,
+          "cpu_seconds": 1.1471508333333331,
+          "interrupt_wakeups": 311,
+          "read_bytes": 4096,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 141607800,
+          "cpu_seconds": 0.37265374999999995,
+          "interrupt_wakeups": 16,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4375008,
+          "cpu_seconds": 0.033306499999999996,
+          "interrupt_wakeups": 7,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 60588800,
+          "cpu_seconds": 0.10124174999999999,
+          "interrupt_wakeups": 8,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1434.867375,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 133727504,
+          "cpu_seconds": 1.1998825416666665,
+          "interrupt_wakeups": 322,
+          "read_bytes": 4096,
+          "written_bytes": 57344
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 155616120,
+          "cpu_seconds": 0.4329373333333333,
+          "interrupt_wakeups": 17,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4375008,
+          "cpu_seconds": 0.033306499999999996,
+          "interrupt_wakeups": 7,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 60588824,
+          "cpu_seconds": 0.10253649999999999,
+          "interrupt_wakeups": 9,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1489.4281250000001,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 133743888,
+          "cpu_seconds": 1.2553893333333332,
+          "interrupt_wakeups": 500,
+          "read_bytes": 4096,
+          "written_bytes": 61440
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 170869624,
+          "cpu_seconds": 0.4366959583333333,
+          "interrupt_wakeups": 18,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4358624,
+          "cpu_seconds": 0.03333345833333333,
+          "interrupt_wakeups": 8,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 60801840,
+          "cpu_seconds": 0.10791529166666666,
+          "interrupt_wakeups": 9,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1544.542709,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 135169296,
+          "cpu_seconds": 1.3181268333333331,
+          "interrupt_wakeups": 538,
+          "read_bytes": 8192,
+          "written_bytes": 1564672
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 165872504,
+          "cpu_seconds": 0.4545186666666666,
+          "interrupt_wakeups": 20,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4358624,
+          "cpu_seconds": 0.03333345833333333,
+          "interrupt_wakeups": 8,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61014856,
+          "cpu_seconds": 0.11741899999999998,
+          "interrupt_wakeups": 10,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1604.606584,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 135234832,
+          "cpu_seconds": 1.383695,
+          "interrupt_wakeups": 553,
+          "read_bytes": 20480,
+          "written_bytes": 1953792
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 184992656,
+          "cpu_seconds": 0.5167349999999999,
+          "interrupt_wakeups": 21,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4358624,
+          "cpu_seconds": 0.03334620833333333,
+          "interrupt_wakeups": 9,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61014856,
+          "cpu_seconds": 0.11880520833333331,
+          "interrupt_wakeups": 10,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1664.664375,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 135234832,
+          "cpu_seconds": 1.4441099583333332,
+          "interrupt_wakeups": 565,
+          "read_bytes": 20480,
+          "written_bytes": 1957888
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 195543952,
+          "cpu_seconds": 0.5208559166666666,
+          "interrupt_wakeups": 23,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4358624,
+          "cpu_seconds": 0.03334620833333333,
+          "interrupt_wakeups": 9,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61145928,
+          "cpu_seconds": 0.12353274999999998,
+          "interrupt_wakeups": 11,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1724.5646250000002,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 143066408,
+          "cpu_seconds": 1.5140960416666664,
+          "interrupt_wakeups": 577,
+          "read_bytes": 20480,
+          "written_bytes": 1966080
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 209716112,
+          "cpu_seconds": 0.54693425,
+          "interrupt_wakeups": 23,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4358624,
+          "cpu_seconds": 0.03336625,
+          "interrupt_wakeups": 10,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61539168,
+          "cpu_seconds": 0.13027291666666665,
+          "interrupt_wakeups": 11,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1778.497459,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 145327400,
+          "cpu_seconds": 1.633886958333333,
+          "interrupt_wakeups": 603,
+          "read_bytes": 20480,
+          "written_bytes": 1970176
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 223888272,
+          "cpu_seconds": 0.5959949583333333,
+          "interrupt_wakeups": 27,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4358624,
+          "cpu_seconds": 0.033381916666666664,
+          "interrupt_wakeups": 11,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61588344,
+          "cpu_seconds": 0.15102145833333333,
+          "interrupt_wakeups": 14,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1893.5524590000002,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 145392936,
+          "cpu_seconds": 1.7283862916666666,
+          "interrupt_wakeups": 617,
+          "read_bytes": 192512,
+          "written_bytes": 4947968
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 212812688,
+          "cpu_seconds": 0.5973930416666666,
+          "interrupt_wakeups": 28,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.03339829166666666,
+          "interrupt_wakeups": 12,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61588344,
+          "cpu_seconds": 0.15110716666666665,
+          "interrupt_wakeups": 16,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 1953.6240420000001,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141755688,
+          "cpu_seconds": 1.7897852499999998,
+          "interrupt_wakeups": 625,
+          "read_bytes": 192512,
+          "written_bytes": 4952064
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 214746000,
+          "cpu_seconds": 0.5977472083333333,
+          "interrupt_wakeups": 29,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.03339829166666666,
+          "interrupt_wakeups": 12,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61604728,
+          "cpu_seconds": 0.15198041666666665,
+          "interrupt_wakeups": 16,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2012.9856669999997,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141755688,
+          "cpu_seconds": 1.8057157916666664,
+          "interrupt_wakeups": 639,
+          "read_bytes": 192512,
+          "written_bytes": 4956160
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 214057872,
+          "cpu_seconds": 0.5979341666666667,
+          "interrupt_wakeups": 31,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.03340933333333333,
+          "interrupt_wakeups": 13,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61571960,
+          "cpu_seconds": 0.1520032083333333,
+          "interrupt_wakeups": 17,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2073.05975,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141755688,
+          "cpu_seconds": 1.8064129166666665,
+          "interrupt_wakeups": 648,
+          "read_bytes": 192512,
+          "written_bytes": 4960256
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 214057872,
+          "cpu_seconds": 0.5979672083333333,
+          "interrupt_wakeups": 32,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.03340933333333333,
+          "interrupt_wakeups": 13,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61571960,
+          "cpu_seconds": 0.15203108333333332,
+          "interrupt_wakeups": 18,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2128.1964169999997,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141755688,
+          "cpu_seconds": 1.8070355416666666,
+          "interrupt_wakeups": 653,
+          "read_bytes": 192512,
+          "written_bytes": 4964352
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 212517776,
+          "cpu_seconds": 0.5980859583333332,
+          "interrupt_wakeups": 33,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.033421041666666665,
+          "interrupt_wakeups": 14,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 61571960,
+          "cpu_seconds": 0.15203108333333332,
+          "interrupt_wakeups": 18,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2188.269792,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141739304,
+          "cpu_seconds": 1.8146270833333331,
+          "interrupt_wakeups": 666,
+          "read_bytes": 192512,
+          "written_bytes": 4972544
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 211665808,
+          "cpu_seconds": 0.5982592083333332,
+          "interrupt_wakeups": 35,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.033436999999999995,
+          "interrupt_wakeups": 15,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 60294008,
+          "cpu_seconds": 0.1524339583333333,
+          "interrupt_wakeups": 20,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2296.9225,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141722920,
+          "cpu_seconds": 1.815461458333333,
+          "interrupt_wakeups": 671,
+          "read_bytes": 192512,
+          "written_bytes": 4976640
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 208405392,
+          "cpu_seconds": 0.5982592083333332,
+          "interrupt_wakeups": 35,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.033436999999999995,
+          "interrupt_wakeups": 15,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57967480,
+          "cpu_seconds": 0.1525058333333333,
+          "interrupt_wakeups": 21,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2352.232,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141722920,
+          "cpu_seconds": 1.8158826249999998,
+          "interrupt_wakeups": 673,
+          "read_bytes": 192512,
+          "written_bytes": 4980736
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 205734800,
+          "cpu_seconds": 0.6105507083333332,
+          "interrupt_wakeups": 38,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.033464999999999995,
+          "interrupt_wakeups": 16,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57967480,
+          "cpu_seconds": 0.15257099999999998,
+          "interrupt_wakeups": 22,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2407.913625,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141722920,
+          "cpu_seconds": 1.8164949583333332,
+          "interrupt_wakeups": 674,
+          "read_bytes": 192512,
+          "written_bytes": 4984832
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 201327504,
+          "cpu_seconds": 0.6112467083333333,
+          "interrupt_wakeups": 40,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4342240,
+          "cpu_seconds": 0.033464999999999995,
+          "interrupt_wakeups": 16,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57721720,
+          "cpu_seconds": 0.152729875,
+          "interrupt_wakeups": 23,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2458.87,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 141804864,
+          "cpu_seconds": 1.8414386249999999,
+          "interrupt_wakeups": 863,
+          "read_bytes": 192512,
+          "written_bytes": 4988928
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 201327504,
+          "cpu_seconds": 0.6131058333333332,
+          "interrupt_wakeups": 41,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4293088,
+          "cpu_seconds": 0.03348875,
+          "interrupt_wakeups": 17,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57721720,
+          "cpu_seconds": 0.152729875,
+          "interrupt_wakeups": 23,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2510.48975,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 142345536,
+          "cpu_seconds": 1.8688947083333332,
+          "interrupt_wakeups": 864,
+          "read_bytes": 192512,
+          "written_bytes": 4993024
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 201327504,
+          "cpu_seconds": 0.6131676666666666,
+          "interrupt_wakeups": 42,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4293088,
+          "cpu_seconds": 0.03348875,
+          "interrupt_wakeups": 17,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57705336,
+          "cpu_seconds": 0.15276904166666666,
+          "interrupt_wakeups": 24,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2565.520667,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 145556800,
+          "cpu_seconds": 1.9242298749999998,
+          "interrupt_wakeups": 865,
+          "read_bytes": 192512,
+          "written_bytes": 4993024
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 200000400,
+          "cpu_seconds": 0.61344225,
+          "interrupt_wakeups": 42,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4293088,
+          "cpu_seconds": 0.033497291666666665,
+          "interrupt_wakeups": 18,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57705336,
+          "cpu_seconds": 0.15276904166666666,
+          "interrupt_wakeups": 24,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2625.569542,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 148620608,
+          "cpu_seconds": 2.0371409166666665,
+          "interrupt_wakeups": 866,
+          "read_bytes": 192512,
+          "written_bytes": 4993024
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 199852944,
+          "cpu_seconds": 0.6135569166666666,
+          "interrupt_wakeups": 44,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4293088,
+          "cpu_seconds": 0.033523124999999994,
+          "interrupt_wakeups": 19,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57705336,
+          "cpu_seconds": 0.15280549999999998,
+          "interrupt_wakeups": 25,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2736.880459,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 149783872,
+          "cpu_seconds": 2.0975035833333333,
+          "interrupt_wakeups": 866,
+          "read_bytes": 192512,
+          "written_bytes": 4993024
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 199836560,
+          "cpu_seconds": 0.6136006666666666,
+          "interrupt_wakeups": 45,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4293088,
+          "cpu_seconds": 0.033523124999999994,
+          "interrupt_wakeups": 19,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57705336,
+          "cpu_seconds": 0.152829625,
+          "interrupt_wakeups": 26,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    },
+    {
+      "ms": 2796.960709,
+      "processes": [
+        {
+          "pid": 41442,
+          "role": "GUI",
+          "start": 17208302636011,
+          "physical_bytes": 154633536,
+          "cpu_seconds": 2.1552280416666663,
+          "interrupt_wakeups": 869,
+          "read_bytes": 192512,
+          "written_bytes": 4993024
+        },
+        {
+          "pid": 41456,
+          "role": "WebContent",
+          "start": 17208316343917,
+          "physical_bytes": 195593104,
+          "cpu_seconds": 0.6136609583333332,
+          "interrupt_wakeups": 46,
+          "read_bytes": 0,
+          "written_bytes": 110592
+        },
+        {
+          "pid": 41457,
+          "role": "Networking",
+          "start": 17208316942473,
+          "physical_bytes": 4293088,
+          "cpu_seconds": 0.033523124999999994,
+          "interrupt_wakeups": 19,
+          "read_bytes": 0,
+          "written_bytes": 53248
+        },
+        {
+          "pid": 41455,
+          "role": "GPU",
+          "start": 17208316125046,
+          "physical_bytes": 57705336,
+          "cpu_seconds": 0.15286070833333332,
+          "interrupt_wakeups": 26,
+          "read_bytes": 0,
+          "written_bytes": 86016
+        }
+      ]
+    }
+  ],
+  "ownership": [
+    {
+      "complete": false,
+      "roots": []
+    },
+    {
+      "complete": true,
+      "roots": []
+    },
+    {
+      "complete": true,
+      "roots": [
+        {
+          "pid": 41456,
+          "service": "com.apple.WebKit.WebContent",
+          "instance": "com.apple.WebKit.WebContent.ED7982DB-E16C-4831-B6EB-6A7A07ADE07C",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41457,
+          "service": "com.apple.WebKit.Networking",
+          "instance": "com.apple.WebKit.Networking.317658E9-DECF-49B9-8B66-65330374CFA3",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41455,
+          "service": "com.apple.WebKit.GPU",
+          "instance": "com.apple.WebKit.GPU.38EE7176-49EB-4B00-AC84-8BF137390493",
+          "evidence": "launchctl GUI PID-domain instance"
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "roots": [
+        {
+          "pid": 41456,
+          "service": "com.apple.WebKit.WebContent",
+          "instance": "com.apple.WebKit.WebContent.ED7982DB-E16C-4831-B6EB-6A7A07ADE07C",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41457,
+          "service": "com.apple.WebKit.Networking",
+          "instance": "com.apple.WebKit.Networking.317658E9-DECF-49B9-8B66-65330374CFA3",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41455,
+          "service": "com.apple.WebKit.GPU",
+          "instance": "com.apple.WebKit.GPU.38EE7176-49EB-4B00-AC84-8BF137390493",
+          "evidence": "launchctl GUI PID-domain instance"
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "roots": [
+        {
+          "pid": 41456,
+          "service": "com.apple.WebKit.WebContent",
+          "instance": "com.apple.WebKit.WebContent.ED7982DB-E16C-4831-B6EB-6A7A07ADE07C",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41457,
+          "service": "com.apple.WebKit.Networking",
+          "instance": "com.apple.WebKit.Networking.317658E9-DECF-49B9-8B66-65330374CFA3",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41455,
+          "service": "com.apple.WebKit.GPU",
+          "instance": "com.apple.WebKit.GPU.38EE7176-49EB-4B00-AC84-8BF137390493",
+          "evidence": "launchctl GUI PID-domain instance"
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "roots": [
+        {
+          "pid": 41456,
+          "service": "com.apple.WebKit.WebContent",
+          "instance": "com.apple.WebKit.WebContent.ED7982DB-E16C-4831-B6EB-6A7A07ADE07C",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41457,
+          "service": "com.apple.WebKit.Networking",
+          "instance": "com.apple.WebKit.Networking.317658E9-DECF-49B9-8B66-65330374CFA3",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41455,
+          "service": "com.apple.WebKit.GPU",
+          "instance": "com.apple.WebKit.GPU.38EE7176-49EB-4B00-AC84-8BF137390493",
+          "evidence": "launchctl GUI PID-domain instance"
+        }
+      ]
+    },
+    {
+      "complete": true,
+      "roots": [
+        {
+          "pid": 41456,
+          "service": "com.apple.WebKit.WebContent",
+          "instance": "com.apple.WebKit.WebContent.ED7982DB-E16C-4831-B6EB-6A7A07ADE07C",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41457,
+          "service": "com.apple.WebKit.Networking",
+          "instance": "com.apple.WebKit.Networking.317658E9-DECF-49B9-8B66-65330374CFA3",
+          "evidence": "launchctl GUI PID-domain instance"
+        },
+        {
+          "pid": 41455,
+          "service": "com.apple.WebKit.GPU",
+          "instance": "com.apple.WebKit.GPU.38EE7176-49EB-4B00-AC84-8BF137390493",
+          "evidence": "launchctl GUI PID-domain instance"
+        }
+      ]
+    }
+  ],
+  "note": "Read-only physical footprint; WebKit roots verified by launchd GUI PID domain; summed peaks may share pages"
+}

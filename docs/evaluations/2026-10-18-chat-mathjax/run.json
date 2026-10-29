@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-18T21:00:40.439163+08:00",
+  "native_executable": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+  "wrapper": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/native-controls-live/20261018-210040-d961345a/omp-isolated.sh",
+  "native_sha256": "4f91e2fb6b604da8efd8ac76f51e154aff16ae93e0022c8c64add4be62f3db92",
+  "language": "zh-Hans",
+  "requested_content_width": 1320,
+  "app_build": {
+    "schema": 1,
+    "source_sha256": "4b61bacfc506ea94a64a5dc7b015f86ecb5dd2b8c8701d09c991f6cec1cd6f03",
+    "binary_sha256": "0f0ccd2d5e9bd49282141c45c8e36b82cd2042b5281e0c5063bcaf6cbe8e9f89"
+  },
+  "revision": "fd7776e8e47c2dd34672da4c10ff0961706afc74",
+  "driver_sha256": "4c1d4ae9664505b26f6edeaf4d3d59b6da449079f4c1aec721f201e3d93d366a",
+  "provider_source_sha256": "a958bd4c0040ed30eab5b8f98a986177c9b3fffb34d03850777c8403f52dc85d",
+  "scope": "Focused real-chat math: actual native OMP, production timeline, independent fixed-rate loopback SSE. Fresh isolated storage/profile; no external account.",
+  "manual_result_scope": "math-checks.json contains local assertions; visual captures require inspection. Main heartbeat and cell draw callbacks do not measure GPU presentation.",
+  "native_version": "18.11.2",
+  "gui_pid": 32739,
+  "status": "completed",
+  "returncode": 0,
+  "provider_requests": 2
+}

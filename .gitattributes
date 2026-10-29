@@ -1,0 +1,9 @@
+OMPGUI/Resources/MathLicenses/*.txt -whitespace
+
+# Generated/vendor JavaScript contains significant whitespace in string literals.
+OMPGUI/Resources/MarkdownPreview/preview.js -whitespace
+OMPGUI/Resources/MarkdownPreview/vendor/** -whitespace
+
+# Unified diff context prefixes preserve upstream indentation and blank lines.
+tests/acceptance/cef_browser/patches/*.patch -whitespace
+config/browser/*.patch -whitespace

@@ -1,0 +1,555 @@
+{
+  "schema": 1,
+  "workload": "omp-p0-live-v2",
+  "date": "2026-10-16T03:04:34.142951+08:00",
+  "os": "27.2",
+  "hardware": "Mac17,4",
+  "revision": "254510cf77ca8ec5a5c25206f4716a21414d84d0",
+  "dirty": true,
+  "language": "zh-Hans",
+  "build": "Debug GUI",
+  "phases": {
+    "native-start": {
+      "sample_count": 4,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 403245600,
+      "observed_peak_by_role_bytes": {
+        "gui": 108741832,
+        "unclassified-descendant": 125093040,
+        "omp": 294503768
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 0.09866783333333329,
+          "observed_process_seconds": 0.741263166
+        },
+        "unclassified-descendant": {
+          "cpu_seconds": 0.21127474999999998,
+          "observed_process_seconds": 0.24588204099999977
+        },
+        "omp": {
+          "cpu_seconds": 0.42462137499999997,
+          "observed_process_seconds": 0.24943233300000012
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 13.310769758838022,
+      "median_physical_bytes": 231434616.0,
+      "median_gui_bytes": 105374920.0,
+      "median_by_role_bytes": {
+        "omp": 211600644.0,
+        "unclassified-descendant": 95577024.0,
+        "gui": 105374920.0
+      },
+      "process_count_ranges": {
+        "omp": [
+          0,
+          1
+        ],
+        "unclassified-descendant": [
+          0,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "cold-history": {
+      "sample_count": 9,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 550308624,
+      "observed_peak_by_role_bytes": {
+        "gui": 301270432,
+        "omp": 294258008
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 2.28475775,
+          "observed_process_seconds": 1.9571509169999999
+        },
+        "omp": {
+          "cpu_seconds": 0.34755866666666657,
+          "observed_process_seconds": 1.9571509169999999
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 116.738966328778,
+      "median_physical_bytes": 464243352,
+      "median_gui_bytes": 249054504,
+      "median_by_role_bytes": {
+        "omp": 216499568,
+        "gui": 249054504
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "warm-settle": {
+      "sample_count": 101,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 506907408,
+      "observed_peak_by_role_bytes": {
+        "gui": 280741280,
+        "omp": 226198896
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 0.02294491666666687,
+          "observed_process_seconds": 29.663630875000006
+        },
+        "omp": {
+          "cpu_seconds": 0.2984747916666666,
+          "observed_process_seconds": 29.663630875000006
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 0.07735033099405389,
+      "median_physical_bytes": 497044240,
+      "median_gui_bytes": 280069536,
+      "median_by_role_bytes": {
+        "omp": 216974704,
+        "gui": 280069536
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "idle-before": {
+      "sample_count": 227,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 496765712,
+      "observed_peak_by_role_bytes": {
+        "gui": 279905696,
+        "omp": 216860016
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 0.02362258333333367,
+          "observed_process_seconds": 59.649824166
+        },
+        "omp": {
+          "cpu_seconds": 0.2150514583333334,
+          "observed_process_seconds": 59.649824166
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 0.039602100531921404,
+      "median_physical_bytes": 496618256,
+      "median_gui_bytes": 279758240,
+      "median_by_role_bytes": {
+        "omp": 216860016,
+        "gui": 279758240
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "chat-switches": {
+      "sample_count": 15,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 497502992,
+      "observed_peak_by_role_bytes": {
+        "gui": 281675168,
+        "omp": 215827824
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 2.29498625,
+          "observed_process_seconds": 3.505546833000011
+        },
+        "omp": {
+          "cpu_seconds": 0.00010216666666651442,
+          "observed_process_seconds": 3.505546833000011
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 65.46728254764106,
+      "median_physical_bytes": 496798480,
+      "median_gui_bytes": 280970656,
+      "median_by_role_bytes": {
+        "omp": 215827824,
+        "gui": 280970656
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "preview-cycles": {
+      "sample_count": 80,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 537938776,
+      "observed_peak_by_role_bytes": {
+        "gui": 322438632,
+        "omp": 215827824
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 16.599498999999998,
+          "observed_process_seconds": 19.393555125000006
+        },
+        "omp": {
+          "cpu_seconds": 0.006650791666666711,
+          "observed_process_seconds": 19.393555125000006
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 85.5928626443626,
+      "median_physical_bytes": 525519704.0,
+      "median_gui_bytes": 309708252.0,
+      "median_by_role_bytes": {
+        "omp": 215827824.0,
+        "gui": 309708252.0
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "after-settle": {
+      "sample_count": 99,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 507464512,
+      "observed_peak_by_role_bytes": {
+        "gui": 292210128,
+        "omp": 215369072
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 0.20322470833333384,
+          "observed_process_seconds": 29.045402957999997
+        },
+        "omp": {
+          "cpu_seconds": 0.08662954166666648,
+          "observed_process_seconds": 29.045402957999997
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 0.6996794247516525,
+      "median_physical_bytes": 499862336,
+      "median_gui_bytes": 291931600,
+      "median_by_role_bytes": {
+        "omp": 207963504,
+        "gui": 291931600
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "idle-after": {
+      "sample_count": 241,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 500173632,
+      "observed_peak_by_role_bytes": {
+        "gui": 292210128,
+        "omp": 207963504
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 0.027634208333331856,
+          "observed_process_seconds": 62.644762791000005
+        },
+        "omp": {
+          "cpu_seconds": 0.06519566666666665,
+          "observed_process_seconds": 62.644762791000005
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 0.04411255961735717,
+      "median_physical_bytes": 499829568,
+      "median_gui_bytes": 292029904,
+      "median_by_role_bytes": {
+        "omp": 207799664,
+        "gui": 292029904
+      },
+      "process_count_ranges": {
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "inspection": {
+      "sample_count": 209,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 849367264,
+      "observed_peak_by_role_bytes": {
+        "gui": 309904896,
+        "omp": 257787248,
+        "unclassified-descendant": 298845600
+      },
+      "cpu_observations": {
+        "gui": {
+          "cpu_seconds": 2.8715350416666645,
+          "observed_process_seconds": 61.85797683299998
+        },
+        "omp": {
+          "cpu_seconds": 0.019925750000000075,
+          "observed_process_seconds": 61.85797683299998
+        },
+        "unclassified-descendant": {
+          "cpu_seconds": 1.2485512083333334,
+          "observed_process_seconds": 25.903124666999986
+        }
+      },
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": 4.642141868653484,
+      "median_physical_bytes": 525257536,
+      "median_gui_bytes": 292586960,
+      "median_by_role_bytes": {
+        "unclassified-descendant": 233227680,
+        "omp": 233211248,
+        "gui": 292586960
+      },
+      "process_count_ranges": {
+        "unclassified-descendant": [
+          0,
+          1
+        ],
+        "omp": [
+          1,
+          1
+        ],
+        "gui": [
+          1,
+          1
+        ]
+      }
+    },
+    "completed": {
+      "sample_count": 1,
+      "incomplete_samples": 0,
+      "observed_peak_physical_bytes": 0,
+      "observed_peak_by_role_bytes": {},
+      "cpu_observations": {},
+      "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+      "gui_cpu_percent_of_one_core": null,
+      "median_physical_bytes": 0,
+      "median_gui_bytes": null,
+      "median_by_role_bytes": {},
+      "process_count_ranges": {}
+    }
+  },
+  "phase_transitions": [
+    {
+      "active": true,
+      "phase": "native-start",
+      "uptime": 511071.6588605834,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "cold-history",
+      "uptime": 511072.4468419167,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "warm-settle",
+      "uptime": 511074.6998408334,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "idle-before",
+      "uptime": 511105.7458789584,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "chat-switches",
+      "uptime": 511165.748401875,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "preview-cycles",
+      "uptime": 511169.6691692084,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "after-settle",
+      "uptime": 511189.2262153334,
+      "visible": true
+    },
+    {
+      "active": false,
+      "phase": "idle-after",
+      "uptime": 511219.74805262504,
+      "visible": true
+    },
+    {
+      "active": false,
+      "phase": "inspection",
+      "uptime": 511282.74454200006,
+      "visible": true
+    },
+    {
+      "active": true,
+      "phase": "completed",
+      "uptime": 511344.8536924167,
+      "visible": true
+    }
+  ],
+  "webkit_ownership": [],
+  "native_scope": "Installed OMP with an isolated profile and a disconnected localhost model definition; read-only RPC, no model request or configured MCP server",
+  "unmeasured": [
+    "paid model streaming",
+    "configured MCP servers",
+    "GPU first readable frame",
+    "VoiceOver speech",
+    "sleep/wake",
+    "complete WebKit/XPC process coverage",
+    "WebKit resource ownership could not be verified"
+  ],
+  "webkit_attribution": "unavailable",
+  "full_application_resource_coverage": false,
+  "dylib_sha256": "9b78fc7d930fb172bea716af938ca1b83c57ae44e052dcbe43387d61607432ac",
+  "workload_sha256": "c543496afb21ce1516cfbfbcf2f97d8a0cf650a55d2fb99a5b5458977c3babfb",
+  "driver_sha256": "054bd09016a5bae0919f54133c3b216df88c2ff784881ddf9d49d13279c8064a",
+  "window_visibility_scope": "Activity/visibility recorded at phase transitions only; this does not certify an uninterrupted foreground window",
+  "memory_bytes": 25769803776,
+  "checks": {
+    "chat_switches": 100,
+    "checks": 29,
+    "cold_history_layout_cycle_ms": 889.6945,
+    "elapsed_milliseconds": 275207.556166,
+    "history_entries": 10000,
+    "metrics": {
+      "chatSwitch": {
+        "count": 107,
+        "maximumMilliseconds": 472.251667,
+        "p50Milliseconds": 15.89,
+        "p95Milliseconds": 49.953,
+        "retained": 107
+      },
+      "historyRead": {
+        "count": 3,
+        "maximumMilliseconds": 82.174916,
+        "p50Milliseconds": 1.408709,
+        "p95Milliseconds": 82.174916,
+        "retained": 3
+      },
+      "previewOpen": {
+        "count": 22,
+        "maximumMilliseconds": 266.001083,
+        "p50Milliseconds": 44.302625,
+        "p95Milliseconds": 47.933958,
+        "retained": 22
+      },
+      "processShutdown": {
+        "count": 1,
+        "maximumMilliseconds": 43.292792,
+        "p50Milliseconds": 43.292792,
+        "p95Milliseconds": 43.292792,
+        "retained": 1
+      },
+      "rpcRequest": {
+        "count": 17,
+        "maximumMilliseconds": 1716.0423329999999,
+        "p50Milliseconds": 0.850625,
+        "p95Milliseconds": 1716.0423329999999,
+        "retained": 17
+      },
+      "sessionStartup": {
+        "count": 1,
+        "maximumMilliseconds": 2374.909042,
+        "p50Milliseconds": 2374.909042,
+        "p95Milliseconds": 2374.909042,
+        "retained": 1
+      }
+    },
+    "native_capabilities": {
+      "cancel_subagent": "unsupported",
+      "get_state": "supported",
+      "get_subagents": "supported",
+      "negotiate_protocol": "supported",
+      "set_subagent_subscription": "supported",
+      "steer_subagent": "unsupported"
+    },
+    "native_settled": true,
+    "native_version": "omp/18.3.2",
+    "preview_cycles": 20,
+    "schema": 1,
+    "status": "completed",
+    "unmeasured": [
+      "GPU first readable frame",
+      "input event to displayed glyph",
+      "paid model requests",
+      "live MCP tools",
+      "sleep/wake",
+      "VoiceOver speech"
+    ],
+    "workload": "omp-p0-live-v2"
+  },
+  "memory_comparison": {
+    "before_bytes": 496618256,
+    "after_bytes": 499829568,
+    "delta_bytes": 3211312,
+    "budget_bytes": 49661825.6,
+    "measured_scope_within_budget": true,
+    "full_application_within_budget": null,
+    "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+  },
+  "idle_diagnostic": {
+    "method": "External 100 ms CPU observations; sample stack only above 50% of a core during idle phases, at most once per phase",
+    "stack_samples_triggered": 0,
+    "note": "No spike was captured in this repeat; the prior run above 1% remains a recorded acceptance concern."
+  },
+  "manual_ui_checks": [
+    "zh-Hans compacting status in sidebar and timeline (injected display state)",
+    "10,000-message history reaches record 4999 (previous build with the identical recovery implementation)",
+    "Chinese composer value retained across Command-2 / Command-1",
+    "Option-Command-P hides preview through the native menu route"
+  ],
+  "known_gui_omp_exit_verified": true,
+  "archive_note": "Raw samples remain under build.noindex. Visibility is recorded at phase boundaries, not continuously. This is an isolated Debug window/RPC workload, not production account/MCP discovery or a GPU first-frame test.",
+  "known_descendant_exit_verified": true
+}

@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-17",
+  "base_commit": "cb80f65df22aa8422b5a1fd032d92756af3aef9b",
+  "dev_version": "0.1.112",
+  "dev_build": 113,
+  "worktree": "/Users/developer/.codex/worktrees/goal-audit-fixes/omp-gui-native",
+  "build": {
+    "schema": 1,
+    "source_sha256": "32672b2ef0bb3bbd223b4b4ead5484f41ae795feb8292558b41035324b160f45",
+    "binary_sha256": "d89f3abb31bb5c873bf3601e3c87f9f2b9754a7f5423e449ab008f477cd9b63e"
+  },
+  "functional": {
+    "run": "20261017T082355Z-e2af735f",
+    "status": "passed",
+    "seconds": 4.599,
+    "inputs_sha256": "649c38c3758acece376a6fdf2af0d617ab9e054e3c1ed8168bfd85ddf06dc5fd",
+    "summary": {
+      "checks": 64,
+      "guiWindows": 0,
+      "nativeModelCalls": 0
+    }
+  },
+  "native": {
+    "run": "20261017T082407Z-8130a494",
+    "status": "passed",
+    "seconds": 9.593,
+    "inputs_sha256": "90a3fc42f3cd6962580cb32067bdcd608462aafa8860370be3e6d2713cd0ecb2",
+    "summary": {
+      "checks": [
+        "Selected native OMP exposes public Goal RPC and an empty new goal state",
+        "An active native goal with RPC continuation disabled does not fabricate executing work",
+        "Native goal complete tool yields explicit terminal evidence before goal clears to null",
+        "Native goal accounting reports deterministic provider token consumption",
+        "Public native pause leaves the in-flight provider turn running",
+        "Public native drop clears the goal without aborting the provider turn",
+        "Stopping a native reply pauses its active goal without replacing its identity",
+        "Without native RPC continuation an explicit resume admits one ordinary prompt",
+        "Native budget-limited is separate from completion and can exceed the requested budget",
+        "A paused spent native budget is rejected before another model turn",
+        "A new native process restores an active goal as paused without GUI replay",
+        "Explicit restored resume preserves goal identity and admits one user prompt without a GUI loop",
+        "OMP RPC continuation starts a turn without a GUI prompt and suppresses another after no tool progress",
+        "Native RPC resume continuation suppresses the GUI fallback, including a fast completed turn",
+        "Native disabled policy is distinct from supported read-only Goal RPC"
+      ],
+      "guiWindows": 0,
+      "provider": "local deterministic HTTP",
+      "status": "passed",
+      "executable": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+      "executable_sha256": "4f91e2fb6b604da8efd8ac76f51e154aff16ae93e0022c8c64add4be62f3db92",
+      "version": "18.11.2",
+      "returncode": 0
+    }
+  },
+  "runtimes": [
+    {
+      "executable": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+      "version": "omp/18.11.2",
+      "sha256": "7218093b10cff60f07c5aab417a0c65e9af73490151718a6b518825c79b1ded3",
+      "sdk_source_sha256": "2a101dc22fdc7defd94f8d29fd798709d090c46009f3bbe6e392499c2644894c"
+    }
+  ],
+  "limitations": [
+    "GUI not launched; language, keyboard and narrow-layout acceptance remains open.",
+    "No external model services; native test used an isolated profile and deterministic loopback HTTP provider.",
+    "OMP RPC has no in-place goal budget edit or atomic expected-goal-ID mutation.",
+    "Usage displays the last native accounting report; no GUI accounting timer."
+  ]
+}

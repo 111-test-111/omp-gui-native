@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "files": {
+    "functional-math.json": {
+      "bytes": 3687,
+      "sha256": "325a6fe0ebc7083853c2b05c2fa10602a851f118a40bf5ff4c0a8fd2efd474f0"
+    },
+    "functional-preview.json": {
+      "bytes": 6799,
+      "sha256": "2a7e37d53b3c9d6224ddcdf831258a36c0763145b8eb47211ac310604f8e5200"
+    },
+    "math-checks.json": {
+      "bytes": 20293,
+      "sha256": "3943369465867450f1b7027041f68a9b31ec1d1ec380b7da07831573e76c85ed"
+    },
+    "math-finished-dark.png": {
+      "bytes": 573620,
+      "sha256": "9dfe233050d2e3251d5de7cddb254ec4468caf9fc1fa6f638fafb3ae12efb6fd"
+    },
+    "math-finished-light.png": {
+      "bytes": 713796,
+      "sha256": "e62bc020d8da4615308f2dcbf0c9e8b7eb42b6bedb392f4b9414d1623822297a"
+    },
+    "math-narrow-18pt.png": {
+      "bytes": 359538,
+      "sha256": "cecac3af6a23c93e83046769ccf206a8e967cb7f9737b59af75c1124e49e77d8"
+    },
+    "math-narrow-horizontal-end.png": {
+      "bytes": 407766,
+      "sha256": "aab49c82fa86b019992a65560664de748de02e82a603731c7c5c1d743095c113"
+    },
+    "math-phases.jsonl": {
+      "bytes": 705,
+      "sha256": "b03978eb0162f4f6c2ba3a52358f4292c2d1812308f19d3870430f8d148122c0"
+    },
+    "math-reading-history.png": {
+      "bytes": 669976,
+      "sha256": "bd42c0347bcaa774ef41ce2803892e37836f91ff880c5cdd995cc988cb68efbb"
+    },
+    "math-reading-start.png": {
+      "bytes": 677468,
+      "sha256": "342e66cd9b5a9e27096d617fb6b895e78e5a73763e3a9eed25fefeaed841ea1d"
+    },
+    "math-selected-light.png": {
+      "bytes": 648958,
+      "sha256": "258c13622541d7c05f94c79f2a0ffa5d347c38e519bdc3d0df5ce3960cb5fbea"
+    },
+    "math-sidebar-hidden.png": {
+      "bytes": 342147,
+      "sha256": "e06551da066d823030bd302fcb4d518b21b3bead410cfa6fc867f294407facb5"
+    },
+    "provider-requests.jsonl": {
+      "bytes": 517,
+      "sha256": "f16d019a866431ee01bfffa052dab95ef23a38187c8cbc4fa30af1dfb1c62a9d"
+    },
+    "resources.json.gz": {
+      "bytes": 15776,
+      "sha256": "1904137abfe966deaa10a4737ea54a0f3e8bb09dd475800649e36ca44bb645ad"
+    },
+    "run.json": {
+      "bytes": 1422,
+      "sha256": "777f989e13c42799d9b454c577ba76369b2277cc024e1980f2e27b70c3741fc7"
+    },
+    "selection-checks.json": {
+      "bytes": 62,
+      "sha256": "d8ce0375ce45a4f0bbf22b74b3206e5f1d11fae63d79a42376918926f8bcfa75"
+    },
+    "selection-run.json": {
+      "bytes": 1422,
+      "sha256": "21d0d8e7904188381fb25a0def6f28484a5f617b08d795a6200bade01bb9acee"
+    },
+    "static-report.json": {
+      "bytes": 4351,
+      "sha256": "bb53b8538f18afe5de5715055c6be65e8aff9c557f4f58b1bc29c9224efa19f0"
+    },
+    "summary.json": {
+      "bytes": 2339,
+      "sha256": "fe831eb9f402785be6b8c53da49aeb88a03a03eb641f20ed827a37984f20e9f3"
+    }
+  }
+}

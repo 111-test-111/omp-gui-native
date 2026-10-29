@@ -1,0 +1,26 @@
+{
+  "delta" : {
+    "decoder_and_event_collection_ms" : 0.67500400000000005,
+    "frames" : 133,
+    "json_parse_ms" : 2.3804989999999999,
+    "ndjson_bytes" : 676141,
+    "payload_sha256" : "2a03809e901f0b3a23e45095c59534f57e4a0f40ff84557fbe89da0949a34a02"
+  },
+  "full" : {
+    "decoder_and_event_collection_ms" : 0.95932099999999965,
+    "frames" : 133,
+    "json_parse_ms" : 74.583156999999986,
+    "ndjson_bytes" : 34545220,
+    "payload_sha256" : "c57c59ed64e19ebbff57458051b7a7b2720724e0f99a09643e1453a1481124ef"
+  },
+  "ndjson_bytes_saved" : 33869079,
+  "ndjson_reduction_percent" : 98.042736448052722,
+  "scope" : "One synthetic full\/delta comparison through production JSONValue.parse and OMPEventDecoder; encoded frames are prepared before timings. No native OMP, GUI, stdio, allocations or screen latency is measured.",
+  "timing_note" : "Single ordered observations, full then delta; not statistical latency or a machine-independent threshold. Decoder time includes identical event collection. JSON serialization and workload generation are excluded.",
+  "workload" : {
+    "chunks_per_text_and_tool_argument" : 64,
+    "normalized_event_count" : 71,
+    "text_utf8_bytes" : 106496,
+    "tool_arguments_utf8_bytes" : 106496
+  }
+}

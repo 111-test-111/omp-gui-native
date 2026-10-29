@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "date": "2026-10-18T13:46:56.258816+00:00",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
+  "tools": {
+    "xcrun": "/usr/bin/xcrun",
+    "swift_version": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.2.0"
+  },
+  "app_build": {
+    "schema": 1,
+    "source_sha256": "505c729f8382b45fcb7c05a81fb870e30bd4ffb737b45fc09b50a589b2ce9df2",
+    "binary_sha256": "f5c362c803bae0adb0205b81cfe28fe51c040ed07f37a40dc02e175580837954"
+  },
+  "runtimes": [],
+  "checks": [
+    {
+      "id": "benchmark:chat-math-cold",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "chat-math-cold",
+        "description": "Production shared MathJax cold queue and streaming readiness",
+        "tier": "benchmark",
+        "sources": [
+          "tests/benchmarks/chat_math_cold_tests.swift"
+        ],
+        "app": true,
+        "prepare": "",
+        "recipe": "capture",
+        "inputs": [
+          "OMPGUI/Resources/MarkdownPreview"
+        ],
+        "tools": [],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T134653Z-2844cbfe/benchmark/chat-math-cold",
+      "inputs_sha256": "10550bc1d66b6b595cffbc193c2ccae800fde7424ae892542f3ee86967af9380",
+      "app_binary_sha256": "f5c362c803bae0adb0205b81cfe28fe51c040ed07f37a40dc02e175580837954",
+      "commands": [
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "--version"
+          ],
+          "timeout_seconds": 15,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/module-cache",
+            "-I",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/benchmarks/chat_math_cold_tests.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS/OMP GUI Dev.debug.dylib",
+            "-Xlinker",
+            "-rpath",
+            "-Xlinker",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS",
+            "-o",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/62b71d40141dadbd/checks"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/62b71d40141dadbd/checks",
+            "--website-captures",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T134653Z-2844cbfe/benchmark/chat-math-cold",
+            "--fixture",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/Resources/MarkdownPreview"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 2.461
+    }
+  ]
+}

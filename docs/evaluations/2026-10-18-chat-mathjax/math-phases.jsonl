@@ -1,0 +1,7 @@
+{"phase":"stream-bottom","time":709658.57753079175,"typeset_count":55,"worker_loaded":true}
+{"phase":"needs-user-scroll","time":709660.69050387503,"typeset_count":59,"worker_loaded":true}
+{"offset":1329,"phase":"stream-reading-history","time":709669.79668116674,"typeset_count":79,"worker_loaded":true}
+{"phase":"stream-completed","scroll_drift_points":0,"time":709689.05013108335,"typeset_count":109,"worker_loaded":true}
+{"phase":"needs-sidebar-width-check","time":709690.66233362502,"typeset_count":109,"worker_loaded":true}
+{"phase":"idle","time":709740.8212369167,"typeset_count":218,"worker_loaded":true}
+{"phase":"idle-released","time":709762.83167099999,"typeset_count":218,"worker_loaded":false}

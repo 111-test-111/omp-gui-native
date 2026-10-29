@@ -1,0 +1,217 @@
+{
+  "status": "partial",
+  "date": "2026-10-27",
+  "ompVersion": "18.12.5",
+  "cefSwiftRevision": "ba6ebff9e232529289662a84704ade1240563031",
+  "cefVersion": "154.0.34",
+  "modelRequests": 0,
+  "groups": [
+    {
+      "name": "navigation",
+      "status": "passed",
+      "checks": [
+        "goto/forward/waitForUrl navigate the hosted page",
+        "back/reload/pushState preserve native page ownership",
+        "Navigation retains the native-instance marker"
+      ],
+      "sourceRun": "a5a579f249b1460fbc0745b430ff5710"
+    },
+    {
+      "name": "form-controls",
+      "status": "passed",
+      "checks": [
+        "Checkboxes and native select controls retain their requested values",
+        "focus/type/hover/dblclick reach the intended DOM controls"
+      ],
+      "sourceRun": "a5a579f249b1460fbc0745b430ff5710"
+    },
+    {
+      "name": "pointer-scroll",
+      "status": "passed",
+      "checks": [
+        "CSS coordinate clickAt uses the hosted viewport correctly",
+        "Drag dispatch reaches the fixture drop target",
+        "scrollIntoView and scroll/wheel operate the page viewport"
+      ],
+      "sourceRun": "a5a579f249b1460fbc0745b430ff5710"
+    },
+    {
+      "name": "javascript-init",
+      "status": "passed",
+      "checks": [
+        "Async page evaluate and tab.run Puppeteer facade return structured results",
+        "Document-start scripts install, survive reload and can be removed"
+      ],
+      "sourceRun": "a5a579f249b1460fbc0745b430ff5710"
+    },
+    {
+      "name": "storage",
+      "status": "passed",
+      "checks": [
+        "Cookies can be set and read in the isolated CEF profile",
+        "Local and session storage can be written and read",
+        "Same-profile tabs intentionally share same-origin local storage",
+        "Storage state exports and restores the current origin"
+      ],
+      "sourceRun": "a5a579f249b1460fbc0745b430ff5710"
+    },
+    {
+      "name": "network",
+      "status": "passed",
+      "checks": [
+        "Requests, headers and response-body diagnostics capture real fetch traffic",
+        "HAR output contains the fixture network request",
+        "Persistent routes fulfill and abort requests, then unregister",
+        "tab.run response wait observes the actual HTTP response"
+      ],
+      "sourceRun": "ca5bfbdbcdbf4573962a01c096a4c8cc"
+    },
+    {
+      "name": "upload",
+      "status": "passed",
+      "checks": [
+        "uploadFile installs the actual local file into the CEF file input",
+        "The page uploads the exact file contents to the isolated server"
+      ],
+      "sourceRun": "ca5bfbdbcdbf4573962a01c096a4c8cc"
+    },
+    {
+      "name": "diagnostics",
+      "status": "passed",
+      "checks": [
+        "Console logs and JavaScript errors are captured",
+        "DOM and lifecycle metrics are available",
+        "Tracing produces DevTools timeline events",
+        "CPU profiling produces a CDP profile artifact"
+      ],
+      "sourceRun": "ca5bfbdbcdbf4573962a01c096a4c8cc"
+    },
+    {
+      "name": "emulation",
+      "status": "passed",
+      "checks": [
+        "Viewport, media preferences and timezone emulation apply",
+        "User agent, HTTP headers and offline simulation work",
+        "Emulation remains scoped to A and known device profiles are listed"
+      ],
+      "sourceRun": "ca5bfbdbcdbf4573962a01c096a4c8cc"
+    },
+    {
+      "name": "feature-detection",
+      "status": "passed",
+      "checks": [
+        "Optional WebMCP/React discovery returns structured results on a non-React page"
+      ],
+      "sourceRun": "ca5bfbdbcdbf4573962a01c096a4c8cc",
+      "value": {
+        "webmcp": {
+          "status": "ready",
+          "tools": [],
+          "truncated": false,
+          "untrusted": true
+        },
+        "setup": {
+          "installed": true
+        },
+        "react": []
+      }
+    },
+    {
+      "name": "download",
+      "status": "passed",
+      "checks": [
+        "Download events report the completed CEF download",
+        "The downloaded file is complete and stays inside this acceptance run"
+      ],
+      "sourceRun": "565d35925ab34787bea439ae5bfe91c7"
+    },
+    {
+      "name": "capture-pdf",
+      "status": "passed",
+      "checks": [
+        "Element screenshots detect real page changes and suppress unchanged output",
+        "CEF Page.printToPDF produces a valid PDF artifact",
+        "Annotated screenshots have observable element targets"
+      ],
+      "sourceRun": "565d35925ab34787bea439ae5bfe91c7",
+      "annotationElements": 14
+    },
+    {
+      "name": "dialogs",
+      "status": "failed",
+      "checks": [],
+      "sourceRun": "565d35925ab34787bea439ae5bfe91c7",
+      "error": "Error: ToolError: tab.click(\"#confirm\") timed out after 8000ms; could not count matches: no answer within 1000ms",
+      "cleanup": "Native control quit and SIGTERM did not complete within 15s + 5s. Driver cleanup raised TimeoutExpired; a later process check confirmed the owned PID exited. No clean shutdown claim."
+    },
+    {
+      "name": "selectors",
+      "status": "passed",
+      "checks": [
+        "ARIA refs and open Shadow DOM handles work",
+        "XPath, test-id and semantic-role selectors resolve correctly",
+        "Visibility, enabled state, geometry and computed-style reads work",
+        "Text/HTML/Markdown extraction reads the embedded document",
+        "CDP accessibility observation exposes numeric element handles"
+      ],
+      "sourceRun": "2f4e2e9abf5b401397c51d488a4c6eaf",
+      "defaultScopedElements": 0,
+      "includeAllElements": 22
+    },
+    {
+      "name": "frames",
+      "status": "partial",
+      "checks": [
+        "Same-origin and cross-site frames exist with genuine DOM origin separation",
+        "OMP frame-scoped click/fill/text work across origins",
+        "Cross-origin frame ARIA snapshots expose its controls",
+        "Frame and owner-element screenshot artifacts are emitted; crop correctness requires visual acceptance"
+      ],
+      "sourceRun": "38d9a00a587f423b97cada899d054427",
+      "manualReview": {
+        "frameScreenshot": "wrong crop: main-page article instead of frame controls",
+        "ownerElementScreenshot": "correct iframe controls, input and output both 跨域 CEF"
+      }
+    }
+  ],
+  "counts": {
+    "passed": 13,
+    "partial": 1,
+    "failed": 1
+  },
+  "automatedAssertions": 42,
+  "artifacts": [
+    {
+      "path": "annotated.png",
+      "sourceRun": "565d35925ab34787bea439ae5bfe91c7",
+      "bytes": 75436,
+      "sha256": "08c0a9b65c7ac87ae97f9914c9c23f16942e0a0f24fb3a2dbd50925a46925abe"
+    },
+    {
+      "path": "fixture.pdf",
+      "sourceRun": "565d35925ab34787bea439ae5bfe91c7",
+      "bytes": 87038,
+      "sha256": "fd24643bd3abd0bc40e21118a7dad8f3e69f6905d84596c7078b9a1aee6968d2"
+    },
+    {
+      "path": "wrong-frame-crop.webp",
+      "sourceRun": "38d9a00a587f423b97cada899d054427",
+      "bytes": 5048,
+      "sha256": "6384d44e4a967f6b7b3641d1a1d3d1cf5635b72456c80f13eb1caf973549a204"
+    },
+    {
+      "path": "owner-frame.png",
+      "sourceRun": "38d9a00a587f423b97cada899d054427",
+      "bytes": 12621,
+      "sha256": "cc07a2c61eb09c2a4c3c5245d9f7850eabfe9e913a9b2f1dfc2cb2415b06d65e"
+    }
+  ],
+  "evidenceReuse": "Five bounded runs. Passing groups reused while their relevant fixture/runtime behavior remained unchanged; failed and previously blocked groups rerun after cause analysis. Not a single all-green session.",
+  "deferred": [
+    "System clipboard",
+    "Mounted React component inspection/actions",
+    "WebMCP tool invocation",
+    "Video recording",
+    "Arbitrary sites, authentication, permission prompts, IME composition, production sandbox/signing, resource performance"
+  ]
+}

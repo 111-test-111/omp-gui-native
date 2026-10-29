@@ -1,0 +1,93 @@
+{
+  "version": "0.1.134 (135)",
+  "base_commit": "d95d4c8",
+  "fixture": "Isolated selected Hank worker + necessary parent metadata + synthetic empty chat. Four assistant entries in three saved turns; default mounted history, 1320x860 pt. Native journal copied into capture store.",
+  "baseline_return": {
+    "samples": 79,
+    "answer_counts": [
+      3,
+      4
+    ],
+    "spinner_samples": 0,
+    "exposed_partial_samples": 1
+  },
+  "final_phases": {
+    "entry": {
+      "samples": 9,
+      "answer_counts": [
+        3,
+        4
+      ],
+      "spinner_samples": 4,
+      "exposed_partial_samples": 0,
+      "final_hidden": false,
+      "final_pending": 0
+    },
+    "quick_return": {
+      "samples": 80,
+      "answer_counts": [
+        4
+      ],
+      "spinner_samples": 0,
+      "exposed_partial_samples": 0,
+      "final_hidden": false,
+      "final_pending": 0
+    },
+    "history_refresh": {
+      "samples": 59,
+      "answer_counts": [
+        0,
+        3,
+        4
+      ],
+      "spinner_samples": 4,
+      "exposed_partial_samples": 0,
+      "final_hidden": false,
+      "final_pending": 0
+    },
+    "scroll": {
+      "samples": 118,
+      "answer_counts": [
+        4
+      ],
+      "spinner_samples": 0,
+      "exposed_partial_samples": 0,
+      "final_hidden": false,
+      "final_pending": 0
+    }
+  },
+  "first_recorded_frame": {
+    "indicators": 1,
+    "math_hosts": 0,
+    "ms": 135.67733333911747,
+    "phase": "entry",
+    "text_views": 0,
+    "waiting": false
+  },
+  "native_view_budget": {
+    "fixture": "24 completed paragraphs each with one inline formula, same MarkdownView and width; separate-block environment as reference",
+    "separate": 24,
+    "continuous": 1
+  },
+  "manual_input": {
+    "first_wheel_delta_y": 750,
+    "first_wheel_phase": 0,
+    "first_up_scroll_changed_visible_content": true,
+    "jump_to_latest_appeared_after_first_scroll": true,
+    "subsequent_up_and_down_returned_to_bottom": true
+  },
+  "limits": [
+    "Single selected copied chat and controlled paragraph fixture, not FPS/p95 or GPU presentation distribution.",
+    "Physical trackpad tracking/bounce and cross-display testing not performed; tracking cancellation covered by functional state check.",
+    "Initial baseline async-main replay did not support normal AppKit input; only its history/preparation facts are used. GUI input acceptance uses NSApplication.run().",
+    "An exploratory GUI run reached its outer 120 s deadline after an excessive manual wait and did not finish its report; the final helper bounds manual wait to 45 s and writes checkpoints. Its successful final run is not a speed comparison.",
+    "Viewport offset telemetry was unavailable in the final run; no numeric scroll-position performance claim.",
+    "No retained-process memory or external OMP/provider benchmark in this task."
+  ],
+  "machine": {
+    "chip": "Apple M5",
+    "memory_bytes": 25769803776,
+    "macOS": "27.2 (26B5101f)",
+    "swift": "6.4, Swift 6 language mode"
+  }
+}

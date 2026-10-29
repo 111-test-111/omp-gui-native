@@ -1,0 +1,259 @@
+{
+  "date": "2026-10-29",
+  "baseline": {
+    "omp": "18.12.5",
+    "bun": "1.4.2"
+  },
+  "target": {
+    "omp": "18.13.3",
+    "bun": "1.4.4"
+  },
+  "dev": {
+    "version": "0.1.339",
+    "build": 340
+  },
+  "worktree": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native",
+  "build": {
+    "schema": 1,
+    "source_sha256": "77e3d954006dcd744c754765ef40ab94408910210d2c0b9bf064c698d354ddf7",
+    "binary_sha256": "bda595522d62114c699d37940af1c2b89ae916bf5da4cdb83453c755836a27c0"
+  },
+  "checks": [
+    {
+      "id": "functional:browser-bridge",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023446Z-eed0a389/functional/browser-bridge",
+      "inputs_sha256": "8e9d5012bc9077555862cd9a06620bdeb3d14c8664c0860bc618667c09c36c02",
+      "seconds": 0.274,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023446Z-eed0a389/report.json"
+    },
+    {
+      "id": "functional:queue",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023446Z-eed0a389/functional/queue",
+      "inputs_sha256": "5bd6c525eeeec557754acc0e283e34d99e5e51c80342a45563b65f7e0817f760",
+      "seconds": 0.038,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023446Z-eed0a389/report.json"
+    },
+    {
+      "id": "functional:rpc",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-e4226ef1/functional/rpc",
+      "inputs_sha256": "52a3cae699bbed0331070ad41bc347a5829ad692d931ff53d5a23b6bab7b185e",
+      "seconds": 19.967,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-e4226ef1/report.json"
+    },
+    {
+      "id": "functional:workflows",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-e4226ef1/functional/workflows",
+      "inputs_sha256": "cd7a11f29f20bdff6887688d62f53afac19c3fb91ab5b8d3634d0ec28214f97d",
+      "seconds": 21.998,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-e4226ef1/report.json"
+    },
+    {
+      "id": "native:approvals",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/native/approvals",
+      "inputs_sha256": "c730ee4f563000a4ca6900564115774de6141322c28012b8b657d788bba32e5b",
+      "seconds": 1.25,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/report.json"
+    },
+    {
+      "id": "native:browser-sdk",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023722Z-796efccb/native/browser-sdk",
+      "inputs_sha256": "a556ff582ad91633d1d4e43ad84c631a368157c7a0701c2c4e23c3e8b9be9bcc",
+      "seconds": 2.991,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023722Z-796efccb/report.json"
+    },
+    {
+      "id": "native:config",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-cedf5ae2/native/config",
+      "inputs_sha256": "6c5a5bc177775c67a54034dfb7052bc2dac2dd4155af05761554c99bed5f0f46",
+      "seconds": 12.368,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-cedf5ae2/report.json"
+    },
+    {
+      "id": "native:memory",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/native/memory",
+      "inputs_sha256": "f1905ce34185e1181563919016c10a8f837e20bc660a793ddec3b944d33bcca6",
+      "seconds": 3.975,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/report.json"
+    },
+    {
+      "id": "native:model-configuration",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-cedf5ae2/native/model-configuration",
+      "inputs_sha256": "42693e9e6ddf46af9086d77fec9cd00cd13a974a7f179f8675d1076fd5128a45",
+      "seconds": 1.006,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-cedf5ae2/report.json"
+    },
+    {
+      "id": "native:request-capture",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-cedf5ae2/native/request-capture",
+      "inputs_sha256": "033d7e0abf41f73d5f13590ecca415c962196d60598201c9ee15f1da048fdbe4",
+      "seconds": 6.456,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024048Z-cedf5ae2/report.json"
+    },
+    {
+      "id": "native:rpc",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/native/rpc",
+      "inputs_sha256": "350bd0d2d35fbd3585befc8f3ac50f214339fefde27433883ae855e6076a4e94",
+      "seconds": 26.141,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/report.json"
+    },
+    {
+      "id": "native:workers",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/native/workers",
+      "inputs_sha256": "27f564c7bfb6a7a1d8fb25d34100704b6e73101cd0b0e376ed818f2233544bdd",
+      "seconds": 1.269,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T023847Z-22ad5d30/report.json"
+    },
+    {
+      "id": "static:documentation",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024356Z-4696270a/static/documentation",
+      "inputs_sha256": "5260e76f913e58dc3468965ca4f22b91bafc8186ca37d996d7914ac5def99d8b",
+      "seconds": 0.243,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024356Z-4696270a/report.json"
+    },
+    {
+      "id": "static:harness",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024356Z-4696270a/static/harness",
+      "inputs_sha256": "5abcfa0fbde60f218de9426d5ca372901f9f648b4bd71030e210afe06c68c8cf",
+      "seconds": 1.276,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024356Z-4696270a/report.json"
+    },
+    {
+      "id": "static:syntax",
+      "status": "passed",
+      "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024356Z-4696270a/static/syntax",
+      "inputs_sha256": "1bd1fa063b4d8f07c524a86f0efbd6d6d329ae4525fbb1b33ef7ab7f7e86ab78",
+      "seconds": 3.971,
+      "report": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/verification/runs/20261029T024356Z-4696270a/report.json"
+    }
+  ],
+  "global_installation": {
+    "prefix": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation",
+    "status": "installed",
+    "versions": {
+      "omp": "omp/18.13.3",
+      "bun": "1.4.4"
+    },
+    "packages": {
+      "@oh-my-pi/pi-coding-agent": {
+        "version": "18.13.3",
+        "files": 26110,
+        "sha256": "494c5861d8b514e5b4b76aa6523ac0630d73db78ba222f2b7c0d0fe6f63c6776",
+        "matches_candidate": true,
+        "differences": []
+      },
+      "bun": {
+        "version": "1.4.4",
+        "files": 8,
+        "sha256": "395c071776285ee5aaf73db114bc483a2625198d7fbc783fad47ce616a956a9d",
+        "matches_candidate": true,
+        "differences": []
+      }
+    },
+    "gui": "closed_after_normal_quit"
+  },
+  "gui_acceptance": {
+    "status": "passed",
+    "assertions": 36,
+    "scopes": [
+      {
+        "scope": "start",
+        "status": "passed",
+        "assertions": 13,
+        "checks": [
+          "GUI supplies valid native open options without manual enum",
+          "Second background page receives trusted native input and click",
+          "Identical URL/title sibling remains untouched",
+          "Sibling modal cannot stall exact reattachment",
+          "Parked production page retains input and trusted drag",
+          "Parked page completes native wheel scrolling",
+          "Automation never reveals or switches the GUI tab",
+          "Native save/load restores cookies in the selected CEF profile",
+          "Direct frame string evaluation executes in the cross-origin frame",
+          "Correct frame screenshot selector produces an artifact",
+          "Timed-out worker recovery restores real input, verified outside OMP",
+          "Both borrowed pages survive all-handle release and reopen",
+          "Closed exact target never falls back to its sibling"
+        ],
+        "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/browser-acceptance/20261029-104532-740641"
+      },
+      {
+        "scope": "options",
+        "status": "passed",
+        "assertions": 16,
+        "checks": [
+          "before-timeout: actual file has exact response bytes",
+          "Reopening only the viewport applies the updated dimensions on the existing worker",
+          "after-timeout: actual file has exact response bytes",
+          "Initial download uses the explicit directory",
+          "Recovered worker retains the explicit download directory",
+          "Timeout actually replaces the tab worker",
+          "initial: startup User-Agent is applied",
+          "initial: startup script runs once and remains registered",
+          "initial: the latest explicit open viewport is applied",
+          "initial: domain policy is retained",
+          "recovered: startup User-Agent is applied",
+          "recovered: startup script runs once and remains registered",
+          "recovered: the latest explicit open viewport is applied",
+          "recovered: domain policy is retained",
+          "after-reopen: actual file has exact response bytes",
+          "Explicit reopen switches to the newly requested download directory"
+        ],
+        "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/browser-acceptance/20261029-104637-495806"
+      },
+      {
+        "scope": "tls",
+        "status": "passed",
+        "assertions": 7,
+        "checks": [
+          "Untrusted local TLS is rejected by default",
+          "Explicit certificate opt-in is effective",
+          "A sibling without the opt-in still validates certificates",
+          "Explicit false restores validation before any timeout",
+          "Certificate opt-in survives native worker recovery",
+          "Explicit false on reopen restores certificate validation",
+          "Releasing the opt-in restores certificate validation"
+        ],
+        "output": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/browser-acceptance/20261029-104705-620181"
+      }
+    ],
+    "visual_review": {
+      "path": "/Users/developer/.codex/worktrees/omp-18-13-3/omp-gui-native/build.noindex/browser-acceptance/20261029-104532-740641/frame-selector.webp",
+      "sha256": "55f95b045eec82c84329f600aab94be107cb44d9fe912cc3cd64f1bd2a263471",
+      "observed": "Cross-origin frame input contains child-value; the selector capture shows the input without the parent page."
+    },
+    "cleanup": "Each isolated host exited normally; the daily GUI and its old OMP hosts were quit through the authorized native application path; no GUI relaunched."
+  },
+  "integration": {
+    "branch": "codex/omp-18-13-3",
+    "target": "main",
+    "base": "4329c2fc81297e1d9e972185b16ca8195519f918",
+    "mode": "single_commit_fast_forward"
+  },
+  "status": "passed",
+  "candidate_packages": {
+    "@oh-my-pi/pi-coding-agent": {
+      "version": "18.13.3",
+      "files": 26110,
+      "sha256": "494c5861d8b514e5b4b76aa6523ac0630d73db78ba222f2b7c0d0fe6f63c6776"
+    },
+    "bun": {
+      "version": "1.4.4",
+      "files": 8,
+      "sha256": "395c071776285ee5aaf73db114bc483a2625198d7fbc783fad47ce616a956a9d"
+    }
+  }
+}

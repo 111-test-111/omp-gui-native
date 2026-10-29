@@ -1,0 +1,122 @@
+{
+  "date": "2026-10-22",
+  "target_runtime": "18.12.5",
+  "daily_runtime_upgrade": {
+    "executable": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+    "reported_version": "omp/18.12.5",
+    "candidate_identical": true,
+    "fingerprint": {
+      "version": "18.12.5",
+      "package_tree_sha256": "d566cfe1bd29a8d9d9cb98c7e4ca5367c03e7575de3fcb2905b3e805538632f4",
+      "files": 26049
+    },
+    "configuration_unchanged": true,
+    "authorized_gui_exited": true
+  },
+  "verification": [
+    {
+      "report": "/Users/developer/.codex/worktrees/omp-18-12-5/omp-gui-native/build.noindex/verification/runs/20261021T184616Z-769edd5e/report.json",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "functional:interactions",
+          "status": "passed",
+          "seconds": 1.837
+        },
+        {
+          "id": "functional:workers",
+          "status": "passed",
+          "seconds": 7.67
+        },
+        {
+          "id": "functional:memory",
+          "status": "passed",
+          "seconds": 1.351
+        }
+      ],
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "f75814335597c1de1bc4aefd6c29230583f9471d38b4e4c610e56738ded936de",
+        "binary_sha256": "82ecf9a7122b5fb2a8d92dbf75765307cdbb166b7357d55335151403e8c52956"
+      },
+      "runtimes": []
+    },
+    {
+      "report": "/Users/developer/.codex/worktrees/omp-18-12-5/omp-gui-native/build.noindex/verification/runs/20261021T184651Z-63e8fe07/report.json",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "native:approvals",
+          "status": "passed",
+          "seconds": 1.349
+        },
+        {
+          "id": "native:workers",
+          "status": "passed",
+          "seconds": 1.282
+        },
+        {
+          "id": "native:memory",
+          "status": "passed",
+          "seconds": 3.456
+        },
+        {
+          "id": "native:rpc",
+          "status": "passed",
+          "seconds": 7.565
+        }
+      ],
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "f75814335597c1de1bc4aefd6c29230583f9471d38b4e4c610e56738ded936de",
+        "binary_sha256": "82ecf9a7122b5fb2a8d92dbf75765307cdbb166b7357d55335151403e8c52956"
+      },
+      "runtimes": [
+        {
+          "executable": "/Users/developer/.codex/worktrees/omp-18-12-5/omp-gui-native/build.noindex/omp-runtime/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+          "version": "omp/18.12.5",
+          "sha256": "92627a977d0264223601c76a160baa3e50662daa62036664353f43ec2c9f92c5",
+          "sdk_source_sha256": "a337d5b52a8a7a893fa1450bfd41bb143f9967cfdfd5573c5a5b755f50b7ada7"
+        }
+      ]
+    },
+    {
+      "report": "/Users/developer/.codex/worktrees/omp-18-12-5/omp-gui-native/build.noindex/verification/runs/20261021T184848Z-1f290ed5/report.json",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "static:documentation",
+          "status": "passed",
+          "seconds": 0.279
+        },
+        {
+          "id": "static:harness",
+          "status": "passed",
+          "seconds": 0.84
+        },
+        {
+          "id": "static:syntax",
+          "status": "passed",
+          "seconds": 3.794
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "No GUI launch or relaunch",
+    "Isolated profiles and sessions only",
+    "Local deterministic provider or injected streams; no external model/account acceptance"
+  ],
+  "final_integration": {
+    "base": "af2f8e7",
+    "dev_version": "0.1.177",
+    "build": 178,
+    "app_build": {
+      "schema": 1,
+      "source_sha256": "e4f5c0f11b7050fc8161ed7b00281dea1fe5128cb6a41c56c0f8051ec9749b91",
+      "binary_sha256": "454bf5aef834d50e017b3deb6a328f0c3f4a585723702e7f4bb322f2b3aff04f"
+    },
+    "verification_reuse": "Concurrent provider sign-out integration did not change the approval, Hydra, memory, SDK host, selected tests or test harness sources. Final integrated build passed; targeted passing behavior evidence is retained. Daily OMP package and all dependencies are byte-identical to the verified candidate.",
+    "documentation_report": "/Users/developer/.codex/worktrees/omp-18-12-5/omp-gui-native/build.noindex/verification/runs/20261021T185356Z-91257f52/report.json"
+  }
+}

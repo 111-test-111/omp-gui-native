@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Describe a workflow Tivano could improve
+about: Describe a workflow OMP GUI could improve
 title: ""
 labels: ""
 assignees: ""

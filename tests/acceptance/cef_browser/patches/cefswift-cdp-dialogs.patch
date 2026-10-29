@@ -1,0 +1,113 @@
+--- a/Sources/CefKit/CefConfiguration.swift
++++ b/Sources/CefKit/CefConfiguration.swift
+@@ -93,6 +93,11 @@
+     /// Enables remote DevTools debugging on the given localhost port.
+     public var remoteDebuggingPort: Int?
+ 
++    /// Let a connected CDP Page client own JavaScript dialogs. CefSwift retains
++    /// each CEF callback until CEF reports close/reset, without entering AppKit
++    /// modal presentation. Enable only for a host controlled through CDP.
++    public var useCDPJavaScriptDialogs: Bool = false
++
+     /// Persist session cookies across runs.
+     public var persistSessionCookies: Bool = false
+ 
+--- a/Sources/CefKit/BrowserClient.swift
++++ b/Sources/CefKit/BrowserClient.swift
+@@ -47,6 +47,29 @@
+     // and replayed to the command/dismiss callbacks (which also receive params,
+     // but keeping the snapshot avoids re-reading the borrowed struct).
+     private var lastContextMenuParams = CefContextMenuParams()
++    private var pendingCDPDialog: CefJSDialogCallback?
++
++    func cancelCDPDialog() {
++        let pending = pendingCDPDialog
++        pendingCDPDialog = nil
++        pending?.cancel()
++    }
++
++    private func holdDialogForCDP(_ callback: CefJSDialogCallback) -> Bool {
++        guard CefRuntime.shared.configuration?.useCDPJavaScriptDialogs == true else { return false }
++        releaseCDPDialog()
++        pendingCDPDialog = callback
++        return true
++    }
++
++    private func releaseCDPDialog() {
++        guard let pending = pendingCDPDialog else { return }
++        pendingCDPDialog = nil
++        // CDP's Page handler completes Chromium's shared dialog callback before
++        // asking CEF to reset its UI. Drop our extra reference on the next turn,
++        // outside CEF's close/reset stack, including native browser teardown.
++        DispatchQueue.main.async { withExtendedLifetime(pending) {} }
++    }
+ 
+     func attach(_ browser: CefBrowser) {
+         self.browser = browser
+@@ -103,6 +126,7 @@
+             cefRelease(browser.map(UnsafeMutableRawPointer.init))
+             guard let client = BrowserClient.owner(handlerSelf.map(UnsafeMutableRawPointer.init)) else { return }
+             MainActor.assumeIsolated {
++                client.releaseCDPDialog()
+                 client.browser?.handleBeforeClose()
+             }
+         }
+@@ -506,7 +530,8 @@
+                 origin: CefStringUtil.string(from: originURL)
+             )
+             let wrapper = CefJSDialogCallback(raw: callback)  // owns the +1
+-            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { _, cefBrowser in
++            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { client, cefBrowser in
++                if client.holdDialogForCDP(wrapper) { return 1 }
+                 if cefBrowser.delegate?.browser(cefBrowser, runJSDialog: dialog, callback: wrapper) == true {
+                     return 1  // app presents + resolves the callback itself
+                 }
+@@ -520,7 +545,8 @@
+             let message = CefStringUtil.string(from: messageText)
+             let reload = isReload != 0
+             let wrapper = CefJSDialogCallback(raw: callback)
+-            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { _, cefBrowser in
++            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { client, cefBrowser in
++                if client.holdDialogForCDP(wrapper) { return 1 }
+                 if cefBrowser.delegate?.browser(cefBrowser, runBeforeUnloadDialog: message, isReload: reload, callback: wrapper) == true {
+                     return 1
+                 }
+@@ -528,11 +554,13 @@
+                 return 1
+             }
+         }
+-        handler.pointee.on_reset_dialog_state = { _, browser in
+-            cefRelease(browser.map(UnsafeMutableRawPointer.init))
+-        }
+-        handler.pointee.on_dialog_closed = { _, browser in
+-            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++        handler.pointee.on_reset_dialog_state = { handlerSelf, browser in
++            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++            BrowserClientCallbacks.run(handlerSelf, default: ()) { client, _ in client.releaseCDPDialog() }
++        }
++        handler.pointee.on_dialog_closed = { handlerSelf, browser in
++            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++            BrowserClientCallbacks.run(handlerSelf, default: ()) { client, _ in client.releaseCDPDialog() }
+         }
+         jsDialogPointer = handler
+     }
+--- a/Sources/CefKit/CefBrowser.swift
++++ b/Sources/CefKit/CefBrowser.swift
+@@ -171,6 +171,7 @@
+     /// `onbeforeunload` handlers may cancel the close; ``CefBrowserDelegate/browserDidClose(_:)``
+     /// fires when the close completes.
+     public func close(force: Bool = false) {
++        if force { client?.cancelCDPDialog() }
+         withHost { $0.pointee.close_browser?($0, force ? 1 : 0) }
+     }
+ 
+@@ -200,6 +201,9 @@
+         id = newRaw.pointee.get_identifier?(newRaw) ?? -1
+         CefRuntime.shared.registerBrowser(self)
+     }
++
++    /// True only after CEF has delivered on_before_close and released its browser.
++    public var isClosed: Bool { raw == nil }
+ 
+     /// Whether a live raw cef_browser_t is attached.
+     var hasRawBrowser: Bool { raw != nil }

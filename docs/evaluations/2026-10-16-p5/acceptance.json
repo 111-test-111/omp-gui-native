@@ -1,0 +1,1264 @@
+{
+  "schema": 2,
+  "date": "2026-10-16",
+  "status": "implementation_and_current_acceptance_closed_with_deferred_gates",
+  "version": "Dev 0.1.34 / build 35",
+  "source_base": "f6ad49f51d87ee73562a2344287f6c016cbb0c4c",
+  "scope": "Forward-only newly created fixtures and isolated sessions; no migration or backfill of existing conversations. Ordinary Dev launch exception recorded below.",
+  "native_matrix": {
+    "date": "2026-10-16T11:15:01.160011+08:00",
+    "dylib_sha256": "05ab67055ec11a4062c0e6ca4a14c6b559393ca2c583e96c7359b4ee71047534",
+    "runtimes": [
+      {
+        "capabilities": {
+          "cancel_subagent": "unsupported",
+          "fork": "unsupported",
+          "get_available_commands": "supported",
+          "get_available_models": "supported",
+          "get_available_thinking_levels": "supported",
+          "get_entries": "supported",
+          "get_messages_page": "supported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "get_tree": "supported",
+          "gui_remove_follow_up": "supported",
+          "negotiate_protocol": "supported",
+          "prompt": "supported",
+          "set_ask_dialog": "unsupported",
+          "set_subagent_subscription": "supported",
+          "steer": "supported",
+          "steer_subagent": "unsupported"
+        },
+        "checks": [
+          "Production session starts with an isolated native identity",
+          "Protocol v2 is negotiated from the actual runtime",
+          "The first new message is consumed once",
+          "New native entries preserve the exact user payload",
+          "Actual native inference decodes the local deterministic provider reply",
+          "Native work and queue admission prevent idle recycling",
+          "Steering and follow-up reach native terminal admission",
+          "Actual native queue preserves input order without duplicate execution",
+          "Native history returns a bounded first context page",
+          "The next page retains the same native session identity",
+          "Read-only native tree contains the actual current leaf",
+          "Optional fork support follows the actual native response",
+          "Explicit stop exits the task-owned native process",
+          "Reopening a newly created session reads native history without replaying inputs",
+          "A native branch adopts a fresh identity and restores its editor payload",
+          "Branching preserves the source journal created by this run",
+          "A pre-branch cursor cannot mix context snapshots",
+          "A 1.9 MB Unicode reply survives actual native event and history chunk transport"
+        ],
+        "scope": "Actual installed runtime + synthetic local OpenAI-compatible provider, new isolated sessions only; no external account or existing conversation access.",
+        "status": "passed",
+        "version": "omp/18.3.2"
+      },
+      {
+        "capabilities": {
+          "cancel_subagent": "supported",
+          "follow_up": "supported",
+          "fork": "supported",
+          "get_available_commands": "supported",
+          "get_available_models": "supported",
+          "get_available_thinking_levels": "supported",
+          "get_entries": "supported",
+          "get_messages_page": "supported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "get_tree": "supported",
+          "negotiate_protocol": "supported",
+          "prompt": "supported",
+          "set_ask_dialog": "supported",
+          "set_subagent_subscription": "supported",
+          "steer": "supported",
+          "steer_subagent": "supported"
+        },
+        "checks": [
+          "Production session starts with an isolated native identity",
+          "Protocol v2 is negotiated from the actual runtime",
+          "The first new message is consumed once",
+          "New native entries preserve the exact user payload",
+          "Actual native inference decodes the local deterministic provider reply",
+          "Native work and queue admission prevent idle recycling",
+          "Steering and follow-up reach native terminal admission",
+          "Actual native queue preserves input order without duplicate execution",
+          "Native history returns a bounded first context page",
+          "The next page retains the same native session identity",
+          "Read-only native tree contains the actual current leaf",
+          "Optional fork support follows the actual native response",
+          "Explicit stop exits the task-owned native process",
+          "Reopening a newly created session reads native history without replaying inputs",
+          "A native branch adopts a fresh identity and restores its editor payload",
+          "Branching preserves the source journal created by this run",
+          "A pre-branch cursor cannot mix context snapshots",
+          "Actual native worker preserves project source and parent/child journal identity",
+          "A working native child prevents parent idle recycling",
+          "Real worker steering reaches its native transcript exactly once",
+          "Actual native cancel_subagent confirms cancellation of the working child",
+          "Native terminal lifecycle removes the cancelled child from the active roster",
+          "A 1.9 MB Unicode reply survives actual native event and history chunk transport"
+        ],
+        "scope": "Actual installed runtime + synthetic local OpenAI-compatible provider, new isolated sessions only; no external account or existing conversation access.",
+        "status": "passed",
+        "version": "omp/18.11.1"
+      }
+    ]
+  },
+  "transport": {
+    "checks": 45,
+    "main_actor_ticks": 21,
+    "maximum_heartbeat_gap_ms": 6.322875,
+    "measurement_scope": "Headless production transport; heartbeat is not a displayed-frame measurement.",
+    "stop_during_transfer_ms": 0.100291,
+    "unicode_frame_bytes": 10000000
+  },
+  "regression_checks": {
+    "p0": 110,
+    "default_metrics_disabled": 2,
+    "resource_attribution": 15,
+    "p1_p2": 122,
+    "p3": 32,
+    "p3_actual_native_cli_per_runtime": 14,
+    "p4": 47,
+    "timeline": 111,
+    "native_queue_identity": 33,
+    "ask_model_and_layout": 60,
+    "ask_installed_sdk_and_rpc": 31,
+    "markdown_compatible_formulas": 68
+  },
+  "gui_runs": [
+    {
+      "date": "2026-10-16T11:03:13.273693+08:00",
+      "language": "en",
+      "workload": "omp-p5-forward-v2",
+      "dylib_sha256": "af6c8041700ce845434c774dc81d86a32d7387b535becd93b4c869a7fe60da82",
+      "workload_sha256": "32539b27b14852e95271fbc3bdad3266ca7b76d3accb5558c3133dba394a375e",
+      "driver_sha256": "b21600c01260d8cd150162a7f3dc68a6aa2d2a80444894130906c25d7124fcfd",
+      "hardware": "Mac17,4",
+      "os": "27.2",
+      "memory_bytes": 25769803776,
+      "memory_comparison": {
+        "before_bytes": 472108224.0,
+        "after_bytes": 479153392,
+        "delta_bytes": 7045168.0,
+        "budget_bytes": 47210822.400000006,
+        "measured_scope_within_budget": true,
+        "full_application_within_budget": true,
+        "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+      },
+      "resource_scope": "GUI, native OMP and observed descendants, explicit MCP roots, and WebContent/Networking/GPU instances in this GUI's launchd PID domain; excludes shared OS services and sampling-interval peaks.",
+      "run": "20261016-105717-0931fa47",
+      "full_application_resource_coverage": true,
+      "steady_state_resource_coverage": true,
+      "gui_cpu_percent_of_one_core": {
+        "idle-before": 0.14024973122916237,
+        "idle-after": 0.041164852724714984
+      },
+      "incomplete_webkit_enumerations_by_phase": {
+        "completed": 1
+      },
+      "coverage_definition": "All four measured phases sampled, all WebKit ownership enumerations complete, and every measured simultaneous footprint readable; smoke runs cannot qualify.",
+      "checks": {
+        "chat_switches": 100,
+        "checks": 31,
+        "cold_history_layout_cycle_ms": 960.778125,
+        "elapsed_milliseconds": 354278.348125,
+        "history_entries": 10000,
+        "metrics": {
+          "chatSwitch": {
+            "count": 107,
+            "maximumMilliseconds": 243.45925,
+            "p50Milliseconds": 14.173416,
+            "p95Milliseconds": 33.257334,
+            "retained": 107
+          },
+          "historyRead": {
+            "count": 3,
+            "maximumMilliseconds": 5.984292,
+            "p50Milliseconds": 4.202375,
+            "p95Milliseconds": 5.984292,
+            "retained": 3
+          },
+          "previewOpen": {
+            "count": 22,
+            "maximumMilliseconds": 35.872834,
+            "p50Milliseconds": 14.984667,
+            "p95Milliseconds": 20.242375,
+            "retained": 22
+          },
+          "processShutdown": {
+            "count": 1,
+            "maximumMilliseconds": 48.252167,
+            "p50Milliseconds": 48.252167,
+            "p95Milliseconds": 48.252167,
+            "retained": 1
+          },
+          "rpcRequest": {
+            "count": 18,
+            "maximumMilliseconds": 720.8875,
+            "p50Milliseconds": 1.803416,
+            "p95Milliseconds": 720.8875,
+            "retained": 18
+          },
+          "sessionStartup": {
+            "count": 1,
+            "maximumMilliseconds": 1185.503708,
+            "p50Milliseconds": 1185.503708,
+            "p95Milliseconds": 1185.503708,
+            "retained": 1
+          }
+        },
+        "native_capabilities": {
+          "cancel_subagent": "unsupported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "negotiate_protocol": "supported",
+          "set_subagent_subscription": "supported",
+          "steer_subagent": "unsupported"
+        },
+        "native_settled": true,
+        "native_version": "omp/18.3.2",
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 102.17225,
+        "schema": 1,
+        "stale_preview_ready_rejections": 0,
+        "status": "completed",
+        "unmeasured": [
+          "GPU first readable frame",
+          "input event to displayed glyph",
+          "paid model requests",
+          "live MCP tools",
+          "sleep/wake",
+          "VoiceOver speech"
+        ],
+        "workload": "omp-p5-forward-v2"
+      },
+      "phases": {
+        "idle-after": {
+          "sample_count": 201,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 490590168,
+          "observed_peak_by_role_bytes": {
+            "gui": 264521168,
+            "omp": 207979936,
+            "mcp": 6783360,
+            "webkit": 11322088
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 0.02499979166666577,
+              "observed_process_seconds": 60.730914874999996
+            },
+            "omp": {
+              "cpu_seconds": 0.06117499999999998,
+              "observed_process_seconds": 60.730914874999996
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 60.730914874999996
+            },
+            "webkit": {
+              "cpu_seconds": 0.00039258333333333506,
+              "observed_process_seconds": 28.058566500000012
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 0.041164852724714984,
+          "median_physical_bytes": 479153392,
+          "median_gui_bytes": 264488400
+        },
+        "idle-before": {
+          "sample_count": 202,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 483479464,
+          "observed_peak_by_role_bytes": {
+            "gui": 250512800,
+            "omp": 216876448,
+            "mcp": 6783360,
+            "webkit": 11174632
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 0.08529495833333334,
+              "observed_process_seconds": 60.816486125000004
+            },
+            "omp": {
+              "cpu_seconds": 0.26204770833333324,
+              "observed_process_seconds": 60.816486125000004
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 60.816486125000004
+            },
+            "webkit": {
+              "cpu_seconds": 0.00048662499999999054,
+              "observed_process_seconds": 29.18188041700001
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 0.14024973122916237,
+          "median_physical_bytes": 472108224.0,
+          "median_gui_bytes": 248448416.0
+        },
+        "preview-cycles": {
+          "sample_count": 60,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 694310264,
+          "observed_peak_by_role_bytes": {
+            "gui": 301925840,
+            "omp": 208111008,
+            "mcp": 6783360,
+            "webkit": 200247480
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 12.879697666666663,
+              "observed_process_seconds": 17.40274145800001
+            },
+            "omp": {
+              "cpu_seconds": 0.0032521666666667226,
+              "observed_process_seconds": 17.40274145800001
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 17.40274145800001
+            },
+            "webkit": {
+              "cpu_seconds": 1.8335910416666668,
+              "observed_process_seconds": 29.205059463999987
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 74.00959037258977,
+          "median_physical_bytes": 663008668.0,
+          "median_gui_bytes": 281650640.0
+        },
+        "chat-switches": {
+          "sample_count": 13,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 465292480,
+          "observed_peak_by_role_bytes": {
+            "gui": 250398112,
+            "omp": 208111008,
+            "mcp": 6783360
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 1.7702985833333331,
+              "observed_process_seconds": 3.4529871670000034
+            },
+            "omp": {
+              "cpu_seconds": 7.020833333326593e-05,
+              "observed_process_seconds": 3.4529871670000034
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 3.4529871670000034
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 51.2686117183398,
+          "median_physical_bytes": 464604352,
+          "median_gui_bytes": 249709984
+        }
+      },
+      "process_count_peak_by_role": {
+        "webkit": 3,
+        "mcp": 1,
+        "omp": 1,
+        "gui": 1
+      },
+      "visibility_at_phase_boundaries": [
+        {
+          "active": true,
+          "phase": "native-start",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "cold-history",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "warm-settle",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "idle-before",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "chat-switches",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "preview-cycles",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "after-settle",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "idle-after",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "inspection",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "completed",
+          "visible": true
+        }
+      ],
+      "visibility_scope": "Activity/visibility recorded at phase transitions only; this does not certify an uninterrupted foreground window",
+      "mcp_events": [
+        {
+          "event": "start"
+        },
+        {
+          "event": "initialize"
+        },
+        {
+          "event": "notifications/initialized"
+        },
+        {
+          "event": "tools/list"
+        },
+        {
+          "event": "start"
+        },
+        {
+          "event": "initialize"
+        },
+        {
+          "event": "notifications/initialized"
+        },
+        {
+          "event": "tools/list"
+        }
+      ],
+      "unmeasured": [
+        "paid model streaming",
+        "GPU first readable frame",
+        "VoiceOver speech",
+        "sleep/wake"
+      ]
+    },
+    {
+      "date": "2026-10-16T11:20:20.496665+08:00",
+      "language": "zh-Hans",
+      "workload": "omp-p5-forward-v2",
+      "dylib_sha256": "05ab67055ec11a4062c0e6ca4a14c6b559393ca2c583e96c7359b4ee71047534",
+      "workload_sha256": "32539b27b14852e95271fbc3bdad3266ca7b76d3accb5558c3133dba394a375e",
+      "driver_sha256": "b21600c01260d8cd150162a7f3dc68a6aa2d2a80444894130906c25d7124fcfd",
+      "hardware": "Mac17,4",
+      "os": "27.2",
+      "memory_bytes": 25769803776,
+      "memory_comparison": {
+        "before_bytes": 392580264,
+        "after_bytes": 376786136,
+        "delta_bytes": -15794128,
+        "budget_bytes": 39258026.4,
+        "measured_scope_within_budget": true,
+        "full_application_within_budget": true,
+        "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+      },
+      "resource_scope": "GUI, native OMP and observed descendants, explicit MCP roots, and WebContent/Networking/GPU instances in this GUI's launchd PID domain; excludes shared OS services and sampling-interval peaks.",
+      "run": "20261016-111550-4e8e1676",
+      "full_application_resource_coverage": false,
+      "steady_state_resource_coverage": true,
+      "gui_cpu_percent_of_one_core": {
+        "idle-before": 0.03322087871975734,
+        "idle-after": 0.042696805032373226
+      },
+      "incomplete_webkit_enumerations_by_phase": {
+        "cold-history": 1,
+        "preview-cycles": 7,
+        "completed": 1
+      },
+      "coverage_definition": "All four measured phases sampled, all WebKit ownership enumerations complete, and every measured simultaneous footprint readable; smoke runs cannot qualify.",
+      "checks": {
+        "chat_switches": 100,
+        "checks": 31,
+        "cold_history_layout_cycle_ms": 924.836708,
+        "elapsed_milliseconds": 268232.674917,
+        "history_entries": 10000,
+        "metrics": {
+          "chatSwitch": {
+            "count": 105,
+            "maximumMilliseconds": 219.523458,
+            "p50Milliseconds": 11.689209,
+            "p95Milliseconds": 20.12475,
+            "retained": 105
+          },
+          "historyRead": {
+            "count": 3,
+            "maximumMilliseconds": 4.394917,
+            "p50Milliseconds": 0.811167,
+            "p95Milliseconds": 4.394917,
+            "retained": 3
+          },
+          "previewOpen": {
+            "count": 22,
+            "maximumMilliseconds": 171.642666,
+            "p50Milliseconds": 14.829625,
+            "p95Milliseconds": 68.977583,
+            "retained": 22
+          },
+          "processShutdown": {
+            "count": 1,
+            "maximumMilliseconds": 93.225458,
+            "p50Milliseconds": 93.225458,
+            "p95Milliseconds": 93.225458,
+            "retained": 1
+          },
+          "rpcRequest": {
+            "count": 6,
+            "maximumMilliseconds": 245.0635,
+            "p50Milliseconds": 0.140417,
+            "p95Milliseconds": 245.0635,
+            "retained": 6
+          }
+        },
+        "native_capabilities": {
+          "cancel_subagent": "supported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "negotiate_protocol": "supported",
+          "set_subagent_subscription": "supported",
+          "steer_subagent": "supported"
+        },
+        "native_settled": true,
+        "native_version": "omp/18.11.1",
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 77.182375,
+        "schema": 1,
+        "stale_preview_ready_rejections": 0,
+        "status": "completed",
+        "unmeasured": [
+          "GPU first readable frame",
+          "input event to displayed glyph",
+          "paid model requests",
+          "live MCP tools",
+          "sleep/wake",
+          "VoiceOver speech"
+        ],
+        "workload": "omp-p5-forward-v2"
+      },
+      "phases": {
+        "idle-after": {
+          "sample_count": 207,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 388386776,
+          "observed_peak_by_role_bytes": {
+            "gui": 229868960,
+            "omp": 140346808,
+            "mcp": 6652288,
+            "webkit": 11518720
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 0.025771625000000853,
+              "observed_process_seconds": 60.35961
+            },
+            "omp": {
+              "cpu_seconds": 0.015165958333333451,
+              "observed_process_seconds": 60.35961
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 60.35961
+            },
+            "webkit": {
+              "cpu_seconds": 0.0004092499999999999,
+              "observed_process_seconds": 27.827906000000013
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 0.042696805032373226,
+          "median_physical_bytes": 376786136,
+          "median_gui_bytes": 229836192
+        },
+        "idle-before": {
+          "sample_count": 217,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 392809640,
+          "observed_peak_by_role_bytes": {
+            "gui": 232883568,
+            "omp": 153109944,
+            "mcp": 6816128
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 0.020654083333333517,
+              "observed_process_seconds": 62.171995833
+            },
+            "omp": {
+              "cpu_seconds": 0.016051291666666634,
+              "observed_process_seconds": 62.171995833
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 62.171995833
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 0.03322087871975734,
+          "median_physical_bytes": 392580264,
+          "median_gui_bytes": 232834416
+        },
+        "preview-cycles": {
+          "sample_count": 62,
+          "incomplete_samples": 8,
+          "observed_peak_physical_bytes": 609785376,
+          "observed_peak_by_role_bytes": {
+            "gui": 260687288,
+            "omp": 152995256,
+            "mcp": 6652288,
+            "webkit": 200886576
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 12.69296475,
+              "observed_process_seconds": 17.559936459
+            },
+            "omp": {
+              "cpu_seconds": 0.00055379166666647,
+              "observed_process_seconds": 17.559936459
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 17.559936459
+            },
+            "webkit": {
+              "cpu_seconds": 1.8280462083333335,
+              "observed_process_seconds": 23.91089254499994
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 72.28365990751902,
+          "median_physical_bytes": 540431736.0,
+          "median_gui_bytes": 250684856.0
+        },
+        "chat-switches": {
+          "sample_count": 14,
+          "incomplete_samples": 0,
+          "observed_peak_physical_bytes": 394546344,
+          "observed_peak_by_role_bytes": {
+            "gui": 234898800,
+            "omp": 152995256,
+            "mcp": 6652288
+          },
+          "cpu_observations": {
+            "gui": {
+              "cpu_seconds": 1.7117515,
+              "observed_process_seconds": 3.6971596249999976
+            },
+            "omp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 3.6971596249999976
+            },
+            "mcp": {
+              "cpu_seconds": 0.0,
+              "observed_process_seconds": 3.6971596249999976
+            }
+          },
+          "methodology": "Summed proc_pid_rusage physical footprint, sampled peaks, PID plus start identity. CPU excludes child cumulative counters to avoid double counting. Short-lived/unreadable processes may be missed; explicit WebKit roots only.",
+          "gui_cpu_percent_of_one_core": 46.29909643135847,
+          "median_physical_bytes": 393890984.0,
+          "median_gui_bytes": 234243440.0
+        }
+      },
+      "process_count_peak_by_role": {
+        "webkit": 3,
+        "mcp": 1,
+        "omp": 1,
+        "gui": 1
+      },
+      "visibility_at_phase_boundaries": [
+        {
+          "active": true,
+          "phase": "native-start",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "cold-history",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "warm-settle",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "idle-before",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "chat-switches",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "preview-cycles",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "after-settle",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "idle-after",
+          "visible": true
+        },
+        {
+          "active": false,
+          "phase": "inspection",
+          "visible": true
+        },
+        {
+          "active": true,
+          "phase": "completed",
+          "visible": true
+        }
+      ],
+      "visibility_scope": "Activity/visibility recorded at phase transitions only; this does not certify an uninterrupted foreground window",
+      "mcp_events": [
+        {
+          "event": "start"
+        },
+        {
+          "event": "initialize"
+        },
+        {
+          "event": "notifications/initialized"
+        },
+        {
+          "event": "tools/list"
+        }
+      ],
+      "unmeasured": [
+        "paid model streaming",
+        "GPU first readable frame",
+        "VoiceOver speech",
+        "sleep/wake",
+        "complete WebKit/XPC process coverage"
+      ],
+      "manual_controls": {
+        "language": "zh-Hans",
+        "scope": "Final build after the complete timed workload; half-screen window with both sidebars",
+        "title_and_compact_control_visible": true,
+        "all_existing_controls_reachable": true,
+        "escape_dismissal": true,
+        "escape_returns_to_composer": true,
+        "new_system_settings_changed": false,
+        "message_sent": false
+      }
+    }
+  ],
+  "reference_gui_runs": [
+    {
+      "date": "2026-10-16T09:41:06.005555+08:00",
+      "language": "zh-Hans",
+      "workload": "omp-p5-forward-v1",
+      "dylib_sha256": "04e9cf262e98db9a0aa65081752939eb42abc01d5336c991ab4f80fbd5683ec1",
+      "workload_sha256": "588e92d0b58bffaab812d70d8428ea27507b0b4b3e0c12d86d4d85ffafcc4ccb",
+      "driver_sha256": "02c17de94e12fc61cda410cadd1f1dcd541c3589c679798286974d73c2589418",
+      "hardware": "Mac17,4",
+      "os": "27.2",
+      "memory_bytes": 25769803776,
+      "memory_comparison": {
+        "before_bytes": 430427400.0,
+        "after_bytes": 418565384.0,
+        "delta_bytes": -11862016.0,
+        "budget_bytes": 43042740.0,
+        "measured_scope_within_budget": true,
+        "full_application_within_budget": null,
+        "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+      },
+      "resource_scope": null,
+      "run": "20261016-093622-30ab3ce8",
+      "full_application_resource_coverage": false,
+      "steady_state_resource_coverage": false,
+      "gui_cpu_percent_of_one_core": {
+        "idle-before": 0.07064146757727964,
+        "idle-after": 0.052773257050047255
+      },
+      "incomplete_webkit_enumerations_by_phase": {},
+      "coverage_definition": "All four measured phases sampled, all WebKit ownership enumerations complete, and every measured simultaneous footprint readable; smoke runs cannot qualify.",
+      "checks": {
+        "status": "completed",
+        "checks": 31,
+        "native_version": "omp/18.11.1",
+        "chat_switches": 100,
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 108.329208,
+        "cold_history_layout_cycle_ms": 973.049875
+      }
+    },
+    {
+      "date": "2026-10-16T09:47:33.048216+08:00",
+      "language": "en",
+      "workload": "omp-p5-forward-v1",
+      "dylib_sha256": "04e9cf262e98db9a0aa65081752939eb42abc01d5336c991ab4f80fbd5683ec1",
+      "workload_sha256": "588e92d0b58bffaab812d70d8428ea27507b0b4b3e0c12d86d4d85ffafcc4ccb",
+      "driver_sha256": "02c17de94e12fc61cda410cadd1f1dcd541c3589c679798286974d73c2589418",
+      "hardware": "Mac17,4",
+      "os": "27.2",
+      "memory_bytes": 25769803776,
+      "memory_comparison": {
+        "before_bytes": 549358808.0,
+        "after_bytes": 506924272,
+        "delta_bytes": -42434536.0,
+        "budget_bytes": 54935880.800000004,
+        "measured_scope_within_budget": true,
+        "full_application_within_budget": true,
+        "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+      },
+      "resource_scope": "GUI, native OMP and observed descendants, explicit MCP roots, and WebContent/Networking/GPU instances in this GUI's launchd PID domain; excludes shared OS services and sampling-interval peaks.",
+      "run": "20261016-094125-b4167675",
+      "full_application_resource_coverage": false,
+      "steady_state_resource_coverage": true,
+      "gui_cpu_percent_of_one_core": {
+        "idle-before": 0.15460951544218543,
+        "idle-after": 0.5684554765108234
+      },
+      "incomplete_webkit_enumerations_by_phase": {
+        "cold-history": 1,
+        "preview-cycles": 6,
+        "inspection": 1,
+        "completed": 1
+      },
+      "coverage_definition": "All four measured phases sampled, all WebKit ownership enumerations complete, and every measured simultaneous footprint readable; smoke runs cannot qualify.",
+      "checks": {
+        "status": "completed",
+        "checks": 31,
+        "native_version": "omp/18.3.2",
+        "chat_switches": 100,
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 101.937,
+        "cold_history_layout_cycle_ms": 928.207
+      },
+      "earlier_postprocessing_note": "Per-sample launchd enumeration results were retained before each process sample. Failed enumeration now marks that sampled total unknown. Stable idle windows remain complete; preview transition peaks remain incomplete."
+    },
+    {
+      "date": "2026-10-16T10:12:40.160773+08:00",
+      "language": "zh-Hans",
+      "workload": "omp-p5-forward-v1",
+      "dylib_sha256": "d7810e34a167f94b8ffc98866534bda7b999bab70c06ea1194fb441c0d5b0b27",
+      "workload_sha256": "588e92d0b58bffaab812d70d8428ea27507b0b4b3e0c12d86d4d85ffafcc4ccb",
+      "driver_sha256": "9ca61e3435e78d21b8fcb81442a79ad2dca4008ec9f23991b1750d0fa9a2f653",
+      "hardware": "Mac17,4",
+      "os": "27.2",
+      "memory_bytes": 25769803776,
+      "memory_comparison": {
+        "before_bytes": 407178456.0,
+        "after_bytes": 432819488.0,
+        "delta_bytes": 25641032.0,
+        "budget_bytes": 40717845.6,
+        "measured_scope_within_budget": true,
+        "full_application_within_budget": true,
+        "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+      },
+      "resource_scope": "GUI, native OMP and observed descendants, explicit MCP roots, and WebContent/Networking/GPU instances in this GUI's launchd PID domain; excludes shared OS services and sampling-interval peaks.",
+      "run": "20261016-100753-9abd0377",
+      "full_application_resource_coverage": false,
+      "steady_state_resource_coverage": true,
+      "gui_cpu_percent_of_one_core": {
+        "idle-before": 0.15078862713319674,
+        "idle-after": 0.04081503630289819
+      },
+      "incomplete_webkit_enumerations_by_phase": {
+        "preview-cycles": 6,
+        "inspection": 1
+      },
+      "coverage_definition": "All four measured phases sampled, all WebKit ownership enumerations complete, and every measured simultaneous footprint readable; smoke runs cannot qualify.",
+      "checks": {
+        "status": "completed",
+        "checks": 31,
+        "native_version": "omp/18.11.1",
+        "chat_switches": 100,
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 117.445875,
+        "cold_history_layout_cycle_ms": 991.231792
+      }
+    },
+    {
+      "date": "2026-10-16T10:42:39.940166+08:00",
+      "language": "zh-Hans",
+      "workload": "omp-p5-forward-v2",
+      "dylib_sha256": "aee3007234c77f3c8e80a65e3c164d8725d130f71878f019b730c48aeeae29e8",
+      "workload_sha256": "32539b27b14852e95271fbc3bdad3266ca7b76d3accb5558c3133dba394a375e",
+      "driver_sha256": "b21600c01260d8cd150162a7f3dc68a6aa2d2a80444894130906c25d7124fcfd",
+      "hardware": "Mac17,4",
+      "os": "27.2",
+      "memory_bytes": 25769803776,
+      "memory_comparison": {
+        "before_bytes": 410373360.0,
+        "after_bytes": 410881360,
+        "delta_bytes": 508000.0,
+        "budget_bytes": 41037336.0,
+        "measured_scope_within_budget": true,
+        "full_application_within_budget": true,
+        "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+      },
+      "resource_scope": "GUI, native OMP and observed descendants, explicit MCP roots, and WebContent/Networking/GPU instances in this GUI's launchd PID domain; excludes shared OS services and sampling-interval peaks.",
+      "run": "20261016-103709-b53273fb",
+      "full_application_resource_coverage": false,
+      "steady_state_resource_coverage": true,
+      "gui_cpu_percent_of_one_core": {
+        "idle-before": 0.03805960849116126,
+        "idle-after": 0.03803574378378357
+      },
+      "incomplete_webkit_enumerations_by_phase": {
+        "preview-cycles": 7,
+        "completed": 1
+      },
+      "coverage_definition": "All four measured phases sampled, all WebKit ownership enumerations complete, and every measured simultaneous footprint readable; smoke runs cannot qualify.",
+      "checks": {
+        "status": "completed",
+        "checks": 31,
+        "native_version": "omp/18.11.1",
+        "chat_switches": 100,
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 118.94175,
+        "cold_history_layout_cycle_ms": 956.027
+      }
+    }
+  ],
+  "gui_run_scope": {
+    "20261016-105717-0931fa47": "Complete sampling before the compact-toolbar repair; Dev 0.1.34 / build 35.",
+    "20261016-111550-4e8e1676": "Final production sources, including compact controls and keyboard focus repair; Dev 0.1.34 / build 35."
+  },
+  "diagnostic_gui_runs": [
+    {
+      "run": "20261016-104936-8dab4e2b",
+      "checks": {
+        "chat_switches": 100,
+        "checks": 31,
+        "cold_history_layout_cycle_ms": 983.576125,
+        "elapsed_milliseconds": 273766.957958,
+        "history_entries": 10000,
+        "metrics": {
+          "chatSwitch": {
+            "count": 105,
+            "maximumMilliseconds": 228.290167,
+            "p50Milliseconds": 38.810084,
+            "p95Milliseconds": 66.929084,
+            "retained": 105
+          },
+          "historyRead": {
+            "count": 3,
+            "maximumMilliseconds": 4.382542,
+            "p50Milliseconds": 0.847875,
+            "p95Milliseconds": 4.382542,
+            "retained": 3
+          },
+          "previewOpen": {
+            "count": 22,
+            "maximumMilliseconds": 50.556041,
+            "p50Milliseconds": 18.328833,
+            "p95Milliseconds": 31.523542,
+            "retained": 22
+          },
+          "processShutdown": {
+            "count": 1,
+            "maximumMilliseconds": 170.588917,
+            "p50Milliseconds": 170.588917,
+            "p95Milliseconds": 170.588917,
+            "retained": 1
+          },
+          "rpcRequest": {
+            "count": 6,
+            "maximumMilliseconds": 314.813709,
+            "p50Milliseconds": 0.150292,
+            "p95Milliseconds": 314.813709,
+            "retained": 6
+          }
+        },
+        "native_capabilities": {
+          "cancel_subagent": "supported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "negotiate_protocol": "supported",
+          "set_subagent_subscription": "supported",
+          "steer_subagent": "supported"
+        },
+        "native_settled": true,
+        "native_version": "omp/18.11.1",
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 116.131125,
+        "schema": 1,
+        "stale_preview_ready_rejections": 0,
+        "status": "completed",
+        "unmeasured": [
+          "GPU first readable frame",
+          "input event to displayed glyph",
+          "paid model requests",
+          "live MCP tools",
+          "sleep/wake",
+          "VoiceOver speech"
+        ],
+        "workload": "omp-p5-preview-smoke"
+      },
+      "manual_controls": null,
+      "scope": "Diagnostic smoke only; idle resource phases skipped."
+    },
+    {
+      "run": "20261016-110725-abea44e1",
+      "checks": {
+        "chat_switches": 100,
+        "checks": 31,
+        "cold_history_layout_cycle_ms": 955.436625,
+        "elapsed_milliseconds": 197343.300875,
+        "history_entries": 10000,
+        "metrics": {
+          "chatSwitch": {
+            "count": 107,
+            "maximumMilliseconds": 219.537417,
+            "p50Milliseconds": 13.632792,
+            "p95Milliseconds": 23.412083,
+            "retained": 107
+          },
+          "historyRead": {
+            "count": 3,
+            "maximumMilliseconds": 4.458125,
+            "p50Milliseconds": 0.801208,
+            "p95Milliseconds": 4.458125,
+            "retained": 3
+          },
+          "previewOpen": {
+            "count": 22,
+            "maximumMilliseconds": 39.414958,
+            "p50Milliseconds": 14.998958,
+            "p95Milliseconds": 33.614833,
+            "retained": 22
+          },
+          "processShutdown": {
+            "count": 1,
+            "maximumMilliseconds": 62.328791,
+            "p50Milliseconds": 62.328791,
+            "p95Milliseconds": 62.328791,
+            "retained": 1
+          },
+          "rpcRequest": {
+            "count": 18,
+            "maximumMilliseconds": 365.967792,
+            "p50Milliseconds": 0.263416,
+            "p95Milliseconds": 365.967792,
+            "retained": 18
+          },
+          "sessionStartup": {
+            "count": 1,
+            "maximumMilliseconds": 418.921459,
+            "p50Milliseconds": 418.921459,
+            "p95Milliseconds": 418.921459,
+            "retained": 1
+          }
+        },
+        "native_capabilities": {
+          "cancel_subagent": "supported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "negotiate_protocol": "supported",
+          "set_subagent_subscription": "supported",
+          "steer_subagent": "supported"
+        },
+        "native_settled": true,
+        "native_version": "omp/18.11.1",
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 105.446042,
+        "schema": 1,
+        "stale_preview_ready_rejections": 0,
+        "status": "completed",
+        "unmeasured": [
+          "GPU first readable frame",
+          "input event to displayed glyph",
+          "paid model requests",
+          "live MCP tools",
+          "sleep/wake",
+          "VoiceOver speech"
+        ],
+        "workload": "omp-p5-preview-smoke"
+      },
+      "manual_controls": {
+        "language": "zh-Hans",
+        "scope": "Half-screen window, sidebar and Markdown preview open; no message sent",
+        "title_and_compact_control_visible": true,
+        "all_existing_controls_reachable": true,
+        "nested_branch_popover_opens": true,
+        "preview_toggle_and_inline_restore": true,
+        "unicode_draft_preserved_after_switch": true,
+        "escape_dismissal": false,
+        "note": "Escape left the composer as first responder; closing and repairing the compact popover focus before final acceptance."
+      },
+      "scope": "Diagnostic smoke only; idle resource phases skipped."
+    },
+    {
+      "run": "20261016-111106-f837a2f2",
+      "checks": {
+        "chat_switches": 100,
+        "checks": 31,
+        "cold_history_layout_cycle_ms": 952.0195,
+        "elapsed_milliseconds": 136879.703083,
+        "history_entries": 10000,
+        "metrics": {
+          "chatSwitch": {
+            "count": 107,
+            "maximumMilliseconds": 163.465625,
+            "p50Milliseconds": 14.162375,
+            "p95Milliseconds": 23.42,
+            "retained": 107
+          },
+          "historyRead": {
+            "count": 3,
+            "maximumMilliseconds": 4.386791,
+            "p50Milliseconds": 0.816916,
+            "p95Milliseconds": 4.386791,
+            "retained": 3
+          },
+          "previewOpen": {
+            "count": 22,
+            "maximumMilliseconds": 35.495375,
+            "p50Milliseconds": 15.942042,
+            "p95Milliseconds": 18.287292,
+            "retained": 22
+          },
+          "processShutdown": {
+            "count": 1,
+            "maximumMilliseconds": 73.913666,
+            "p50Milliseconds": 73.913666,
+            "p95Milliseconds": 73.913666,
+            "retained": 1
+          },
+          "rpcRequest": {
+            "count": 18,
+            "maximumMilliseconds": 339.998041,
+            "p50Milliseconds": 0.31325,
+            "p95Milliseconds": 339.998041,
+            "retained": 18
+          },
+          "sessionStartup": {
+            "count": 1,
+            "maximumMilliseconds": 394.260542,
+            "p50Milliseconds": 394.260542,
+            "p95Milliseconds": 394.260542,
+            "retained": 1
+          }
+        },
+        "native_capabilities": {
+          "cancel_subagent": "supported",
+          "get_state": "supported",
+          "get_subagents": "supported",
+          "negotiate_protocol": "supported",
+          "set_subagent_subscription": "supported",
+          "steer_subagent": "supported"
+        },
+        "native_settled": true,
+        "native_version": "omp/18.11.1",
+        "preview_cycles": 20,
+        "recent_history_layout_cycle_ms": 108.396959,
+        "schema": 1,
+        "stale_preview_ready_rejections": 0,
+        "status": "completed",
+        "unmeasured": [
+          "GPU first readable frame",
+          "input event to displayed glyph",
+          "paid model requests",
+          "live MCP tools",
+          "sleep/wake",
+          "VoiceOver speech"
+        ],
+        "workload": "omp-p5-preview-smoke"
+      },
+      "manual_controls": {
+        "language": "en",
+        "scope": "Half-screen window, sidebar and Markdown preview open; no message sent",
+        "title_and_compact_control_visible": true,
+        "all_existing_controls_reachable": true,
+        "nested_branch_popover_opens": true,
+        "escape_dismissal": true,
+        "nested_escape_returns_to_composer": true,
+        "unicode_draft_preserved_after_switch": true,
+        "new_system_settings_changed": false
+      },
+      "scope": "Diagnostic smoke only; idle resource phases skipped."
+    }
+  ],
+  "gui_inspection": {
+    "native_controls_en_and_zh": true,
+    "unicode_paste_and_keyboard_switch_preserves_draft": true,
+    "owner_visual_confirmation": "正文、表格、代码和公式都正常",
+    "compact_controls_and_escape": true,
+    "screenshot_limitation": "Some automatic window screenshots showed missing WebKit content or formulas despite attached nonempty rendered DOM and owner visual confirmation; not used for displayed-frame latency certification.",
+    "system_matrix": "Owner explicitly deferred real sleep/wake, VoiceOver, IME and system setting changes in this round."
+  },
+  "failed_attempts": [
+    {
+      "run": "20261016-102043-cbdafc7d",
+      "reason": "Inspection finish marker not received before timeout; retained as failed, excluded from completed GUI acceptance."
+    },
+    {
+      "scope": "native fixtures",
+      "reason": "Corrected obsolete fork expectation, excessive repeated-output/context assumptions, and OpenAI content-array handling before passing reruns."
+    },
+    {
+      "run": "20261016-110725-abea44e1",
+      "reason": "Compact controls were reachable but Escape failed; focus/exit handling repaired and reverified in English and final Chinese build."
+    }
+  ],
+  "ordinary_launch_incident": {
+    "trigger": "After an isolated instance timed out and exited, reading a stale native-app reference automatically launched this task build without isolation arguments.",
+    "response": "Verified exact task executable and PID, immediately terminated only that process; no message sent or configuration action taken.",
+    "data_boundary": "Ordinary startup may have read the normal Dev library. It was not counted as isolated acceptance; no migration, backfill or deliberate repair of existing conversations was performed.",
+    "prevention": "Verify live PID, isolation arguments and exact run directory before each UI call; never read a stale app reference after completion."
+  },
+  "remaining_gates": [
+    "Displayed-frame p95 for input, menus, cached and cold first-readable content, and local streaming; controlled parent-build performance comparison.",
+    "Complete OMP 18.11.1 hot WebKit/footprint coverage and fixed-load per-role peak budgets, including larger output/document and multiworker GUI loads.",
+    "Owner-deferred real sleep/wake, complete VoiceOver/IME/reduced-motion onsite matrix."
+  ],
+  "next_phase_authorization": "Owner requested ending repeated testing and delivering the next full functional development plan now. Deferred P5 gates remain explicit; they are not represented as passed.",
+  "runtime_asset": {
+    "tag": "v18.11.1",
+    "name": "omp-darwin-arm64",
+    "sha256": "bdeb1626b99dc29d844146ea7940d367e61b1032b77e1c77880125f379ca2dda",
+    "url": "https://github.com/can1357/oh-my-pi/releases/download/v18.11.1/omp-darwin-arm64"
+  },
+  "source_fingerprints": {
+    "OMPGUI/App/Captures/OMPPerformanceRun.swift": "32539b27b14852e95271fbc3bdad3266ca7b76d3accb5558c3133dba394a375e",
+    "OMPGUI/App/Runtime/ThreadRuntime.swift": "549da29fd878bd7ab74dceff4987c052b6cfce74636f921cf59a56c1acdd77ff",
+    "OMPGUI/App/Views/Chat/ChatView.swift": "b95fa5aaae39d825fe39c57304c1dca5852604bb36dca0b263e9c4ef17a639c9",
+    "OMPGUI/Core/Support/OMPChunkAssembler.swift": "1df10a30dedf1d2165555a047be75a377c1ab199a25e0f2aa2139ea04a5babfe",
+    "OMPGUI/Core/Support/PendingReplies.swift": "7f4e78fcbc758f091e71ae255ba4b2eca888c3e8a076bc14e7d18d8a86cde198",
+    "OMPGUI/Core/Support/StdioProcess.swift": "5cdf6fe10722780d5909014464717615a631328905caf7cdface640bcde87087",
+    "OMPGUI/Resources/Localizable.xcstrings": "8b7f13c331d3586982c5bf9525da797556d725b7d06b85ac247743cdf617420b",
+    "OMPGUI/Services/Providers/OMPRPC.swift": "06bf6dadb732ebdf2cb51c22a93c04888b2881c96763d08580b68108453b2f41",
+    "OMPGUI/Services/Store/Storage.swift": "65cb9dc3f05191ba0e14f3f40a41807991d0147f9da32047aebba225ad3b5c50",
+    "scripts/check_omp_p5.sh": "c53480f0582028d7ade0a0dd1a2b6aba2916014b4b40ffea42c4c4a29706c364",
+    "scripts/check_omp_p5.swift": "9fa4cd916e2c40f184a8d448d1e3ae0ecc3f6c383a01d9d575c3543673925bcf",
+    "scripts/check_omp_p5_native.py": "8ddb231400a5ba91a03e65af2ad91574b7b151186427be954b3e7e5bf3190cb0",
+    "scripts/check_omp_p5_native.swift": "11b3566f2d59dcaf21dfd682a1fee441dded692f29e5c1f6ef11ada08233662f",
+    "scripts/check_omp_resources.py": "0ea3428929da75d4cf11bc68d18aa5c8c8eb2e6f08a4adacac318cd1eca6f6ee",
+    "scripts/measure_omp_resources.py": "58641b9bb73f7ea37af793d0375c36088a82b1d3f8be5056982b71f4ce06d321",
+    "scripts/omp_p0_live.py": "35d37a98ea0c01f231f94c71b1cc32a7428e8ecfa1745f05a65d1aa23f347772",
+    "scripts/verification/omp_p5_fixture.py": "aed0b1ab4dc8e2558f6b217a1de3d6741f8e5bd9f4b947f084937bd1e890f2a4",
+    "scripts/verification/omp_p5_mcp.py": "0b81fdc7c946321bdda7c68afdb7f645bb71f3d9a4484fc87bbd2cced3d0259d"
+  },
+  "reporting_note": "Coverage was conservatively recomputed from retained per-sample ownership and footprint data. Original runtime driver hashes are preserved; the final driver enforces the same stricter coverage definition. No new GUI run was performed for this reporting-only clarification."
+}

@@ -1,9 +1,9 @@
 #!/bin/bash
 # Only for an explicitly requested Dev run/relaunch. Packaging alone uses
-# package_local.sh and never launches. Both editions share the real library.
+# package_local.sh and never launches. Each edition has an isolated OMP GUI library.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-APP_NAME='Tivano Dev'
+APP_NAME='OMP GUI Dev'
 TARGET="/Applications/$APP_NAME.app"
 running() { ps -axo command= | grep -F "$TARGET/Contents/MacOS/" | grep -v grep >/dev/null; }
 if running; then

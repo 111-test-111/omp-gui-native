@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "date": "2026-10-18T13:08:50.113236+00:00",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
+  "tools": {
+    "bash": "/bin/bash",
+    "git": "/usr/bin/git",
+    "node": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/bin/node",
+    "xcrun": "/usr/bin/xcrun"
+  },
+  "app_build": null,
+  "runtimes": [],
+  "checks": [
+    {
+      "id": "static:documentation",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "documentation",
+        "description": "Local Markdown targets, heading anchors and navigation reachability",
+        "tier": "static",
+        "sources": [],
+        "app": false,
+        "prepare": "",
+        "recipe": "python",
+        "inputs": [
+          "tests/tooling/documentation_tests.py",
+          "docs",
+          "README.md",
+          "README.zh-CN.md",
+          "AGENTS.md",
+          "CHANGELOG.md",
+          "THIRD_PARTY_NOTICES.md",
+          "TRADEMARK.md",
+          "LICENSE",
+          ".github",
+          "design",
+          "release",
+          "scripts",
+          "tests",
+          "OMPGUI",
+          "config",
+          "OMPGUI.xcodeproj",
+          "project.yml"
+        ],
+        "tools": [
+          "git"
+        ],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T130845Z-31beb78e/static/documentation",
+      "inputs_sha256": "deb61c39875db00db591a124ab8ec5938dc26017f144d6a8c0e2b20ca6ce8fec",
+      "commands": [
+        {
+          "argv": [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/tooling/documentation_tests.py"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 0.511
+    },
+    {
+      "id": "static:harness",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "harness",
+        "description": "Runner contracts, dependency isolation and registry integrity",
+        "tier": "static",
+        "sources": [],
+        "app": false,
+        "prepare": "",
+        "recipe": "harness",
+        "inputs": [
+          "tests/tooling"
+        ],
+        "tools": [],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T130845Z-31beb78e/static/harness",
+      "inputs_sha256": "09e04b87daec9969df78e6eb3ec903aefcd5c00266925b0d775a857e75625e98",
+      "commands": [
+        {
+          "argv": [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests/tooling",
+            "-p",
+            "test_*.py",
+            "-v"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 1.075
+    },
+    {
+      "id": "static:syntax",
+      "status": "passed",
+      "timeout_seconds": 120,
+      "definition": {
+        "area": "syntax",
+        "description": "Parse Python, shell, JavaScript and Swift tooling without executing it",
+        "tier": "static",
+        "sources": [],
+        "app": false,
+        "prepare": "",
+        "recipe": "syntax",
+        "inputs": [
+          "tests",
+          "scripts"
+        ],
+        "tools": [
+          "bash",
+          "node",
+          "xcrun"
+        ],
+        "dependencies": [],
+        "timeout": 120
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261018T130845Z-31beb78e/static/syntax",
+      "inputs_sha256": "d5d50b8d47d803cb634fa5387e3737b7ca69933a34e7f1b1b23de45abf177a54",
+      "commands": [
+        {
+          "argv": [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/support/syntax.py"
+          ],
+          "timeout_seconds": 120,
+          "returncode": 0
+        }
+      ],
+      "seconds": 2.562
+    }
+  ]
+}

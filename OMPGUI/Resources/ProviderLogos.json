@@ -1,0 +1,737 @@
+{
+  "package": "@lobehub/icons-static-svg",
+  "version": "1.101.0",
+  "revision": "aea0ecb0fe1439467219197c52ffaeb579dfe33f",
+  "license": "MIT",
+  "source": "https://github.com/lobehub/lobe-icons",
+  "normalization": "currentColor to #000000; intrinsic em dimensions to viewBox units; browser-only root flex style omitted; original paths preserved",
+  "icons": [
+    {
+      "slug": "openai",
+      "providers": [
+        "openai",
+        "openai-codex",
+        "openai-codex-device"
+      ],
+      "source_sha256": "a595df6b423920c67a7f8f73c063e4bfb72d415948097b6cac063a2366bb5186",
+      "asset_sha256": "d95a83615596521a120b7ce4cd67f8b96314488a0c939b72713ad9205d903d8c"
+    },
+    {
+      "slug": "codex",
+      "providers": [],
+      "retained": true,
+      "note": "Preserved vendor artwork. ChatGPT subscription login identities use the shared OpenAI knot.",
+      "source_sha256": "d08b4e824cd6727e89617f59e4737273ff53e44c1da849d016dd64dfd08b33e1",
+      "asset_sha256": "d6b623e80517e08ab684abb1d5d9d17b04ba8cd2a60d4b8bf739bc663107960d"
+    },
+    {
+      "slug": "anthropic",
+      "providers": [
+        "anthropic"
+      ],
+      "source_sha256": "e833fdfa7e7187a86a05b870925067556a506dcd4239089aed73e1e58c9366a3",
+      "asset_sha256": "a15b09cb3435a15899e7b66749927620e45f3f3b8b8948c74b7a19c5b5732e03"
+    },
+    {
+      "slug": "deepseek",
+      "providers": [
+        "deepseek"
+      ],
+      "source_sha256": "8f9443e351b6dacce71871790201b799d92e8bf96a45ef79aeb5e9bf4db423e2",
+      "asset_sha256": "bf79334527198b4dfcf90726f42ad302636abdfddbd79dd762fcca6138ba3d2e"
+    },
+    {
+      "slug": "google",
+      "providers": [
+        "google"
+      ],
+      "source_sha256": "c4bb45d362cb0a98b33b1f2fb424db2a5cd95a90e1043ae4e387de81a5e64951",
+      "asset_sha256": "4ab6d295b9323a898967fc1e57654f63f79ed2db828214a383dddaa9b7253551"
+    },
+    {
+      "slug": "gemini",
+      "providers": [
+        "google-gemini"
+      ],
+      "source_sha256": "87d5b3c4be75a66f54c1936482a263df68185545b741129badd1b7c2449c18d3",
+      "asset_sha256": "be608532f5aced03e5f8a949792ee34cd4ead1094f4f303b6de31daa8fc79daa"
+    },
+    {
+      "slug": "geminicli",
+      "providers": [
+        "google-gemini-cli"
+      ],
+      "source_sha256": "bc9b0199cb4c5deee25d6cf49d6e7d60a891171ccbc5520f657d3047b84e5d2e",
+      "asset_sha256": "a2be09bd6688a5f9538169a1bff2fc90655cedc898ae4a25c11904c9f32d6099"
+    },
+    {
+      "slug": "antigravity",
+      "providers": [
+        "google-antigravity"
+      ],
+      "source_sha256": "43f551fd125c17fb54c8c74eb461924fb97f32bb64ac89f73bb73852753a6461",
+      "asset_sha256": "bafb27d96c806d23682622ffb5fea88d474d3dd3694b6085fa12582941a9fc81"
+    },
+    {
+      "slug": "vertexai",
+      "providers": [
+        "google-vertex",
+        "google-vertex-anthropic"
+      ],
+      "source_sha256": "3a78043e65f2dad8a6278f5eaf7b5d636810a7b901efe03430ef2f40f3b38b2e",
+      "asset_sha256": "0c307d16fb0cc5eb9c8a99fc4b0f84767f223e25e8b7b574dadc0a05e681cce7"
+    },
+    {
+      "slug": "azure",
+      "providers": [
+        "azure-openai",
+        "azure-openai-responses",
+        "azure"
+      ],
+      "source_sha256": "a48fa106b32093acac4cb858df39c4ee6bf1049d2ecec92ad556190f7c4d9a0e",
+      "asset_sha256": "8a3d79d2f2bc663637e1696055965000558f8b5a34ef95e2dbbfe73c21cf35f9"
+    },
+    {
+      "slug": "bedrock",
+      "providers": [
+        "amazon-bedrock",
+        "bedrock-mantle"
+      ],
+      "source_sha256": "b07f07bb6b77a1ee83916430250dc9adfc799ec43fbc5932947af099bcfcb9f9",
+      "asset_sha256": "6d23229f5452389e70b1d736d588fa399420d46f7426572be781d0c2b38ec90f"
+    },
+    {
+      "slug": "githubcopilot",
+      "providers": [
+        "github-copilot"
+      ],
+      "source_sha256": "bbc7fddc13448236e5edea8c399d2072dc40aa5da5bca07f7a2f412405c500a3",
+      "asset_sha256": "5c0de813ac076f0b6cb33d3a3e8b5d16b5851e0e2d2bff1df017df56f5a34b7b"
+    },
+    {
+      "slug": "github",
+      "providers": [
+        "github-models"
+      ],
+      "source_sha256": "1bd763b5d53ab1618e0afce72aacffc7e93d1249c395f713b3b055c087526625",
+      "asset_sha256": "5fcd6a9d220c2b664cdee60970e25344132ceb4813beda380a6b2ead6eb15c8c"
+    },
+    {
+      "slug": "kimi",
+      "providers": [
+        "kimi-code"
+      ],
+      "source_sha256": "ed08131b46acf70e6e2144eceb775e74098b58ea65fa21eaee04be7b05cfe63b",
+      "asset_sha256": "0c0e2d61d3cacfa66b81b1b7bb7ce9846c3bd429fd6966e91f603aab9d3ff04e"
+    },
+    {
+      "slug": "moonshot",
+      "providers": [
+        "moonshot"
+      ],
+      "source_sha256": "435f41b74e6a87639b6bf860e9628f20cbe7d6229bece412d548f4cea3081852",
+      "asset_sha256": "1047c98136f5d29cafded944a31cf0f057f8b52832cb1ccd0bf1a82e8fa3f543"
+    },
+    {
+      "slug": "minimax",
+      "providers": [
+        "minimax",
+        "minimax-cn",
+        "minimax-code",
+        "minimax-code-cn"
+      ],
+      "source_sha256": "bb96e2005081494716de6af5fd030701ae551ee68393ad61b325c07325607848",
+      "asset_sha256": "5a5d9ebb0bdcd2088396986dcd58f5d40c6dfe24ac81e49ee09f940f4e7e680d"
+    },
+    {
+      "slug": "zai",
+      "providers": [
+        "zai",
+        "zai-coding-plan",
+        "zhipu-coding-plan"
+      ],
+      "source_sha256": "e748cb5108ce37b116d7a5ba97d37e0ae97eadf6849b0de11afb248e244a01e1",
+      "asset_sha256": "b9876f91b498f2592266e1854155061c17160631942828889a416da709e7f06e"
+    },
+    {
+      "slug": "xai",
+      "providers": [
+        "xai",
+        "xai-oauth"
+      ],
+      "source_sha256": "89eb7de9f0d02a41cfecd9109e253d7fd3529e27467dee4254faa67f3ac21451",
+      "asset_sha256": "bf63266cae37a9714627205ba06061a35ff1a1b85f61ceb0f2f43d7a48de35ce"
+    },
+    {
+      "slug": "opencode",
+      "providers": [
+        "opencode",
+        "opencode-go",
+        "opencode-zen"
+      ],
+      "source_sha256": "7cfa6e9d6726f7c9fa26c7d9aef0dfec52d20a137380454340f30f12ccbfd302",
+      "asset_sha256": "7f3f814a795239279d64fbaa3366c45fedf6570097b3ed91ae7a61211c5e0214"
+    },
+    {
+      "slug": "ollama",
+      "providers": [
+        "ollama",
+        "ollama-cloud"
+      ],
+      "source_sha256": "3a268218fb2e6e81fa31df70f70b51331625047794db81db21d35359428fae7a",
+      "asset_sha256": "5b77c9ed7d18533914db975dd275cb18165e0a90e43c85159f4cc4b4ac30d993"
+    },
+    {
+      "slug": "openrouter",
+      "providers": [],
+      "source_sha256": "ae671cc83de9bd45db97a47ed5e38a4e1bd9f93a12be495ba4b4f8b284026bca",
+      "asset_sha256": "a5144ce58b45fafc804e1d30dd21052588c4d92b08e48d1ca119faddbc0094f6",
+      "retained": true,
+      "note": "Owner-selected uppercase O in every provider surface; original pinned artwork retained unmodified."
+    },
+    {
+      "slug": "siliconcloud",
+      "providers": [
+        "siliconflow",
+        "siliconflow-cn"
+      ],
+      "source_sha256": "50025587d401e07f7d82a2977146176bd8c9d9f52c54c452f31bb49c16d0cf3c",
+      "asset_sha256": "7d18ee3fd185a6a8698400093720a670c863990a759acb7a182853eb8a8d68a1"
+    },
+    {
+      "slug": "qwen",
+      "providers": [
+        "qwen-portal"
+      ],
+      "source_sha256": "b2c16efc3bd32b88a941842d41222e1e1e0e40441222218b725afc0aef6d9a36",
+      "asset_sha256": "4a4969e75946759fc6fbf14f402810f828c18883c82877a8c6d9070c48af37a8"
+    },
+    {
+      "slug": "alibabacloud",
+      "providers": [
+        "alibaba",
+        "alibaba-cn",
+        "alibaba-token-plan",
+        "alibaba-coding-plan"
+      ],
+      "source_sha256": "7a62c43622e764c416b9069a8ce505d2560f4b4bcf71ed46bbc32d7259416c56",
+      "asset_sha256": "0785e3c8e1481919a52cc13a0052043f44769d8cfd74e2cd375dda02a2b008b1"
+    },
+    {
+      "slug": "cloudflare",
+      "providers": [
+        "cloudflare-ai-gateway"
+      ],
+      "source_sha256": "78f8973dad59f8af7c4042ef6be451d809a4e14bdb2151a75a76b4e0811fd22f",
+      "asset_sha256": "3e47b4f8ad85d4d79a2efed256480aa30fe14c6ba8b607219938a413eff98f24"
+    },
+    {
+      "slug": "workersai",
+      "providers": [
+        "cloudflare-workers-ai"
+      ],
+      "source_sha256": "dd630bc6ad3d584ebeacbff07a50976485cc300e069e3ec9b7012263cd58643d",
+      "asset_sha256": "cc823331a2f559e5deb5acc194b5edcbebff4d0e85159ad2fc6722f2252c3c98"
+    },
+    {
+      "slug": "fireworks",
+      "providers": [
+        "fireworks",
+        "firepass"
+      ],
+      "source_sha256": "9991ab2a8331096d3f408e07a5f2e1cb54c369143dd9fc7a97f6458478b33fe3",
+      "asset_sha256": "67e88e542e7938503e215bb0ee93571656ae408fe1dc530d5c8e61d00b341400"
+    },
+    {
+      "slug": "together",
+      "providers": [
+        "together"
+      ],
+      "source_sha256": "b3ec218e7e0b0432a2ce07f5ec98a1dcd24f808c74d5fee624ab31e4947feef3",
+      "asset_sha256": "0c7aefd3e84b380d1c9e4afc4c68912a7443327af54c18d856ea7577fdea36dd"
+    },
+    {
+      "slug": "groq",
+      "providers": [
+        "groq"
+      ],
+      "source_sha256": "078d5cf6e7a54905040c15ddacf5ea33c13042fe7739e820cedc2096e4406651",
+      "asset_sha256": "f10c0964f7200f53c7d26c6a9832502ebf90b905249c96bc1717f823c9b5a73f"
+    },
+    {
+      "slug": "cerebras",
+      "providers": [
+        "cerebras"
+      ],
+      "source_sha256": "05af9593eca3fefdb30c5ad042040f008beea2b27e0a6b7315c319492f7a44ff",
+      "asset_sha256": "86fb58fa4ff1cc9d1f40e8596ca2e7271645acb908563e06c5d3b4709c7ea012"
+    },
+    {
+      "slug": "mistral",
+      "providers": [
+        "mistral"
+      ],
+      "source_sha256": "a06cfa54e7deff7f7544175b006b7f8a03fbc5624c44f7d553a44d07ea96e629",
+      "asset_sha256": "98345b29530a6f916e679305445a05ee8e06671566d32e696bebe1737a881445"
+    },
+    {
+      "slug": "cohere",
+      "providers": [
+        "cohere"
+      ],
+      "source_sha256": "72851dd36d6ab017f535202744765eead8f99cfb5ced77e1840bfdb70db7a85c",
+      "asset_sha256": "9d706701983a36523842884ec5cee44fe4aa21c78e149b973eda4470e77bc037"
+    },
+    {
+      "slug": "nvidia",
+      "providers": [
+        "nvidia"
+      ],
+      "source_sha256": "5a419b99e0ffdbfbe8caa7ec25581054eae03024da59cb860c54ea55ac8e7e73",
+      "asset_sha256": "9deeb54ca05b9077ec56b56e0440b30f45389710aff9d835e86911ec5d95eeaa"
+    },
+    {
+      "slug": "novita",
+      "providers": [
+        "novita"
+      ],
+      "source_sha256": "118af2fde0c68b129f85d28154eedd52f9c0456ecc4870823424c81c7f7bc523",
+      "asset_sha256": "c11f705c696c4d209e98795bee3334664f46f1ddfc7762abb76bb362e0facf14"
+    },
+    {
+      "slug": "huggingface",
+      "providers": [
+        "huggingface"
+      ],
+      "source_sha256": "de7f2c60f974b75b385116ef0dc6a9fa62f2fd7bf58156b5623301a5436b91c4",
+      "asset_sha256": "f4f50475680037b55e09213311672308beb37e9a538ac5d4e806195026deb933"
+    },
+    {
+      "slug": "deepinfra",
+      "providers": [
+        "deepinfra"
+      ],
+      "source_sha256": "2a20be86e90b3c2085d5b3213f52c75e4f0041b239d6140475f5809863d45392",
+      "asset_sha256": "e1bc13d169c883486b12b3d3a299b60309692184d82319b3ae0e41f1428a2ea5"
+    },
+    {
+      "slug": "perplexity",
+      "providers": [
+        "perplexity"
+      ],
+      "source_sha256": "c66c64e9e3c273ef6c235f743808d67ffa7d482e8cbe4a79496a42b60333e1fe",
+      "asset_sha256": "873942abc11c74addf9d55f4c04e637b3de840d3f0ec821c5533b189adf77acf"
+    },
+    {
+      "slug": "inception",
+      "providers": [
+        "inception"
+      ],
+      "source_sha256": "aa491f544e8b77f520e7d7d1dc2362a2212dc6cd1a9373b97bb447c3f848d213",
+      "asset_sha256": "43805086a31093143756cebb3fc73a2a59c14001deefae3eb9321c1cc85de072"
+    },
+    {
+      "slug": "vercel",
+      "providers": [
+        "vercel-ai-gateway"
+      ],
+      "source_sha256": "4874d52d8b2ce7c309cbd10c424fee123b2c9483e76d76ad0dca41794483eb24",
+      "asset_sha256": "67b229d75639b81c148810230858d3f46481bf890e619385beb7ea8af8f50d32"
+    },
+    {
+      "slug": "baseten",
+      "providers": [
+        "baseten"
+      ],
+      "source_sha256": "d560883f6df500c1290b2fb2018836d853c72697c1fc252793538fabf53ff28d",
+      "asset_sha256": "575cb99903220cd095e028af0bbcb0c82e17af721c4259d4842ced871c1cd5c6"
+    },
+    {
+      "slug": "wandb",
+      "providers": [
+        "wandb"
+      ],
+      "source_sha256": "6e8af96d0cb208468c2a6bfdcefda688262a5c59257bdbe72e093e408498bf97",
+      "asset_sha256": "e5eedf6685cad2ff42db9a10d749b72f460e2334e734ba97b4e46f0e159da999"
+    },
+    {
+      "slug": "gmicloud",
+      "providers": [
+        "gmi-cloud"
+      ],
+      "source_sha256": "22b0d7150d3d04fc8a498ab5de03c130b25127910c356660df913f2f769d4f61",
+      "asset_sha256": "b64f5d1d7dd08d90cff0c0a3ce099cce05938cb44329a5809a5b7dff7db2ad45"
+    },
+    {
+      "slug": "nebius",
+      "providers": [
+        "nebius"
+      ],
+      "source_sha256": "4213ea25ec4c782688a7dafdad4bb828096151639077001c4df9c10a315f1af1",
+      "asset_sha256": "845e21a1a6bfb349948c4df5b4fd38948946b4c2cb550f7185349a24b3366f6a"
+    },
+    {
+      "slug": "sambanova",
+      "providers": [
+        "sambanova"
+      ],
+      "source_sha256": "4f82732325bba2496cb91f2e72636d05c03276763562b75795c37f764ae4357f",
+      "asset_sha256": "798ae4a928fc14875c02b446b2546503c24539dd1273cd92dcfcd79e73b3b984"
+    },
+    {
+      "slug": "snowflake",
+      "providers": [
+        "snowflake"
+      ],
+      "source_sha256": "4e814ab515ea483f674946d39279da9b6400abf650c68dccbfe06c837e0e3ab6",
+      "asset_sha256": "822dfcce6030f4b83c79450015d436c5c8492074f9230db41af01e3de580da77"
+    },
+    {
+      "slug": "xiaomimimo",
+      "providers": [
+        "xiaomi",
+        "xiaomi-mimo",
+        "xiaomi-token-plan-ams",
+        "xiaomi-token-plan-cn",
+        "xiaomi-token-plan-sgp"
+      ],
+      "source_sha256": "b04ad7dad52af2212c4567daf0ee6856f2c4625c92c680a27f9880295d558b71",
+      "asset_sha256": "99defcca38ec28c6edc0e6abc3cc43daceeeb836e51163a9135d2a51c7df3df1"
+    },
+    {
+      "slug": "typesafeai",
+      "providers": [
+        "typesafe"
+      ],
+      "source_sha256": "774171d3a45ce20a1ca2287efffa574e5d7f85d83fa52fff47eed0035a2242de",
+      "asset_sha256": "9f56677d5aa2e3a66a87b3d8580be489e8aa259369844bfdce5c30e86a994841"
+    },
+    {
+      "slug": "commandcode",
+      "providers": [
+        "commandcode"
+      ],
+      "source_sha256": "0b3090f6e9194f32520e5b98ea43c5bc1a0f04644c94d1bade69fab7413e1531",
+      "asset_sha256": "c2733a6f8033157099ff713181d4de8605898975855e0d7bd56e83d33ba7363b"
+    },
+    {
+      "slug": "cursor",
+      "providers": [
+        "cursor"
+      ],
+      "source_sha256": "0cb51bddf264ae108926fd554c063ef40fc1aac3c5c921ddb39ad184e4e5d0ef",
+      "asset_sha256": "2d58e6e5469bbe35e0bbef3f25290ca2d49c9a8590f52aacf6cca354e94a6ad8"
+    },
+    {
+      "slug": "devin",
+      "providers": [
+        "devin"
+      ],
+      "source_sha256": "8d197b0c31522517ffa896cd4a1ee65719eb73bff9eb9bbf7edf64db6b1a573d",
+      "asset_sha256": "75a1e9a1b9a3a63b5a7f0a9c1ec9832d993ad641a5c90a2e6083e938bb172acb"
+    },
+    {
+      "slug": "aionlabs",
+      "providers": [
+        "aionlabs"
+      ],
+      "source_sha256": "243f6d46811bcd61f0ea135cbffdbf1825b6a4f2fbe9c594228ba712477a3b48",
+      "asset_sha256": "855f3bc538df5a99df1017a45a3e92c148ae8f94aa7ff48793d9bb92267fe261"
+    },
+    {
+      "slug": "aihubmix",
+      "providers": [
+        "aihubmix"
+      ],
+      "source_sha256": "41ad4cc30733cde03b3b08efd0c873936b66c54ee42efaa3033cd9e101006089",
+      "asset_sha256": "cef22f3cc0bfccc5d9d7fe56ff0d14f95ede8117609e1e4d0023e223aabb7907"
+    },
+    {
+      "slug": "venice",
+      "providers": [
+        "venice"
+      ],
+      "source_sha256": "2199c468fef49ebadfdabd4280461d700c290daaf9ab03fbf94564f9230538ee",
+      "asset_sha256": "e23606e29cd82fbf62c4d9328d42ee2276cbd89d15a43197a8f042aa6a42a394"
+    },
+    {
+      "slug": "tencentcloud",
+      "providers": [
+        "tencent-hunyuan"
+      ],
+      "source_sha256": "0563b1dbaa01aff4f20352bc9eb49bec17debeb3901a9ee80b044ac4d792c97d",
+      "asset_sha256": "142350fdbeef222b821fba0faba6a452da8b1cf56c16f52f8207604371909e24"
+    },
+    {
+      "slug": "volcengine",
+      "providers": [
+        "volcengine"
+      ],
+      "source_sha256": "f29d0bdc284b33d8664ef221add7fbf06a5b370ef92767fa33f6020c914d3d33",
+      "asset_sha256": "6ea4f9a28bdfd645d47d03791651c1e9c038c2253a5cfb467277528f9b8bf65a"
+    },
+    {
+      "slug": "chutes",
+      "providers": [
+        "chutes"
+      ],
+      "source_sha256": "0fe386fe669b0902b97122d370f7031ac52d714f1ec841b3158242a2c341e0ca",
+      "asset_sha256": "22d66b5816b2f49421ef6d30f38d1b5b4fc05e9d28c44e6b1406db0b7a4d21d0"
+    },
+    {
+      "slug": "replicate",
+      "providers": [
+        "replicate"
+      ],
+      "source_sha256": "ff02158db5bc4a693d7f690c36cd7d547b8ca3313accba0783b2d3af28dae1e6",
+      "asset_sha256": "57602dfd87726805ff38bd9b81b834cc0e684337e5054659ba9396fa92997b1f"
+    },
+    {
+      "slug": "ai21",
+      "providers": [
+        "ai21"
+      ],
+      "source_sha256": "6c80f2c0d8b11d1bee179666049b00e0ab7f58f5ee8c307ca0dd3327bb49f282",
+      "asset_sha256": "964dcd102d148c506d5ee42476bf4975f1919e8ec68f2f087ce036097db26a71"
+    },
+    {
+      "slug": "poe",
+      "providers": [
+        "poe"
+      ],
+      "source_sha256": "d427b1abf53b3d52b30e9bf2a5756577a588fbde04640e8e1f9c688ecd4e9b51",
+      "asset_sha256": "1c9617fef7c133c2ea6df60894c03e5f7f7b903a65f704d527e24c10b02fe480"
+    },
+    {
+      "slug": "aimlapi",
+      "providers": [
+        "aimlapi"
+      ],
+      "source_sha256": "8999a0ce43c74ba42d7bd1ab7ba403be3af9a61f9318951200e34b0a654ae7f8",
+      "asset_sha256": "23718379b46ffe89e41c73ed96181fd807f548768a87bf8bf10b1768251ab6c0"
+    },
+    {
+      "slug": "apple",
+      "providers": [
+        "apple"
+      ],
+      "source_sha256": "100637681febc38512bf8d43f7d5f79f2aa8caead15b256cd28b378b053fca69",
+      "asset_sha256": "fe734db47aed30920f3ed2fb9104a0d6ef46c36462052f114cdf45e972bceea6"
+    },
+    {
+      "slug": "baiducloud",
+      "providers": [
+        "qianfan"
+      ],
+      "source_sha256": "21d141d12d3aad70dd39e5ef0f0713de1dbe5f403298f9a939c23394a47a3ec8",
+      "asset_sha256": "0f4a4130e3515276c8bd4579d5cb3eb937f4472320e223d2c6f2c8e975e71fb1"
+    },
+    {
+      "slug": "cline",
+      "providers": [
+        "cline-pass"
+      ],
+      "source_sha256": "9003d2cdce82b016147b732abb4def60af55c348ba2cea2ba0b69a3c7d159b19",
+      "asset_sha256": "e2a6e1a9f9065ca334b45443fad7a42b4c915e9d7dff83b9c3ffb38cd4e9307d"
+    },
+    {
+      "slug": "exa",
+      "providers": [
+        "exa"
+      ],
+      "source_sha256": "b1ae01ccce6798d7b9a129807e0fb9b0629cc035f4ead27d6300ab2adde792bb",
+      "asset_sha256": "274b48ff2f68fd474d75d07f4fea25509cdba1e95be7faea3332121f0eb6cec4"
+    },
+    {
+      "slug": "kagi",
+      "providers": [
+        "kagi"
+      ],
+      "source_sha256": "8ce5fee709556d7b37f2194df569c3693578cd864502879e59472dbe2342f9b6",
+      "asset_sha256": "018780392ca7cee8b2f71d2a95baaac0ee0a5f0ff8a4337c59d57b54e50d0fbc"
+    },
+    {
+      "slug": "kilocode",
+      "providers": [
+        "kilo"
+      ],
+      "source_sha256": "a2aef0e0bb992ebe768bfb8c3a3ab6ff2c2638448b09dd88db27877de1c07a22",
+      "asset_sha256": "cdf2d42af5acc016491fc5d1af92db976fc3ae71fcaafcacee26f9521223a1c0"
+    },
+    {
+      "slug": "lmstudio",
+      "providers": [
+        "lm-studio"
+      ],
+      "source_sha256": "4a575e8382b52ce742ac5d21d361a7d2a08cea7c12390ee1bbb755ef7d3cc25b",
+      "asset_sha256": "c8279ea8595e180f3cdaf434e2e8e1857b0598f5a15ff0f1b93cf7b887fc7e4b"
+    },
+    {
+      "slug": "meta",
+      "providers": [
+        "meta"
+      ],
+      "source_sha256": "805ef9a35305393eb5a89be46b0708c9b119b3308ca44aaedd1457ff04857060",
+      "asset_sha256": "6427cf01a8ae7cbe6626a6f988e34512a75c1c8f953956dd6f85d8dc8c5d5e6a"
+    },
+    {
+      "slug": "sakana",
+      "providers": [
+        "sakana"
+      ],
+      "source_sha256": "329e703ef2014dce216172ff4aef9c226cb6c79dbd71fc5d76cc923b63b9e732",
+      "asset_sha256": "adf8b69ce60c47ac807ff765694f031070c943d3184cc0be49ab14f4da083373"
+    },
+    {
+      "slug": "stepfun",
+      "providers": [
+        "stepfun"
+      ],
+      "source_sha256": "90138fab370e3c0ce3105d38a496d6796ce73d44f9829d8e1045013dc064bcd2",
+      "asset_sha256": "12c5764cd49bcb30cf9365bf45e95f6865f7bee356d2ae7b9ef66aedda5720c3"
+    },
+    {
+      "slug": "tavily",
+      "providers": [
+        "tavily"
+      ],
+      "source_sha256": "a701298ee19fd81a87fc07abe9adc944de8caf8083f194d58d9b8ee21811f7d4",
+      "asset_sha256": "2ec7da970349e8db1d2bed639ac8e7298e35412cc0e03497ee91b72e566c86f9"
+    },
+    {
+      "slug": "vllm",
+      "providers": [
+        "vllm"
+      ],
+      "source_sha256": "5b025970b51c270775d0528a68ad96583372c94a2a94c4d92b40b74cbe9f7153",
+      "asset_sha256": "4387533ba552f14b7b3601351ca6e7b343c4c5df1ab752b1edb467e0263fe41a"
+    },
+    {
+      "slug": "wafer",
+      "providers": [
+        "wafer-serverless"
+      ],
+      "source_sha256": "65916125f3dbca81322350287b290d884a7cd5c4b7d6a14c2959d136bd1460c6",
+      "asset_sha256": "155be0dce89b39fda072d67d9bd8255127b67fdd78869140d9045144b2ea95e6"
+    },
+    {
+      "slug": "zenmux",
+      "providers": [
+        "zenmux"
+      ],
+      "source_sha256": "1f9fab4e48601ca583e44ff06f22040a8b40f8952bc6bd67e67b065bef00b4b5",
+      "asset_sha256": "994b82cb5e67cae33503f14b2f4ec635cbf069fefe1fab77652d19985dcbd14b"
+    }
+  ],
+  "identityMatching": "One explicit provider/login ID table for all native provider surfaces; case-insensitive exact matching only; no display-name, substring, model-name, endpoint or credential-namespace inference.",
+  "providerNames": {
+    "abliteration": "Abliteration",
+    "aiand": "ai&",
+    "aimlapi": "AIML API",
+    "alibaba-coding-plan": "Alibaba Coding Plan",
+    "alibaba-token-plan": "QwenCloud Token Plan",
+    "amazon-bedrock": "Amazon Bedrock",
+    "anthropic": "Anthropic (Claude Pro/Max)",
+    "apple": "Apple Foundation Models (on-device)",
+    "azure": "Azure OpenAI",
+    "baseten": "Baseten",
+    "bedrock-mantle": "Amazon Bedrock Mantle",
+    "cerebras": "Cerebras",
+    "charm-hyper": "Charm Hyper",
+    "cline-pass": "ClinePass",
+    "cloudflare-ai-gateway": "Cloudflare AI Gateway",
+    "cloudflare-workers-ai": "Cloudflare Workers AI",
+    "commandcode": "Command Code",
+    "coralbricks": "CoralBricks",
+    "coreweave": "CoreWeave Serverless Inference",
+    "cursor": "Cursor (Claude, GPT, etc.)",
+    "deepinfra": "DeepInfra",
+    "deepseek": "DeepSeek",
+    "devin": "Devin",
+    "exa": "Exa",
+    "factory-droid": "Factory Droid",
+    "firepass": "Fire Pass (Fireworks subscription)",
+    "fireworks": "Fireworks",
+    "github-copilot": "GitHub Copilot",
+    "gitlab-duo": "GitLab Duo Non-Agentic",
+    "gitlab-duo-agent": "GitLab Duo Agent",
+    "gmi-cloud": "GMI Cloud",
+    "google": "Google Gemini",
+    "google-antigravity": "Google Antigravity (Gemini, Claude, GPT-OSS)",
+    "google-gemini-cli": "Google Cloud Code Assist (Gemini CLI)",
+    "google-vertex": "Google Vertex AI",
+    "groq": "Groq",
+    "helmcode": "Helmcode",
+    "huggingface": "Hugging Face Inference",
+    "inception": "Inception",
+    "kagi": "Kagi",
+    "kilo": "Kilo Gateway",
+    "kimi-code": "Kimi Code",
+    "litellm": "LiteLLM",
+    "llama.cpp": "llama.cpp (Local OpenAI-compatible)",
+    "lm-studio": "LM Studio (Local OpenAI-compatible)",
+    "local": "Local models",
+    "meta": "Meta Model API",
+    "minimax": "MiniMax",
+    "minimax-code": "MiniMax Token Plan (International)",
+    "minimax-code-cn": "MiniMax Token Plan (China)",
+    "mistral": "Mistral",
+    "moonshot": "Moonshot (Kimi API)",
+    "muse-code": "Muse Code (Subscription)",
+    "nanogpt": "NanoGPT",
+    "novita": "Novita",
+    "nvidia": "NVIDIA",
+    "ollama": "Ollama (Local OpenAI-compatible)",
+    "ollama-cloud": "Ollama Cloud",
+    "openai": "OpenAI",
+    "openai-codex": "ChatGPT Plus/Pro (Codex Subscription)",
+    "openai-codex-device": "ChatGPT Plus/Pro (Codex, headless/device)",
+    "opencode-go": "OpenCode Go",
+    "opencode-zen": "OpenCode Zen",
+    "openrouter": "OpenRouter",
+    "parallel": "Parallel",
+    "perplexity": "Perplexity (Pro/Max)",
+    "qianfan": "Qianfan",
+    "qwen-portal": "Qwen Portal",
+    "sakana": "Sakana AI",
+    "sambanova": "SambaNova",
+    "siliconflow": "SiliconFlow",
+    "siliconflow-cn": "SiliconFlow (China)",
+    "singularityapi-dev": "SingularityAPI",
+    "singularityapi-tech": "SingularityAPI Reserved Lanes",
+    "snowflake": "Snowflake Cortex",
+    "stencil": "Stencil (invite only)",
+    "stepfun": "StepFun",
+    "synthetic": "Synthetic",
+    "tavily": "Tavily",
+    "together": "Together",
+    "typesafe": "TypeSafe",
+    "umans": "Umans AI Coding Plan",
+    "venice": "Venice",
+    "vercel-ai-gateway": "Vercel AI Gateway",
+    "vllm": "vLLM (Local OpenAI-compatible)",
+    "wafer-serverless": "Wafer Serverless (pay-as-you-go)",
+    "web": "Web search engines",
+    "xai": "xAI API",
+    "xai-oauth": "xAI Grok OAuth (SuperGrok or X Premium+)",
+    "xiaomi": "Xiaomi MiMo",
+    "xiaomi-token-plan-ams": "Xiaomi Token Plan (Europe)",
+    "xiaomi-token-plan-cn": "Xiaomi Token Plan (China)",
+    "xiaomi-token-plan-sgp": "Xiaomi Token Plan (Singapore)",
+    "yolo-auto": "Yolo-Auto",
+    "zai": "Z.AI (GLM Coding Plan)",
+    "zai-coding-plan": "Z.AI (GLM Coding Plan · Sign in)",
+    "zenmux": "ZenMux",
+    "zhipu-coding-plan": "Zhipu Coding Plan (智谱)",
+    "minimax-cn": "MiniMax (China)",
+    "azure-openai-responses": "Azure OpenAI (Responses)",
+    "brave": "Brave Search",
+    "firecrawl": "Firecrawl",
+    "jina": "Jina AI",
+    "tinyfish": "TinyFish",
+    "omp": "OMP"
+  },
+  "initialOnlyProviders": [
+    "openrouter"
+  ]
+}

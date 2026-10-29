@@ -1,0 +1,288 @@
+{
+  "cached_reopen_ms": 310.8846249524504,
+  "cold_ms": 2828.491458436474,
+  "cold_typeset": 238,
+  "heartbeats": 32,
+  "main_actor_gap_ms": [
+    371.1221250705421,
+    81.68866659980267,
+    65.15958334784955,
+    50.743874977342784,
+    53.6341667175293,
+    302.20904166344553,
+    52.815375034697354,
+    51.39270832296461,
+    60.315624927170575,
+    72.3768750904128,
+    86.72391658183187,
+    87.84966671373695,
+    91.49733337108046,
+    106.72808333765715,
+    130.6994166225195,
+    58.08187497314066,
+    114.65983337257057,
+    124.184750020504,
+    53.99679159745574,
+    75.96041669603437,
+    110.66929169464856,
+    53.82575001567602,
+    51.183874951675534,
+    50.81779172178358,
+    53.82645828649402,
+    51.696791662834585,
+    51.72954162117094,
+    54.41125005017966,
+    51.32904171478003,
+    53.96599997766316,
+    54.63774991221726,
+    54.83162507880479
+  ],
+  "math_queue_drained": true,
+  "paint_ms": [
+    1129.3452917598188,
+    1129.425875027664,
+    1129.4655000092462,
+    1129.4752083485946,
+    1129.5243334025145,
+    1129.5745833776891,
+    1129.6211250592023,
+    1129.647208377719,
+    1338.8790833996609,
+    1338.945124996826,
+    1338.9847500948235,
+    1339.0194583917037
+  ],
+  "reopen_typeset": 0,
+  "scope": "Production RootView/ThreadRuntime and staged chat, visible isolated window; no live provider",
+  "timeline": [
+    {
+      "ms": 414.00670842267573,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 495.6953750224784,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 560.854958370328,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 611.5988333476707,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 665.2330000652,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 967.4420417286456,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 1020.2574167633429,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 1071.6501250863075,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 8
+    },
+    {
+      "ms": 1131.965750013478,
+      "painted_unique": 8,
+      "rendering": true,
+      "snapshots": 1,
+      "typeset": 40
+    },
+    {
+      "ms": 1204.342625103891,
+      "painted_unique": 8,
+      "rendering": true,
+      "snapshots": 1,
+      "typeset": 40
+    },
+    {
+      "ms": 1291.0665416857228,
+      "painted_unique": 8,
+      "rendering": true,
+      "snapshots": 1,
+      "typeset": 40
+    },
+    {
+      "ms": 1378.9162083994597,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 2,
+      "typeset": 72
+    },
+    {
+      "ms": 1470.4135417705402,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 3,
+      "typeset": 104
+    },
+    {
+      "ms": 1577.1416251081973,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 3,
+      "typeset": 104
+    },
+    {
+      "ms": 1707.8410417307168,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 4,
+      "typeset": 136
+    },
+    {
+      "ms": 1765.9229167038575,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 4,
+      "typeset": 136
+    },
+    {
+      "ms": 1880.582750076428,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 5,
+      "typeset": 168
+    },
+    {
+      "ms": 2004.767500096932,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 5,
+      "typeset": 168
+    },
+    {
+      "ms": 2058.764291694388,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 6,
+      "typeset": 200
+    },
+    {
+      "ms": 2134.724708390422,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 6,
+      "typeset": 200
+    },
+    {
+      "ms": 2245.3940000850707,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 7,
+      "typeset": 232
+    },
+    {
+      "ms": 2299.2197501007468,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2350.4036250524223,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2401.221416774206,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2455.0478750607,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2506.7446667235345,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2558.4742083447054,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2612.885458394885,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2664.214500109665,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2718.1805000873283,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2772.8182499995455,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    },
+    {
+      "ms": 2827.6498750783503,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 9,
+      "typeset": 238
+    }
+  ],
+  "widths": [
+    1320
+  ],
+  "first_queue_idle_ms": 2299.2197501007468,
+  "last_queue_drained_ms": 2299.2197501007468
+}

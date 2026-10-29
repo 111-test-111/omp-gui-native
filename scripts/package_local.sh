@@ -23,9 +23,9 @@ IDENTITY_COUNT=$(printf '%s\n' "$IDENTITIES" | awk 'NF { n++ } END { print n+0 }
 }
 HASH="$IDENTITIES"
 
-name_for() { if [ "$1" = dev ]; then printf 'Tivano Dev'; else printf 'Tivano'; fi; }
+name_for() { if [ "$1" = dev ]; then printf 'OMP GUI Dev'; else printf 'OMP GUI'; fi; }
 configuration_for() { if [ "$1" = dev ]; then printf 'Debug'; else printf 'Release'; fi; }
-identifier_for() { if [ "$1" = dev ]; then printf 'dev.tivano.Tivano.dev'; else printf 'dev.tivano.Tivano'; fi; }
+identifier_for() { if [ "$1" = dev ]; then printf 'dev.ompgui.mac.dev'; else printf 'dev.ompgui.mac'; fi; }
 check_not_running() {
   local name="$1"
   if ps -axo command= | grep -F "/Applications/$name.app/Contents/MacOS/" | grep -v grep >/dev/null; then
@@ -34,6 +34,8 @@ check_not_running() {
   fi
 }
 for edition in "${EDITIONS[@]}"; do check_not_running "$(name_for "$edition")"; done
+
+python3 scripts/browser_runtime.py prepare
 
 # Verify all requested builds before changing either installed bundle.
 for edition in "${EDITIONS[@]}"; do
@@ -50,7 +52,7 @@ for edition in "${EDITIONS[@]}"; do
     optimization=(SWIFT_OPTIMIZATION_LEVEL=-O SWIFT_COMPILATION_MODE=wholemodule)
   fi
   # Keep both editions on a stable Apple signing identity and secure timestamp.
-  if ! xcodebuild -project Tivano.xcodeproj -scheme Tivano -configuration "$config" \
+  if ! xcodebuild -project OMPGUI.xcodeproj -scheme OMPGUI -configuration "$config" \
     -destination 'platform=macOS' -derivedDataPath "$derived" -skipPackagePluginValidation \
     CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$HASH" DEVELOPMENT_TEAM="$TEAM_ID" \
     ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS="--timestamp" \

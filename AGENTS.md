@@ -1,90 +1,41 @@
-# AGENTS.md — Tivano agent workflow
+# OMP GUI fork workflow
 
-## Worktrees (mandatory for coding)
+This is an independent project, forked and modified from Tivano. The product is OMP GUI; only OMP is a supported runtime. The source directory, Xcode project, target, module and shared scheme are named OMPGUI.
 
-- Never code directly in the main checkout; every coding task gets its own
-  worktree first.
-- Setup per task:
-  1. `git fetch origin --prune`
-  2. `git worktree add -b <branch> <worktrees-dir>/agent-<slug> origin/main`
-     (or from the agreed base branch instead of `origin/main`)
-  3. Do all edits, builds and `scripts/quick_run.sh` runs inside that worktree.
-- Cleanup only when the task is done/merged:
-  `git worktree remove --force <worktrees-dir>/agent-<slug>` + `git worktree prune`.
-- Never delete the main checkout, never touch another agent's worktree.
+- The primary branch is local `main`. `upstream` is a read-only source reference, not a publication destination. Preserve inherited history and attribution.
+- Code and build only in a task worktree. Fetch `upstream` when present and branch with the `codex/` prefix from local `main`. Never edit the primary checkout or another task's worktree. Integrate each task as one commit, fast-forward the primary checkout, and remove the completed task worktree only when the owner requests cleanup. Never remove a worktree that contains a running application without explicit authorization to quit it first.
+- Before using any subagent, including research or review agents, obtain explicit owner authorization for the current task. If the user has not explicitly requested subagents, use the structured `ask` tool to explain the proposed delegation scope, offer a single-select choice with decline first and `recommended: 0`, and wait for affirmative consent before spawning. Task complexity and generic autonomy or parallelism guidance are not consent. A declined, skipped, cancelled, timed-out or unanswered request is not authorization, even if a timeout auto-selects an option; if `ask` is unavailable, continue without subagents.
+- Keep the existing Core → Services/UI → App dependency direction and reuse Chrome UI components and Hydra assets. Build verification: `make build` (local development, no Xcode signing). There is no test target.
+- OMP owns model providers, OAuth, API keys, model roles, MCP, extensions, skills, subagents, isolation and applying task results. Use public native CLI/RPC/SDK interfaces. Never restore another runtime adapter or an application-owned worker scheduler/MCP hub.
+- Legacy provider identifiers exist only to decode old UI fixtures and explicitly imported archives. They must never launch an executable or become selectable.
+- Use independent bundle IDs `dev.ompgui.mac` and `.dev`, libraries `OMP GUI Native` / `OMP GUI Native Dev`, and state folders `.omp-gui-native` / `.omp-gui-native-dev`. Do not import Tivano, Tivano Dev or Droppy Code data/preferences/credentials. OMP's native active profile remains external.
+- Build-only verification and cleanup of this task's generated build products are authorized. `make build` compiles a local Dev app; `make clean` removes repository-local build products and caches, never application data or external OMP configuration. `make run`, packaging, installing, launching, or relaunching the GUI requires the owner's explicit request. Packaging uses the fork's `scripts/package_local.sh` and targets OMP GUI bundles only. Preserve Developer ID signing and hardened runtime for packages.
+- No remote push, PR creation or release publication without an explicit owner instruction. This fork has no public release feed; inherited publishing scripts are disabled. Local integration is one squash commit, and merges into a local dev branch include its version bump and an Unreleased changelog entry.
+- Every new user-facing string needs faithful zh-Hans translation in `OMPGUI/Resources/Localizable.xcstrings`; follow `docs/i18n/CONVENTIONS.md`.
+- Use native Liquid Glass for compact, single-line action buttons and input fields through shared Chrome components. The sidebar approval/answer waiting badges and built-in shortcut labels are explicit owner-requested exceptions: waiting badges use distinct semantic colors; shortcut labels match the editable shortcuts' glass capsule appearance (white in light mode). Both exceptions remain noninteractive. Except for the floating chat composer and its attached queue/change tabs described below, do not add glass to large controls, panels, navigation/list rows, other labels/status badges, cards, content/empty states, disclosure sections or header/footer containers. Use plain native layout, subtle fills and dividers for those surfaces; keep native pickers and switches without extra glass wrappers. Apply glass explicitly to eligible controls rather than inheriting it across a whole window. Preserve the app's performance/accessibility fallback and bounded rendering.
+- Preserve the Droppy Code attribution, license, trademark notice, third-party notices and Tivano lineage. This fork is clearly marked modified. Do not alter approved upstream icons.
 
-## Layout (four layers, one way)
+The sidebar's “Show more” action is an additional explicit owner-requested exception to the glass button convention: use muted plain text without an icon or button background.
+The Projects and Tasks headers' add buttons are also owner-requested exceptions: reuse the folder row's plain plus accessory and show it on header hover (retaining its anchor while a menu is open).
+Workspace sidebar tab close buttons are also owner-requested exceptions: use small plain xmarks without glass or a button background, retaining their click targets.
+The workspace tab strip's new-panel plus is also an owner-requested exception: use a plain plus without glass or a circle background, changing its color on hover and retaining its click target.
+The Git sidebar's inline stage/unstage buttons and commit message generation accessory are also owner-requested exceptions: use plain icons without glass or a button background, retaining their click targets and disabled styling.
+The Git sidebar's multiline commit message input is an owner-requested exception to the glass size convention: use the shared noninteractive Liquid Glass input surface, preserving native editing and the plain generation accessory.
+The main chat composer and its attached follow-up queue/changes tab are owner-authorized floating glass surfaces. Use the shared Chrome floating surface in one local glass container; the editor and queue do not have press behavior. Keep text opaque, avoid an opaque fill beneath native glass, and use solid fills for performance mode or Reduce Transparency. Do not extend this exception to work-step trees, settings content, whole windows or generic panels.
 
-- `Tivano/Core` (models, pure support) reaches into nothing else in the app.
-  `Tivano/Services` (Git, Store, Providers) and `Tivano/UI` (Chrome, Common,
-  Markdown, Theme, Sound) reach only into Core. `Tivano/App` (entry, model, runtime,
-  windows, captures and every feature view) reaches into everything.
-- New code goes in the lowest layer whose dependencies it has. A Core file that needs
-  the provider registry, the settings or a view is in the wrong layer: split the part
-  that needs them into an extension in the layer above (see `App/HydraCookbook+Resolve.swift`).
-- There is no test target and no test scripts; the build is the check
-  (`xcodebuild -project Tivano.xcodeproj -scheme Tivano -configuration Debug build`).
+## Documentation entry points
 
-## Hydra heads (the chat team)
+Start with [docs/README.md](docs/README.md), then use the [source map](docs/architecture.md), [development workflow](docs/local-development.md) and [current feature/acceptance boundaries](docs/status.md). Keep current guides aligned with changed behavior; dated plans and acceptance evidence belong in `docs/archive/`, not in setup instructions. Documentation maintenance and local-link checks follow [docs/documentation.md](docs/documentation.md).
 
-- A head never builds or otherwise verifies: no `xcodebuild`, no `scripts/quick_run.sh`, no check command. It edits the files the lead briefed it on and reports, nothing more.
-- The lead runs the one build that proves the change, in the checkout, after the heads report.
+## Verification scope and stopping rules
 
-## Relaunching (never unprompted)
+- Do not overtest or repeatedly run passing checks. Before execution, select the smallest set that covers the changed behavior; use the scoped, deduplicating `make verify AREAS="..."` entry point documented in [docs/verification.md](docs/verification.md). There is no default full-suite run.
+- Documentation, comments, development tooling and version-only changes need only relevant static/syntax checks. Do not rebuild the app or run GUI, native OMP, compatibility matrices or performance workloads for those changes. For compiled source/resource changes, use one incremental `make build` and the affected checks.
+- Reuse passing evidence while its relevant source, runtime and environment remain unchanged. After a fix, rerun only affected failing checks. Do not repeat equivalent coverage through multiple wrappers, languages or runtime versions without a specific unresolved risk.
+- When a check fails, first read the relevant production source and test code and explain the cause: implementation defect, incorrect/outdated test expectation, or environment issue. Correct the implementation or test as appropriate before rerunning the affected check. Do not substitute repeated runs or additional tests for analysis, and do not weaken valid assertions merely to get a pass.
+- Keep functional checks separate from native integration, benchmarks and manual system acceptance. Run expensive checks only when the changed path requires them or the owner explicitly requests them; never attach them to routine checks automatically.
+- Stop once the selected checks pass. If a measurement or manual check cannot be completed, record the limitation and the remaining acceptance item; do not keep expanding scope or rerunning until a favorable result appears. Do not add implementation-mirroring tests for reversible, low-impact edits.
+- Keep checks in `tests/`, registered once in `tests/catalog.py`, with behavior-based `snake_case_tests` names. Do not add `scripts/check_*` wrappers or milestone-numbered test names. Share compilation/isolation through `tests/support/` and declare inputs, tools, timeouts and dependencies explicitly.
+- Use `TIER=static|functional|native|benchmark` to select the required layer. Functional dependencies must never pull in installed OMP or performance workloads; GUI acceptance stays outside the automated registry. Test tooling changes use `make verify TIER=static AREAS="harness syntax"`, without an app build. App-linked checks require the source/binary evidence written by this worktree's `make build`.
 
-- NEVER run `scripts/quick_run.sh` or otherwise relaunch Tivano unless the owner explicitly asks for it in that moment. Quitting for an explicit Dev package request is preauthorized below.
-- Agent-initiated build-only verification inside the worktree is fine and does not install. An explicit owner request to build/package an app also authorizes updating the requested edition(s) in `/Applications` via `scripts/package_local.sh`, unless the owner explicitly asks for build-only.
-- An explicit request to package Tivano Dev authorizes the agent to quit the running Dev app before packaging, even if it has active work; do not ask again. Verify it has exited before replacing its bundle. This does not authorize launching it afterward.
-- For Release, packaging alone does not authorize quitting or launching. If it is running, request an explicit quit; do not overwrite its running bundle.
-- "Finish", "merge", "done" or "test it" do not imply relaunch — only an explicit request to run/relaunch the app does.
-
-## Local packaging, editions and shared data
-
-- Package locally only on an explicit owner request; a merge or a release never packages or installs. A requested package must update `/Applications/Tivano.app` and/or `/Applications/Tivano Dev.app`; do not leave the new build only in DerivedData. Use `scripts/package_local.sh --release|--dev|--both`. Release is normally updated by the owner through the in-app updater, which keeps that path tested.
-- Release owns production data: `~/Library/Application Support/Tivano`, `~/.tivano` and Keychain service `Tivano`. Dev owns test data: `~/Library/Application Support/Tivano Dev`, `~/.tivano-dev` and Keychain service `Tivano Dev`. Never import production data/preferences/credentials into Dev automatically or share either edition’s store with Droppy Code.
-- Separate old shared installations offline with `scripts/separate_data.py --apply`, after all Tivano/Droppy apps exit. Keep backups; never retain compatibility aliases into a live library. Preserve Git worktree registrations via repair and rewrite stored attachment/state paths. Compatible isolated editions may run together; keep edition leases, the cross-edition repository lock for Hydra merges and isolated capture storage. Each edition is its library's only writer, so stores are written directly, without cross-process merges or polling. Provider CLI credentials and user-owned project folders remain external, not edition-owned.
-- Release uses `config/release.xcconfig`; Dev uses `config/dev.xcconfig`. Versions are set in their respective xcconfig files; Dev displays a `dev-` prefix. Keep Apple's bundle version numeric; Dev's prefix is presentation metadata.
-- Versions follow dev's code. Every merge into dev advances Dev's patch version in the same commit (`scripts/set_version.py dev x.y.z`), so one Dev version is one dev revision and Dev always leads or equals Release. Packaging never changes a version.
-- Release never chooses its own version: a release takes Dev's (`scripts/ship.sh` runs `set_version.py release catch-up-dev`). If Dev is not newer than the last release, the fix is a missed Dev bump, never a Release-only bump.
-- The DEV badge is a derived icon; never modify the approved v1 original or the release icon.
-- Local Release and Dev packages use the same Developer ID Application team, with stable bundle IDs and hardened runtime. Do not fall back to local/ad-hoc signing. Public distribution also requires notarization and must not relax the updater's production verification.
-
-## Merging (local dev, always squash)
-
-- The history inherited from upstream is already bloated: thousands of tiny
-  Hydra head commits plus one merge commit per MR. Every task integration MUST
-  land as exactly one new commit on the requested target branch.
-- "Merge" and "package" authorize local work only. Pushing, creating a GitHub PR
-  or publishing requires a separate explicit owner instruction; never infer it
-  from a local merge request.
-- `dev` stays local. Squash task changes in an integration worktree based on
-  `dev`, then fast-forward the local `dev` checkout to that single commit.
-- A merge into dev ("合入 dev") is one commit holding the change, its
-  `## [Unreleased]` CHANGELOG entry for anything user-facing, and Dev's version
-  bump. It does not package. Afterwards ask the owner whether to discard the
-  task worktree.
-- Keep the local pre-push guard; do not bypass it. It allows main and `v*`
-  tags pointing at `origin/main`. Do not promote to `main` unless explicitly
-  requested. When GitHub integration is separately authorized, use `gh` and
-  squash; never push straight to `main`.
-- Do not rewrite existing history or force-push unless the owner explicitly
-  authorizes a specific history migration. Squash applies to ordinary task
-  integrations. The public-history migration was explicitly authorized on
-  2026-10-08; that authorization does not apply to future rewrites.
-
-## Releasing (credit every contributor)
-
-- An explicit owner request to release ("发版") authorizes `scripts/ship.sh`, which does the whole release: Release takes Dev's version and `[Unreleased]` becomes it on dev, the DMG is built and notarized, a squash-merged PR makes main dev's exact tree, and the tag and GitHub Release are published. A release is always all of dev; never assemble main from selected commits. ship.sh stops if Dev's version is not newer or main's tree differs from dev's. It does not install Release.
-- Public GitHub Releases contain exactly one uploaded app installer: the notarized `Tivano-<version>.dmg`. Never upload an App ZIP as a second download, including from one-off completion scripts. Local package ZIPs and notarization submission ZIPs stay local. GitHub's automatic Source code archives are platform-generated; do not delete release tags to remove them.
-
-- Every `## [x.y.z]` entry in CHANGELOG.md that ships outside work carries a `### Thanks` section, one bullet per person in the form `- Name (@github-handle): what they did (#PR).`, after Refinements.
-- `python3 scripts/release_credits.py` prints the block for everything merged since the previous `v*` tag (run it while writing the entry).
-- `scripts/publish_release.sh` runs `scripts/release_credits.py --check` on the notes and refuses to publish while anyone is missing.
-- The app's About cards ignore the Thanks heading, so it changes nothing there.
-- When a pull request from outside merges between releases, add the person to the `## [Unreleased]` entry's Thanks right away rather than at release time.
-
-## Project contracts
-
-- UI: always reuse ChromeSection, ChromeCard, ChromeRow, GlassPickerButton, ChromeVisualPicker and SettingsSwitch. Never invent styles, colors, fonts, spacing or custom controls.
-- Localization: English text is the key in `Tivano/Resources/Localizable.xcstrings`. Every new user-facing string needs a zh-Hans entry. Translate faithfully, clearly and naturally; keep English for product names, provider/model names, MCP, Git, worktree, token and anything that reads worse translated. Native language names stay native.
-- Follow `docs/i18n/CONVENTIONS.md` for catalog lookup and translation fragments.
+The upstream workflow is available in Git history at the fork base; these fork-specific rules supersede edition/release targets in that inherited file.

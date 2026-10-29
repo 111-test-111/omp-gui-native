@@ -4,6 +4,7 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 build.noindex/
+scripts/markdown-preview/node_modules/
 # An Xcode explicit-modules build once wrote its compiler cache into Tivano.xcodeproj/-Xcc.
 -Xcc/
 

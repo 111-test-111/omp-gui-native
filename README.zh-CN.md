@@ -1,69 +1,85 @@
-<img src="docs/icon.png" width="128" alt="Tivano icon">
+# OMP GUI Native
 
-# Tivano
+[English](README.md) | 简体中文
 
-[English](README.md) · **简体中文**
+面向 [Oh My Pi（OMP）](https://omp.sh) 的原生 macOS 桌面工作台，使用 SwiftUI 与 AppKit 构建。本项目是 **[Tivano](https://github.com/elijah7x/tivano) 的修改版 fork**，保留 Droppy Code／T3 Code 的来源链及必要署名；与上述项目及 OMP 作者不存在官方隶属或背书关系。
 
-为你的编码 Agent 打造的 macOS 原生之家 —— 使用 Swift 与 SwiftUI 编写，采用 Liquid Glass 设计，适用于运行 macOS 26 及以上版本的 Apple silicon Mac。
+**源码发布状态：**早期开发。本仓库公开源码，不提供已签名／公证安装包。自动更新及继承的发布脚本保持关闭，上游历史版本不代表本 fork 的发行记录。
 
-Tivano fork 自 Jordy Spruit 的 [Droppy Code](https://getdroppycode.app)，使用新名称独立维护。
+## 主要功能
 
-## 为什么 fork
+- **项目与会话：**原生项目侧栏、历史会话、流式回复、模型与思考级别选择、审批及消息队列。
+- **OMP 原生接入：**以独立会话进程接入公开 NDJSON RPC，支持历史续接、原生控制和基于运行进程能力的可选操作。
+- **子代理观察：**展示原生 worker 进度、按需读取增量详情，保留 Hydra／Pi Crew 交互。执行、调度及隔离归 OMP 所有，GUI 不另建 Agent 引擎。
+- **工作区工具：**文件浏览与预览、显式共享文件上下文、Markdown／公式渲染、内嵌 Chromium 浏览器及 SwiftTerm 终端。
+- **Git 与 GitHub：**浏览仓库与变更、复用 GitHub CLI 登录或连接用户自己的 PAT，并选择仓库克隆。本 fork 不附带其他应用的 GitHub OAuth 注册身份。
+- **本地听写：**在显式完成语言资源与麦克风权限设置后，通过 macOS 语音识别向草稿添加可编辑文字；不是全双工 Agent 语音通话。
 
-Droppy Code 是一件出色的作品，我真心喜欢用它。用得越多，想法就越多——想尝试的功能、想探索的方向。fork 出来自己动手，是顺理成章的事。
-
-遵循作者的商标政策，本 fork 使用了自己的名称、图标与品牌。Tivano 与 Droppy 无任何关联，也未获得其背书。
-
-## 名字
-
-Tivano 是一阵风——科莫湖上清晨的微风。图标里，它吹起一只小小的晴天娃娃，那种挂起来祈求晴空的吉祥物。这也是我们希望编码拥有的感觉：惬意，从容，风在背后。即使身处与 Agent 协作的深水区，Tivano 也希望让新一代的 coder 享受 AI 编码本来的乐趣。
-
-## 功能
-
-Tivano 驱动你本机已安装并登录的编码 Agent，用你自己的订阅：Codex、Claude、Cursor、OpenCode、Grok、Antigravity、Copilot、Command Code、Pi、DeepSeek、Z.ai、Meta 与 Devin。
-
-- 玻璃质感侧栏管理项目与线程，支持搜索、置顶与归档沉降。
-- 流式对话，完整呈现推理过程、工具调用、计划与行内审批。
-- 每个线程可选计划模式、模型与推理强度，以及四档权限模式。
-- 二十九款着色玻璃主题，从 System 到 Catppuccin、Dracula、Claude 与 Codex。
-- 每一轮对话都有 diff，以隐藏的 git 检查点保存，可随时回退。
-- 每个线程内嵌终端，新线程可开在自己的 git worktree 中。
-- 提交、推送与创建 PR，提交信息与线程标题均可自动生成。
-- Hydra：一个对话，多个头脑——主 Agent 为助手团队撰写任务简报，各自在项目副本中并行工作，成果合并回你的检出。
-- 发送按钮旁的额度环，展示每个已接入计划的用量上限与余额。
-
-远程访问、移动端、云同步、遥测与 Web 客户端，是刻意不做的。
+功能受 OMP 版本、模型服务商、账号能力与 macOS 权限约束。请以[当前状态与验收边界](docs/status.md)为准，不以历史截图推断所有场景均已支持。
 
 ## 环境要求
 
-- 运行 macOS 26 及以上版本的 Apple silicon Mac
-- 至少安装并登录一个提供商——`codex login`、`claude auth login`、`copilot login`、`cmd login`，或 `pi` 后执行 `/login`
-- Git；GitHub PR 使用 `gh`，GitLab MR 使用 `glab`
+- Apple Silicon，**macOS 26 或更新系统**。
+- 完整 Xcode、兼容的 macOS SDK 与 Swift 工具链，Git、Python 3。
+- 独立安装并认证的 OMP。当前审阅的接入基线为 **OMP 18.13.3**；依赖 SDK 的配置与浏览器接入还要求 **Bun 1.4.4 或更新版本**。安装及账号认证遵循 OMP 官方说明。
+- 首次构建需要联网下载固定版本的 Swift 包与 Chromium Embedded Framework。
 
-## 构建
+模型服务商、OAuth／API key、模型角色、MCP、技能、扩展、worker 隔离及任务执行均由外部 OMP 管理。GUI 从登录 shell 或设置中的二进制路径发现 `omp`。
 
-```bash
-brew install xcodegen
-xcodegen generate
-open Tivano.xcodeproj
+## 从源码构建
+
+```sh
+git clone https://github.com/111-test-111/omp-gui-native.git
+cd omp-gui-native
+make build
 ```
 
-唯一的依赖 SwiftTerm 由 Swift Package Manager 拉取。
+`make build` 在 `build.noindex/development/Build/Products/Debug/OMP GUI Dev.app` 生成未签名开发应用，**不会安装、启动或替换正在运行的应用**。首次构建会先准备固定版本的浏览器运行时，再构建已检入的 Xcode 工程。
 
-本地 Debug 构建请先运行一次 `scripts/setup_local_signing.sh`；详见 [docs/local-development.md](docs/local-development.md) 与 [docs/packaging.md](docs/packaging.md)。`scripts/release.sh` 可完成发布构建的归档、签名与公证。
+构建依据是 `OMPGUI.xcodeproj`，scheme／target／module 均为 `OMPGUI`。继承的 `project.yml` 尚不能完整重建工程，不应把 XcodeGen 作为常规初始化步骤覆盖现有项目。
 
-## 代码结构
+使用模型前执行 `omp login`。仓库功能可通过 `gh auth login` 或应用中的用户自有 PAT 认证。只有在本 fork 配置了自己注册的 OAuth App 后，才可提供 GitHub 浏览器登录；源码不附带上游 client identity。
 
-源码分为四层，依赖单向。`Tivano/Core` 承载模型与纯工具层，不依赖应用内任何其他部分。`Tivano/Services`——Git 与 worktree、磁盘存储、统一事件模型背后的各提供商适配器——仅依赖 Core；`Tivano/UI`（窗口框架、Markdown 渲染、主题与音效）同样仅依赖 Core。`Tivano/App` 承载入口、线程运行时与全部功能视图，依赖以上各层。
+完整前置条件与 worktree 流程见[本地开发](docs/local-development.md)，二进制发现及配置故障见[故障排查](docs/troubleshooting.md)。
 
-## 致谢
+## 架构与信任边界
 
-Tivano 最初是 T3 Tools Inc. [T3 Code](https://github.com/pingdotgg/t3code) 的原生 Swift 重写，基于 MIT 许可。终端来自 Miguel de Icaza 的 [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm)。工作状态指示器及其轮转文案移植自 Wing 的 [Zeron](https://github.com/zeronsh/zeron)。Codex 账户储备重置的使用方式参考了 [MonoCode](https://github.com/hardbeat920/monocode)。Copilot 提供商图标来自 GitHub 的 [Octicons](https://github.com/primer/octicons)。详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；应用内在 设置 › 关于 › 许可 中附有相同声明。
+```text
+SwiftUI / AppKit
+  → ThreadRuntime 与 OMPSession
+  → OMPRPC／外部 OMP CLI
+  → 原生模型、工具及 worker 执行
+```
 
-## 许可证
+GUI 将原生事件投影为会话、审批和 worker 面板。宿主工具桥接显式共享的文件上下文、预览定位和浏览器入口；可选能力以原生注册及当前进程回复为依据。
 
-GNU AGPL v3.0 及附加署名条款——见 [LICENSE](LICENSE)。你可以使用、学习、修改与分享 Tivano。任何分发修改版本、或通过网络向他人提供修改版本的人，都须以相同许可公开源码、注明已修改，并保留署名 "Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app"。
+| 方向 | 入口 |
+| --- | --- |
+| 运行时与职责归属 | [OMP 接入](docs/OMP_INTEGRATION.md) |
+| 源码地图 | [架构](docs/architecture.md) |
+| 聊天、审批与 worker | [交互指南](docs/chat-workflows.md) |
+| 浏览器与本地数据 | [浏览器](docs/browser.md)、[存储与配置](docs/shared-library.md) |
+| 开发检查 | [验证规范](docs/verification.md)、[测试入口](tests/README.md) |
+| 源码发布与来源 | [源码发布说明](docs/source-release.md)、[仓库历史](docs/repository-history.md) |
 
-"Droppy" 与 "Droppy Code" 名称及其图标不在许可范围内，见 [TRADEMARK.md](TRADEMARK.md)。部分代码源自 MIT 许可的 T3 Code，其声明保留于 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+OMP 服务商凭据保留在其活动 profile。GUI 另外处理自己的 GitHub 连接 token、浏览器及应用状态，并非完全不接触凭据。不要向模型或不受信任的工作区授予超出预期的权限。
 
-如果你基于本项目构建，请在你的关于页面、README 与源码头部保留上述署名，并保留 THIRD_PARTY_NOTICES.md。仅此而已。
+## 开发与验证
+
+```sh
+make verify                                    # 仅列出区域，不执行检查。
+make verify-plan AREAS="rpc"                    # 查看受影响区域。
+make verify TIER=static AREAS="documentation"   # 仅检查文档。
+```
+
+当前没有 Xcode test target，也没有默认全量检查。应按改动选择最小区域，使用隔离 fixture，区分静态、功能、原生运行时与人工 GUI 证据。源码／文档检查通过不等于签名包、真实账号或目标环境验收通过。
+
+贡献前阅读 [AGENTS.md](AGENTS.md)，使用独立任务 worktree，不操作其他任务的工作区及运行应用。[打包契约](docs/packaging.md)说明独立的签名和安装前置条件；GitHub 源码公开不等于获得 Apple 签名资格，也不会启用 Tivano 的更新源或发布端点。
+
+## 许可与署名
+
+**Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app**
+
+OMP GUI Native 是 Tivano 的修改版 fork，沿袭 Droppy Code 与 T3 Code 来源，采用 **GNU AGPL v3.0 及 [LICENSE](LICENSE) 中的附加署名／来源条款**。必须保留 README、About／credits 及源码中的必要声明。许可证不授予 Droppy 名称、图标或其他商标的使用权，详见 [TRADEMARK.md](TRADEMARK.md)。
+
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)保留 T3 Tools Inc. 的 MIT 声明，以及继承组件、SwiftTerm、浏览器资源、字体、图标与后续适配的许可及致谢。第三方名称和标志仅用于说明来源，不代表作者背书。

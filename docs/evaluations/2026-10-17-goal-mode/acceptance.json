@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "date": "2026-10-17",
+  "timezone": "Asia/Hong_Kong",
+  "base_commit": "e0cc7db",
+  "version": "0.1.62",
+  "build": 63,
+  "runtime_upgrade": {
+    "from": "18.3.2",
+    "to": "18.11.2",
+    "distribution": "existing fnm npm global installation",
+    "owner_authorized_existing_gui_exit_and_upgrade": true,
+    "executable": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+    "executable_file_sha256": "4f91e2fb6b604da8efd8ac76f51e154aff16ae93e0022c8c64add4be62f3db92",
+    "verification_runtime": [
+      {
+        "executable": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js",
+        "version": "omp/18.11.2",
+        "sha256": "7218093b10cff60f07c5aab417a0c65e9af73490151718a6b518825c79b1ded3",
+        "sdk_source_sha256": "2a101dc22fdc7defd94f8d29fd798709d090c46009f3bbe6e392499c2644894c"
+      }
+    ]
+  },
+  "builds": [
+    {
+      "status": "passed",
+      "scope": "Goal mode and popover changes",
+      "evidence": {
+        "schema": 1,
+        "source_sha256": "f68fc478b5ed7810bd4005e5b71367c27550d889c1211aea1fcda0f16d7286c1",
+        "binary_sha256": "f86461bf9de1061e1fe63d7b9f7460a1e5094450e37cefb7d71ef5d883200507"
+      }
+    },
+    {
+      "status": "passed",
+      "scope": "Native Ask getter and non-answer protocol compatibility fix",
+      "evidence": {
+        "schema": 1,
+        "source_sha256": "1f359ac5ca61600dcb57c646ea754feb8c54e77f92f1ddb49139084a6fb42643",
+        "binary_sha256": "d00ca678385974c0aa0e74988bd7d26c0728ff6b3157938f849b50112e027c9d"
+      }
+    }
+  ],
+  "initial_functional": {
+    "report": "build.noindex/verification/runs/20261016T181742Z-a5cacff7/report.json",
+    "status": "passed",
+    "checks": {
+      "goal": 43,
+      "workflows": 120,
+      "questions": 71,
+      "interactions": 68
+    }
+  },
+  "failed_native_attempt": {
+    "report": "build.noindex/verification/runs/20261016T181856Z-67f5a650/report.json",
+    "status": "failed",
+    "behavior_checks_completed": 0,
+    "cause": "Legacy Ask presentation adapter assigned to a native read-only prototype getter while it returned undefined before opt-in.",
+    "remaining_checks": "Goal and side-question were not run after RPC failure.",
+    "diagnosis": "build.noindex/compat-diagnosis/stderr.log",
+    "diagnostic_model_requests": 0
+  },
+  "final_native_and_affected_functional": {
+    "report": "build.noindex/verification/runs/20261016T182626Z-22d40d72/report.json",
+    "status": "passed",
+    "checks": {
+      "native:rpc": 22,
+      "native:goal": 10,
+      "native:side-question": 11,
+      "functional:questions": 78,
+      "native:questions": 42
+    },
+    "scope": "One actual upgraded npm runtime; isolated profiles and loopback provider, public SDK/RPC, no external accounts or paid models.",
+    "reused": "Initial Goal, workflow and interaction checks retain their source scope; only Ask response and presentation-adapter paths changed after those passes."
+  },
+  "static": {
+    "report": "build.noindex/verification/runs/20261016T182752Z-b373a215/report.json",
+    "status": "passed",
+    "markdown_files": 67,
+    "local_links": 565,
+    "syntax": {
+      ".js": 2,
+      ".mjs": 4,
+      ".py": 37,
+      ".sh": 9,
+      ".swift": 44
+    }
+  },
+  "gui": {
+    "authorized_existing_instance_exited": true,
+    "new_gui_launched": false,
+    "new_popover_manual_acceptance": false,
+    "no_remaining_gui_or_native_check_processes_at_closeout": true
+  },
+  "remaining": [
+    "Actual popover composition and keyboard/focus acceptance",
+    "Existing full Q timing, resource attribution and system accessibility matrix",
+    "External account/model/provider and full compatibility matrices"
+  ]
+}

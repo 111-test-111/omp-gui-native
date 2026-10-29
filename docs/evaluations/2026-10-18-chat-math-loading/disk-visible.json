@@ -1,0 +1,185 @@
+{
+  "cached_reopen_ms": 424.55487500410527,
+  "cold_disk_hits": 238,
+  "cold_ms": 1665.281374938786,
+  "cold_typeset": 0,
+  "cold_webview_creations": 0,
+  "first_queue_idle_ms": 545.1626249123365,
+  "heartbeats": 17,
+  "last_queue_drained_ms": 1099.9583749799058,
+  "main_actor_gap_ms": [
+    362.8020833712071,
+    60.745958355255425,
+    84.70108325127512,
+    68.03000008221716,
+    331.5701666288078,
+    75.85058338008821,
+    79.34499997645617,
+    59.00975002441555,
+    53.99237491656095,
+    52.47354169841856,
+    53.764333366416395,
+    50.44183332938701,
+    53.05520829278976,
+    53.86420839931816,
+    53.190083242952824,
+    52.13041673414409,
+    82.89829164277762
+  ],
+  "math_queue_drained": true,
+  "paint_ms": [
+    498.5144166275859,
+    498.54137492366135,
+    498.606541659683,
+    498.64033330231905,
+    498.6504582921043,
+    498.68554167915136,
+    498.7298332853243,
+    498.7758749630302,
+    498.80133324768394,
+    543.7699999893084,
+    543.8219582429156,
+    543.8712083268911
+  ],
+  "renderer_stages": [],
+  "reopen_paint_ms": [
+    394.6964999195188,
+    394.71808332018554,
+    394.8252915870398,
+    394.8686249786988,
+    394.90516658406705,
+    394.91445827297866,
+    394.97770834714174,
+    395.03116661217064,
+    395.0679999543354,
+    395.1047082664445,
+    395.1697499724105,
+    395.1999166747555
+  ],
+  "reopen_typeset": 0,
+  "scope": "Production RootView/ThreadRuntime and staged chat, visible isolated window; no live provider",
+  "timeline": [
+    {
+      "ms": 399.7155833058059,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 460.46154166106135,
+      "painted_unique": 0,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 545.1626249123365,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 613.1926249945536,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 944.7627916233614,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1020.6133750034496,
+      "painted_unique": 12,
+      "rendering": true,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1099.9583749799058,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1158.9681250043213,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1212.9604999208823,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1265.4340416193008,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1319.1983749857172,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1369.6402083151042,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1422.695416607894,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1476.5596250072122,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1529.749708250165,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1581.880124984309,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    },
+    {
+      "ms": 1664.7784166270867,
+      "painted_unique": 12,
+      "rendering": false,
+      "snapshots": 0,
+      "typeset": 0
+    }
+  ],
+  "widths": [
+    1320
+  ]
+}

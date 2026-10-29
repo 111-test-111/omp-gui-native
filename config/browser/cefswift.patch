@@ -1,0 +1,476 @@
+diff --git a/Sources/CefKit/BrowserClient.swift b/Sources/CefKit/BrowserClient.swift
+--- a/Sources/CefKit/BrowserClient.swift
++++ b/Sources/CefKit/BrowserClient.swift
+@@ -39,14 +39,43 @@
+     /// live handler and the browser renders windowless.
+     weak var osrHost: CefOSRHost?
+ 
++    /// An embedded view does not own its application's top-level NSWindow.
++    var ownsEmbeddedView = false
++
+     /// The OSR browser wrapper awaiting its async-created raw cef_browser_t
+     /// (adopted in on_after_created).
+     var pendingOSRBrowser: CefBrowser?
++    var pendingEmbeddedBrowser: CefBrowser?
++    var embeddedBrowserCreated: ((CefBrowser) -> Void)?
+ 
+     // The most recent context-menu params, captured in on_before_context_menu
+     // and replayed to the command/dismiss callbacks (which also receive params,
+     // but keeping the snapshot avoids re-reading the borrowed struct).
+     private var lastContextMenuParams = CefContextMenuParams()
++    private var pendingCDPDialog: CefJSDialogCallback?
++
++    func cancelCDPDialog() {
++        let pending = pendingCDPDialog
++        pendingCDPDialog = nil
++        pending?.cancel()
++    }
++
++    private func holdDialogForCDP(_ callback: CefJSDialogCallback) -> Bool {
++        guard CefRuntime.shared.configuration?.useCDPJavaScriptDialogs == true else { return false }
++        releaseCDPDialog()
++        pendingCDPDialog = callback
++        return true
++    }
++
++    private func releaseCDPDialog() {
++        guard let pending = pendingCDPDialog else { return }
++        pendingCDPDialog = nil
++        if let browser { browser.delegate?.browserJavaScriptDialogDidClose(browser) }
++        // CDP's Page handler completes Chromium's shared dialog callback before
++        // asking CEF to reset its UI. Drop our extra reference on the next turn,
++        // outside CEF's close/reset stack, including native browser teardown.
++        DispatchQueue.main.async { withExtendedLifetime(pending) {} }
++    }
+ 
+     func attach(_ browser: CefBrowser) {
+         self.browser = browser
+@@ -87,6 +116,14 @@
+                 return
+             }
+             MainActor.assumeIsolated {
++                if let pending = client.pendingEmbeddedBrowser {
++                    cefAddRef(UnsafeMutableRawPointer(browser))
++                    pending.adoptRaw(browser)
++                    client.pendingEmbeddedBrowser = nil
++                    let completion = client.embeddedBrowserCreated
++                    client.embeddedBrowserCreated = nil
++                    completion?(pending)
++                }
+                 if let pending = client.pendingOSRBrowser, !pending.hasRawBrowser {
+                     cefAddRef(UnsafeMutableRawPointer(browser))  // adoptRaw takes a +1 it owns
+                     pending.adoptRaw(browser)
+@@ -95,14 +132,26 @@
+             }
+             cefRelease(UnsafeMutableRawPointer(browser))
+         }
+-        lifeSpan.pointee.do_close = { _, browser in
+-            cefRelease(browser.map(UnsafeMutableRawPointer.init))
+-            return 0  // proceed with the close
++        lifeSpan.pointee.do_close = { handlerSelf, browser in
++            defer { cefRelease(browser.map(UnsafeMutableRawPointer.init)) }
++            return MainActor.assumeIsolated {
++                guard let client = BrowserClient.owner(handlerSelf.map(UnsafeMutableRawPointer.init)),
++                      client.ownsEmbeddedView else { return 0 }
++                // CEF's default macOS close calls performClose: on the outer
++                // NSWindow. Only destroy our child view. Its dealloc notifies
++                // CEF's WindowDestroyed and completes on_before_close. Defer
++                // this until DoClose has unwound to avoid reentrant teardown.
++                if let native = client.browser?.nativeView {
++                    DispatchQueue.main.async { native.removeFromSuperview() }
++                }
++                return 1
++            }
+         }
+         lifeSpan.pointee.on_before_close = { handlerSelf, browser in
+             cefRelease(browser.map(UnsafeMutableRawPointer.init))
+             guard let client = BrowserClient.owner(handlerSelf.map(UnsafeMutableRawPointer.init)) else { return }
+             MainActor.assumeIsolated {
++                client.releaseCDPDialog()
+                 client.browser?.handleBeforeClose()
+             }
+         }
+@@ -506,7 +555,11 @@
+                 origin: CefStringUtil.string(from: originURL)
+             )
+             let wrapper = CefJSDialogCallback(raw: callback)  // owns the +1
+-            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { _, cefBrowser in
++            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { client, cefBrowser in
++                if client.holdDialogForCDP(wrapper) {
++                    _ = cefBrowser.delegate?.browser(cefBrowser, runJSDialog: dialog, callback: wrapper)
++                    return 1
++                }
+                 if cefBrowser.delegate?.browser(cefBrowser, runJSDialog: dialog, callback: wrapper) == true {
+                     return 1  // app presents + resolves the callback itself
+                 }
+@@ -520,7 +573,11 @@
+             let message = CefStringUtil.string(from: messageText)
+             let reload = isReload != 0
+             let wrapper = CefJSDialogCallback(raw: callback)
+-            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { _, cefBrowser in
++            return BrowserClientCallbacks.run(handlerSelf, default: Int32(0)) { client, cefBrowser in
++                if client.holdDialogForCDP(wrapper) {
++                    _ = cefBrowser.delegate?.browser(cefBrowser, runBeforeUnloadDialog: message, isReload: reload, callback: wrapper)
++                    return 1
++                }
+                 if cefBrowser.delegate?.browser(cefBrowser, runBeforeUnloadDialog: message, isReload: reload, callback: wrapper) == true {
+                     return 1
+                 }
+@@ -528,11 +585,13 @@
+                 return 1
+             }
+         }
+-        handler.pointee.on_reset_dialog_state = { _, browser in
+-            cefRelease(browser.map(UnsafeMutableRawPointer.init))
+-        }
+-        handler.pointee.on_dialog_closed = { _, browser in
+-            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++        handler.pointee.on_reset_dialog_state = { handlerSelf, browser in
++            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++            BrowserClientCallbacks.run(handlerSelf, default: ()) { client, _ in client.releaseCDPDialog() }
++        }
++        handler.pointee.on_dialog_closed = { handlerSelf, browser in
++            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++            BrowserClientCallbacks.run(handlerSelf, default: ()) { client, _ in client.releaseCDPDialog() }
+         }
+         jsDialogPointer = handler
+     }
+diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
+--- a/Sources/CefKit/CefBrowser.swift
++++ b/Sources/CefKit/CefBrowser.swift
+@@ -50,6 +50,8 @@
+ 
+     /// Owned +1 reference to the underlying cef_browser_t; nil after close.
+     private var raw: UnsafeMutablePointer<cef_browser_t>?
++    public private(set) var isCreationPending = false
++    private var closeAfterCreation = false
+     let client: BrowserClient?
+ 
+     init(raw: UnsafeMutablePointer<cef_browser_t>?, client: BrowserClient?, delegate: CefBrowserDelegate?) {
+@@ -171,6 +173,8 @@
+     /// `onbeforeunload` handlers may cancel the close; ``CefBrowserDelegate/browserDidClose(_:)``
+     /// fires when the close completes.
+     public func close(force: Bool = false) {
++        if isCreationPending { closeAfterCreation = true; return }
++        if force { client?.cancelCDPDialog() }
+         withHost { $0.pointee.close_browser?($0, force ? 1 : 0) }
+     }
+ 
+@@ -197,9 +201,16 @@
+             return
+         }
+         raw = newRaw
++        isCreationPending = false
+         id = newRaw.pointee.get_identifier?(newRaw) ?? -1
+         CefRuntime.shared.registerBrowser(self)
+-    }
++        if closeAfterCreation {
++            DispatchQueue.main.async { self.close(force: true) }
++        }
++    }
++
++    /// True only after CEF has delivered on_before_close and released its browser.
++    public var isClosed: Bool { raw == nil && !isCreationPending }
+ 
+     /// Whether a live raw cef_browser_t is attached.
+     var hasRawBrowser: Bool { raw != nil }
+@@ -273,7 +284,9 @@
+     /// Requires an initialized runtime (``CefRuntime/initialize(configuration:)``)
+     /// and a `parentView` that is part of a window. Creation is synchronous;
+     /// the returned browser is live (its ``CefBrowser/nativeView`` exists)
+-    /// unless creation failed, in which case `id == -1`.
++    /// unless creation failed, in which case `id == -1`. With `onCreated`,
++    /// creation is asynchronous and waits for a new persistent profile to
++    /// initialize. The returned browser can be closed while creation is pending.
+     ///
+     /// - Note: CEF always uses Alloy runtime style for browsers embedded via
+     ///   a parent view, regardless of ``CefBrowserOptions/runtimeStyle``.
+@@ -282,7 +295,8 @@
+         bounds: CGRect,
+         url: URL,
+         options: CefBrowserOptions = .init(),
+-        delegate: CefBrowserDelegate?
++        delegate: CefBrowserDelegate?,
++        onCreated: ((CefBrowser) -> Void)? = nil
+     ) -> CefBrowser {
+         precondition(
+             CefRuntime.shared.isInitialized,
+@@ -290,6 +304,7 @@
+         )
+ 
+         let client = BrowserClient()
++        client.ownsEmbeddedView = true
+         let clientPointer = client.makeClient()
+ 
+         var windowInfo = cef_window_info_t()
+@@ -318,6 +333,24 @@
+         }
+ 
+         let requestContext = options.profile?.makeRequestContext()
++
++        if let onCreated {
++            let browser = CefBrowser(raw: nil, client: client, delegate: delegate)
++            browser.isCreationPending = true
++            client.attach(browser)
++            client.pendingEmbeddedBrowser = browser
++            client.embeddedBrowserCreated = onCreated
++            let accepted = CefStringUtil.withCefString(url.absoluteString) { cefURL in
++                cef_browser_host_create_browser(&windowInfo, clientPointer, cefURL, &browserSettings, nil, requestContext)
++            }
++            if accepted == 0 {
++                browser.isCreationPending = false
++                client.pendingEmbeddedBrowser = nil
++                client.embeddedBrowserCreated = nil
++                DispatchQueue.main.async { onCreated(browser) }
++            }
++            return browser
++        }
+ 
+         let rawBrowser = CefStringUtil.withCefString(url.absoluteString) { cefURL in
+             cef_browser_host_create_browser_sync(&windowInfo, clientPointer, cefURL, &browserSettings, nil, requestContext)
+diff --git a/Sources/CefKit/CefBrowserDelegate.swift b/Sources/CefKit/CefBrowserDelegate.swift
+--- a/Sources/CefKit/CefBrowserDelegate.swift
++++ b/Sources/CefKit/CefBrowserDelegate.swift
+@@ -86,6 +86,8 @@
+     /// `callback` (`success: true` = leave). Return `true` to present your own
+     /// dialog; `false` for the native one.
+     func browser(_ b: CefBrowser, runBeforeUnloadDialog message: String, isReload: Bool, callback: CefJSDialogCallback) -> Bool
++
++    func browserJavaScriptDialogDidClose(_ b: CefBrowser)
+ 
+     // MARK: Context menu
+ 
+@@ -194,6 +196,7 @@
+ 
+     public func browser(_ b: CefBrowser, configureContextMenu menu: CefMenuModel, params: CefContextMenuParams) {}
+     public func browser(_ b: CefBrowser, contextMenuCommand commandID: Int, params: CefContextMenuParams) -> Bool { false }
++    public func browserJavaScriptDialogDidClose(_ b: CefBrowser) {}
+     public func browserContextMenuDidClose(_ b: CefBrowser) {}
+ 
+     public func browser(_ b: CefBrowser, requestsPermission request: CefPermissionRequest) -> CefPermissionDecision { .deny }
+diff --git a/Sources/CefKit/CefConfiguration.swift b/Sources/CefKit/CefConfiguration.swift
+--- a/Sources/CefKit/CefConfiguration.swift
++++ b/Sources/CefKit/CefConfiguration.swift
+@@ -93,6 +93,11 @@
+     /// Enables remote DevTools debugging on the given localhost port.
+     public var remoteDebuggingPort: Int?
+ 
++    /// Let a connected CDP Page client own JavaScript dialogs. CefSwift retains
++    /// each CEF callback until CEF reports close/reset, without entering AppKit
++    /// modal presentation. Enable only for a host controlled through CDP.
++    public var useCDPJavaScriptDialogs: Bool = false
++
+     /// Persist session cookies across runs.
+     public var persistSessionCookies: Bool = false
+ 
+diff --git a/Sources/CefKit/CefProfile.swift b/Sources/CefKit/CefProfile.swift
+--- a/Sources/CefKit/CefProfile.swift
++++ b/Sources/CefKit/CefProfile.swift
+@@ -15,7 +15,7 @@
+ ///   `cachePath`).
+ /// - ``incognito()`` is in-memory: nothing is persisted to disk.
+ /// - ``persistent(name:)`` stores its data under
+-///   `<rootCachePath>/Profiles/<name>`, isolated from other profiles.
++///   `<rootCachePath>/Profile-<name>`, isolated from other profiles.
+ ///
+ /// Create profiles after ``CefRuntime/initialize(configuration:)`` succeeds.
+ @MainActor
+@@ -58,7 +58,7 @@
+     }
+ 
+     /// A named on-disk profile stored under
+-    /// `<rootCachePath>/Profiles/<name>`. Reusing the same `name` reuses the
++    /// `<rootCachePath>/Profile-<name>`. Reusing the same `name` reuses the
+     /// same storage.
+     public static func persistent(name: String) -> CefProfile {
+         CefProfile(kind: .persistent(name: name))
+@@ -74,13 +74,14 @@
+         case .persistent(let name):
+             let safe = sanitize(name)
+             return rootCachePath?
+-                .appendingPathComponent("Profiles", isDirectory: true)
+-                .appendingPathComponent(safe, isDirectory: true)
++                // Chrome's profile manager requires a direct child of the
++                // user data root. Nested paths silently become incognito.
++                .appendingPathComponent("Profile-" + safe, isDirectory: true)
+         }
+     }
+ 
+     /// Strips path separators and leading dots so a profile name can't escape
+-    /// the Profiles directory.
++    /// the profile root directory.
+     static func sanitize(_ name: String) -> String {
+         let cleaned = name
+             .replacingOccurrences(of: "/", with: "_")
+diff --git a/Sources/CefKit/CefRuntime.swift b/Sources/CefKit/CefRuntime.swift
+--- a/Sources/CefKit/CefRuntime.swift
++++ b/Sources/CefKit/CefRuntime.swift
+@@ -402,7 +402,7 @@
+         browsers[id] = nil
+         if isTerminationRequested && browsers.isEmpty {
+             // Re-enter terminate:; with no browsers left it now proceeds.
+-            NSApp.terminate(nil)
++            DispatchQueue.main.async { NSApp.terminate(nil) }
+         }
+     }
+ 
+diff --git a/Sources/CefSwiftUI/CefWebView.swift b/Sources/CefSwiftUI/CefWebView.swift
+--- a/Sources/CefSwiftUI/CefWebView.swift
++++ b/Sources/CefSwiftUI/CefWebView.swift
+@@ -97,6 +97,14 @@
+ 
+     /// Set during teardown so a late `viewDidMoveToWindow` can't resurrect the browser.
+     private var isTornDown = false
++    private var isCreatingBrowser = false
++
++    /// A retained AppKit host for clients that move one page between windows.
++    /// Its lifetime is explicit, independent of a SwiftUI representable tree.
++    public convenience init(model: CefWebViewModel) {
++        self.init()
++        self.model = model
++    }
+ 
+     init() {
+         super.init(frame: .zero)
+@@ -126,7 +134,7 @@
+     // MARK: Browser lifecycle
+ 
+     private func adoptOrCreateBrowserIfPossible() {
+-        guard !isTornDown, window != nil, let model else { return }
++        guard !isTornDown, !isCreatingBrowser, window != nil, let model else { return }
+ 
+         if let existing = model.browser {
+             // The model already has a browser (view re-created, or model shared with a
+@@ -139,18 +147,26 @@
+             return
+         }
+ 
++        isCreatingBrowser = true
+         let url = model.url ?? URL(string: "about:blank") ?? URL(fileURLWithPath: "/")
+         let browser = CefBrowser.createBrowser(
+             parentView: self,
+             bounds: bounds,
+             url: url,
+             options: model.options,
+-            delegate: model
++            delegate: model,
++            onCreated: { [self, model] browser in
++                isCreatingBrowser = false
++                guard !isTornDown, self.model === model, model.browser === browser else {
++                    browser.close(force: true)
++                    adoptOrCreateBrowserIfPossible()
++                    return
++                }
++                model.attach(browser)
++                if let native = browser.nativeView { configure(browserView: native) }
++            }
+         )
+         model.attach(browser)
+-        if let native = browser.nativeView {
+-            configure(browserView: native)
+-        }
+     }
+ 
+     private func configure(browserView: NSView) {
+@@ -171,7 +187,9 @@
+     private func closeBrowser(of model: CefWebViewModel) {
+         guard let browser = model.browser else { return }
+         // Only close browsers actually hosted by this view.
+-        guard let native = browser.nativeView, native.superview === self || native.superview == nil else { return }
++        if !browser.isCreationPending {
++            guard let native = browser.nativeView, native.superview === self || native.superview == nil else { return }
++        }
+         model.detach()
+         // Force-close: the hosting view is going away, so JS onbeforeunload prompts
+         // can't meaningfully be shown.
+@@ -179,7 +197,7 @@
+     }
+ 
+     /// Closes the hosted browser and detaches the model. Called on dismantle.
+-    func tearDown() {
++    public func tearDown() {
+         guard !isTornDown else { return }
+         isTornDown = true
+         if let model {
+diff --git a/Sources/CefSwiftUI/CefWebViewModel.swift b/Sources/CefSwiftUI/CefWebViewModel.swift
+--- a/Sources/CefSwiftUI/CefWebViewModel.swift
++++ b/Sources/CefSwiftUI/CefWebViewModel.swift
+@@ -64,6 +64,20 @@
+     /// Options used when the browser is created. Changes after creation have no effect.
+     public var options: CefBrowserOptions
+ 
++    // OMP GUI integration hooks. No application policy lives in the wrapper.
++    public var onBrowserCreated: ((CefBrowser) -> Void)?
++    public var onBrowserClosed: (() -> Void)?
++    public var onLoadError: ((Int, String, String) -> Void)?
++    public var onRendererTerminated: (() -> Void)?
++    public var onNavigation: ((URL?) -> CefNavigationDecision)?
++    public var onDialog: ((CefJSDialog, CefJSDialogCallback) -> Void)?
++    public var onBeforeUnload: ((String, Bool, CefJSDialogCallback) -> Void)?
++    public var onDialogClosed: (() -> Void)?
++    public var onPermission: ((CefPermissionRequest) -> CefPermissionDecision)?
++    public var onURLChanged: ((URL?) -> Void)?
++    public var onTitleChanged: ((String) -> Void)?
++    public var onFocusRequested: (() -> Bool)?
++
+     // MARK: Pluggable hooks (all optional)
+ 
+     /// Called for every JavaScript console message emitted by the page.
+@@ -125,6 +139,7 @@
+     func attach(_ browser: CefBrowser) {
+         self.browser = browser
+         browser.delegate = self
++        if !browser.isCreationPending { onBrowserCreated?(browser) }
+         // Seed mirrored state from the browser's current values.
+         title = browser.title
+         isLoading = browser.isLoading
+@@ -177,12 +192,14 @@
+ 
+     public func browser(_ b: CefBrowser, didChangeTitle title: String) {
+         self.title = title
++        onTitleChanged?(title)
+     }
+ 
+     public func browser(_ b: CefBrowser, didChangeURL url: URL?) {
+         isApplyingBrowserURL = true
+         self.url = url
+         isApplyingBrowserURL = false
++        onURLChanged?(url)
+     }
+ 
+     public func browser(
+@@ -223,7 +240,34 @@
+         return CefWindowOpenPolicy.defaultAction(for: request)
+     }
+ 
++    public func browser(_ b: CefBrowser, didFailLoad code: Int, errorText: String, failedURL: String) {
++        onLoadError?(code, errorText, failedURL)
++    }
++    public func browser(_ b: CefBrowser, renderProcessDidTerminate reason: CefTerminationReason, errorCode: Int) {
++        onRendererTerminated?()
++    }
++    public func browser(_ b: CefBrowser, decidePolicyForNavigation url: URL?, isRedirect: Bool, userGesture: Bool) -> CefNavigationDecision {
++        onNavigation?(url) ?? .allow
++    }
++    public func browser(_ b: CefBrowser, runJSDialog dialog: CefJSDialog, callback: CefJSDialogCallback) -> Bool {
++        guard let onDialog else { return false }
++        onDialog(dialog, callback)
++        return true
++    }
++    public func browser(_ b: CefBrowser, runBeforeUnloadDialog message: String, isReload: Bool, callback: CefJSDialogCallback) -> Bool {
++        guard let onBeforeUnload else { return false }
++        onBeforeUnload(message, isReload, callback)
++        return true
++    }
++    public func browserJavaScriptDialogDidClose(_ b: CefBrowser) { onDialogClosed?() }
++    public func browser(_ b: CefBrowser, requestsPermission request: CefPermissionRequest) -> CefPermissionDecision {
++        onPermission?(request) ?? .deny
++    }
++    public func browserShouldCancelSetFocus(_ b: CefBrowser) -> Bool { onFocusRequested?() ?? false }
++
+     public func browserDidClose(_ b: CefBrowser) {
++        guard browser === b else { return }
++        onBrowserClosed?()
+         detach()
+         isLoading = false
+         canGoBack = false

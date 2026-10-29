@@ -1,0 +1,800 @@
+{
+  "app_build": {
+    "schema": 1,
+    "source_sha256": "1e494ba314e532e04fe76509828c5f900e6d12b60f9b82d31d4cddf8451379ab",
+    "binary_sha256": "082566617ddffdc1313e4170b2005d68c21ce39ed0dd4a11c01a9e65d9022594"
+  },
+  "scope": "State facts only from initial async-main helper, before production changes. No GUI input claim.",
+  "preparation": [
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": true,
+      "ms": 4385.887291748077,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 3,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": true,
+      "ms": 5255.04100008402,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5337.641125079244,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5468.06241676677,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5519.48087499477,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5571.553166722879,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5622.822208330035,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5675.784375052899,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5727.652083383873,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5779.7250833828,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5833.525750087574,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5888.117499998771,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5939.534833421931,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 5991.992333438247,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6043.493875069544,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6094.678291701712,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6147.1427084179595,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6201.683624996804,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6253.255166695453,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6304.6471667476,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6356.1337917344645,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6408.153249998577,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6462.965291691944,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6517.340625054203,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6570.517291664146,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6625.779416761361,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6681.377208326012,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6739.438833435997,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6795.684625045396,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6851.443374995142,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6909.82525004074,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 6968.45929173287,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7025.9465833660215,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7084.634124999866,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7142.185458331369,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7198.29754170496,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7254.644791712053,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7313.030750025064,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7371.731750085019,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7430.297000100836,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7489.4015833269805,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7544.157833326608,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7603.534291731194,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7661.128041683696,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7716.732875094749,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7772.138208383694,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7827.861500089057,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7882.515208330005,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7937.421291717328,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 7994.018375058658,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8052.117333398201,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8107.026666752063,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8164.797333418392,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8219.24520842731,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8277.013083337806,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8336.315541760996,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8394.379750010557,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8453.784833429381,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8508.216333342716,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8567.481041769497,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8623.612041701563,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8681.571791763417,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8738.228625035845,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8792.724750004709,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8847.639166750014,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8907.331500086002,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 8966.231416678056,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9023.912708391435,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9081.02600008715,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9140.936625073664,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9197.124583413824,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9254.097541677766,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9312.48445843812,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9369.213833357207,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9424.40283333417,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9481.560750049539,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9537.754250108264,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9593.315416714177,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    },
+    {
+      "answers": 4,
+      "assessed": true,
+      "hides_content": false,
+      "history_loading": false,
+      "ms": 9650.627458351664,
+      "pending": 0,
+      "phase": "quick_return",
+      "spinner": false
+    }
+  ]
+}

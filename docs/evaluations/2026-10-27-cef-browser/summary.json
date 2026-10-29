@@ -1,0 +1,133 @@
+{
+  "status": "passed",
+  "checks": [
+    "Exactly two embedded page targets, no external Chrome page",
+    "OMP reads the distinct instance UUIDs injected by the native hosted browsers",
+    "CDP observations match both native CEF browser identifiers",
+    "OMP observes the actual input, textarea and button",
+    "Native owner independently confirms OMP Chinese fill, key press and click",
+    "Keyboard input includes a browser-trusted key event",
+    "Input in A leaves same-origin B untouched",
+    "Explicit target B works while A is selected, without cross-tab input",
+    "OMP produces a real PNG screenshot of embedded A",
+    "A real AbortSignal interrupts the pending browser operation",
+    "Abort returns within six seconds instead of waiting for selector timeout",
+    "Cancelled sequence cannot execute its later write",
+    "OMP can reacquire and operate A after cancellation",
+    "Closing an OMP attached handle preserves the user-owned embedded browser",
+    "Closing A preserves B and its input before stale-handle recovery",
+    "Operations on the natively closed target fail instead of selecting B",
+    "Closing A preserves B and its input",
+    "OMP opens a fresh handle and operates the recreated embedded tab",
+    "Reopened A is a new native browser instance",
+    "Refreshing the attached connection preserves B and its input",
+    "Releasing all OMP handles preserves both user-owned tabs"
+  ],
+  "ompVersion": "18.12.5",
+  "cefSwiftRevision": "ba6ebff9e232529289662a84704ade1240563031",
+  "modelRequests": 0,
+  "scope": "Standalone visible CefWebView, native OMP SDK/Eval/Browser; loopback fixture only",
+  "phase": "all",
+  "cancellation": {
+    "elapsedMs": 604,
+    "result": {
+      "error": "Error: Command aborted"
+    },
+    "preservedInput": true
+  },
+  "screenshot": {
+    "path": "embedded-a.png",
+    "bytes": 59738,
+    "width": 2080,
+    "height": 1230
+  },
+  "host": {
+    "os": "27.2",
+    "architecture": "arm64"
+  },
+  "caseRunID": "8325fdbcdacd439181ce883787ee7eb3",
+  "afterNativeClose": {
+    "pageTargets": 1,
+    "remainingTabIDs": [
+      "B"
+    ]
+  },
+  "cells": [
+    {
+      "label": "attach-and-identify",
+      "elapsedMs": 685,
+      "images": 0
+    },
+    {
+      "label": "observe",
+      "elapsedMs": 4,
+      "images": 0
+    },
+    {
+      "label": "input-a",
+      "elapsedMs": 41,
+      "images": 0
+    },
+    {
+      "label": "input-hidden-b",
+      "elapsedMs": 74,
+      "images": 0
+    },
+    {
+      "label": "screenshot-a",
+      "elapsedMs": 141,
+      "images": 1
+    },
+    {
+      "label": "cancel-wait",
+      "elapsedMs": 602,
+      "images": 0
+    },
+    {
+      "label": "recover-after-cancel",
+      "elapsedMs": 95,
+      "images": 0
+    },
+    {
+      "label": "detach",
+      "elapsedMs": 7,
+      "images": 0
+    },
+    {
+      "label": "reattach",
+      "elapsedMs": 286,
+      "images": 0
+    },
+    {
+      "label": "closed-target",
+      "elapsedMs": 17,
+      "images": 0
+    },
+    {
+      "label": "recover-after-close",
+      "elapsedMs": 597,
+      "images": 0
+    },
+    {
+      "label": "screenshot-recovered",
+      "elapsedMs": 100,
+      "images": 1
+    },
+    {
+      "label": "release-all",
+      "elapsedMs": 5,
+      "images": 0
+    }
+  ],
+  "manualWindowReview": {
+    "tool": "CUA",
+    "selectedA": "REOPENED 中文",
+    "selectedB": "OMP 中文 B",
+    "multilineB": "第二个标签\n独立内容",
+    "sameVisibleInstance": true
+  },
+  "artifactSHA256": {
+    "embedded-a.png": "6ba935c89f828d49f23cfb2c0ab56ec97b81646d9eea76b93b13e3edfff55105",
+    "embedded-recovered.png": "9d16af4a738f489defb9fa5d9f2e8e1d4d9a2f88b74ccd6f8ba423eeb032be0a"
+  }
+}

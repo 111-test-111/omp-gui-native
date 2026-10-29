@@ -1,0 +1,153 @@
+{
+  "date": "2026-10-27",
+  "scope": "Installed Chrome with an isolated synthetic profile and local HTTP fixture; standalone pinned CEF probe; no personal profile or Keychain secret extraction; no production feature changes.",
+  "environment": {
+    "architecture": "arm64",
+    "macOS": "27.2",
+    "chrome": "Chrome/156.0.8078.48",
+    "cef": "154.0.34",
+    "chromium": "154.0.8037.98",
+    "sandbox": true,
+    "targetSafeStorage": "mockKeychain (Debug)"
+  },
+  "liveRoot": {
+    "independentCefPageCreated": false,
+    "cefInitializeExitCode": 24,
+    "probeExitCode": 1,
+    "caseCompleted": true
+  },
+  "rawProfileCopy": {
+    "authenticated": false,
+    "localStorageRestored": true,
+    "indexedDBRestored": true,
+    "cookieNames": [],
+    "sourceDatabase": {
+      "schema": {
+        "mmap_status": "-1",
+        "version": "24",
+        "last_compatible_version": "24"
+      },
+      "count": 5,
+      "encrypted": 5,
+      "plaintext": 0
+    },
+    "caseCompleted": true
+  },
+  "apiTransfer": {
+    "browserAssertions": [
+      "installed Chrome logs in and writes real localStorage/IndexedDB",
+      "the export contains HttpOnly session cookies unavailable to document.cookie",
+      "the source includes Secure host-prefixed and partitioned cookies",
+      "the destination starts without the Chrome login",
+      "semantic Cookie import restores server-side login without Chrome encryption keys",
+      "Cookie import alone does not transfer localStorage or IndexedDB",
+      "Cookie metadata, session flags, paths, HttpOnly, Secure and partition keys survive import",
+      "separate origin-scoped semantic storage import restores the fixture application state",
+      "api-import: CEF shuts down cleanly",
+      "imported persistent and session login cookies survive a real CEF process restart",
+      "imported localStorage and IndexedDB survive the destination restart",
+      "api-import-restart: CEF shuts down cleanly"
+    ],
+    "browserAssertionCount": 12,
+    "browserBehaviorsPassed": true,
+    "sourceCookieMetadata": [
+      {
+        "name": "__Host-omp",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "secure": true,
+        "httpOnly": true,
+        "sameSite": "None",
+        "session": false
+      },
+      {
+        "name": "omp_chip",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "secure": true,
+        "httpOnly": true,
+        "sameSite": "None",
+        "session": false,
+        "partitionKey": {
+          "topLevelSite": "http://127.0.0.1",
+          "hasCrossSiteAncestor": false
+        }
+      },
+      {
+        "name": "omp_path",
+        "domain": "127.0.0.1",
+        "path": "/restricted",
+        "secure": false,
+        "httpOnly": true,
+        "sameSite": "Lax",
+        "session": false
+      },
+      {
+        "name": "omp_persistent",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "secure": false,
+        "httpOnly": true,
+        "sameSite": "Lax",
+        "session": false
+      },
+      {
+        "name": "omp_session",
+        "domain": "127.0.0.1",
+        "path": "/",
+        "secure": false,
+        "httpOnly": true,
+        "sameSite": "Strict",
+        "session": true
+      }
+    ],
+    "databaseDiagnostic": {
+      "scope": "isolated synthetic Chrome login only",
+      "selectedCase": "database",
+      "checks": [
+        "the selected CEF profile stores all five imported cookies encrypted, with no plaintext values"
+      ],
+      "cases": {},
+      "passed": true,
+      "destinationDatabase": {
+        "schema": {
+          "mmap_status": "-1",
+          "version": "24",
+          "last_compatible_version": "24"
+        },
+        "count": 5,
+        "encrypted": 5,
+        "plaintext": 0
+      }
+    },
+    "caseCompletedAfterDiagnosticCorrection": true
+  },
+  "evidence": {
+    "negativeRun": "20261027-233303-522939",
+    "transferRun": "20261027-233430-937325",
+    "originalTransferProcessExitCode": 1,
+    "originalTransferFailure": "The final diagnostic selected empty Default/Cookies instead of the named destination profile. All 12 browser assertions had passed.",
+    "targetedDiagnosticProcessExitCode": 0,
+    "nativeBrowserLoadRepeatedAfterDiagnosticFix": false
+  },
+  "driverRepairs": [
+    "Normalize argv using a one-argument path.resolve callback.",
+    "Bind Cookie operations to the exact page with Network.getCookies/setCookies; browser-target Storage context IDs are unsuitable for this CEF named profile.",
+    "Inspect Profile-migration explicitly rather than the global Default profile."
+  ],
+  "inputsSHA256": {
+    "tests/acceptance/chrome_profile/Package.swift": "0a553f67fc43a2414d82d43d0b5be4e3e52991743ab45ad6310d6f1e1a460ca3",
+    "tests/acceptance/chrome_profile/Sources/ProfileProbe.swift": "af8a71889314a5b477de0a95354ae0f762d91c52573cd0cea1b1142bf2e2f757",
+    "tests/acceptance/chrome_profile/run.py": "43c1e3f3f42ae29f52ba1f136c6f32da7b3b669e20fdf8c6838173c7a279c4d1",
+    "tests/acceptance/chrome_profile/migration_tests.mjs": "cd7384d1111bfd2b8b9232959b3b27ce3e2b35e70f3deffb1f8dec459ff82a40",
+    "config/browser/sources.json": "1175c5f93f4cd698751454aa4c14722bf40a221b8e521737ec3f5703dfd024c3",
+    "config/browser/cefswift.patch": "d36d78214a82cb5e301cb139c5b71873e4496d2a03aef51774a83875370a4012"
+  },
+  "notTested": [
+    "Real default Chrome-profile authorized export or companion extension",
+    "Real third-party accounts and device-bound sessions",
+    "Signed Release and real Chromium Keychain",
+    "Arbitrary IndexedDB types, cross-origin/partitioned site storage, Service Workers, Passkeys and browser sync",
+    "Product import UI or live profile sharing feature"
+  ]
+}

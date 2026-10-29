@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "source_gui_run": "build.noindex/native-controls-live/20261018-210040-d961345a",
+  "status": "passed",
+  "visible_new_formula_draw_samples": 20,
+  "draw_p95_ms": 43.6987082939595,
+  "heartbeat_p95_ms": 20.24887502193451,
+  "resource_phase_medians": {
+    "bootstrap": {
+      "samples": 5,
+      "gui_median_mib": 45.516700744628906,
+      "webkit_median_mib": 0.0,
+      "webkit_domain_complete_samples": 4
+    },
+    "idle": {
+      "samples": 36,
+      "gui_median_mib": 99.36074829101562,
+      "webkit_median_mib": 77.81462860107422,
+      "webkit_domain_complete_samples": 36
+    },
+    "idle-released": {
+      "samples": 20,
+      "gui_median_mib": 99.32949829101562,
+      "webkit_median_mib": 9.813232421875,
+      "webkit_domain_complete_samples": 20
+    },
+    "needs-sidebar-width-check": {
+      "samples": 82,
+      "gui_median_mib": 86.59512329101562,
+      "webkit_median_mib": 9.750686645507812,
+      "webkit_domain_complete_samples": 82
+    },
+    "needs-user-scroll": {
+      "samples": 15,
+      "gui_median_mib": 79.25128173828125,
+      "webkit_median_mib": 107.68958282470703,
+      "webkit_domain_complete_samples": 15
+    },
+    "stream-bottom": {
+      "samples": 3,
+      "gui_median_mib": 124.43878173828125,
+      "webkit_median_mib": 159.51770782470703,
+      "webkit_domain_complete_samples": 3
+    },
+    "stream-completed": {
+      "samples": 2,
+      "gui_median_mib": 144.47792434692383,
+      "webkit_median_mib": 78.4240493774414,
+      "webkit_domain_complete_samples": 2
+    },
+    "stream-reading-history": {
+      "samples": 32,
+      "gui_median_mib": 76.86846923828125,
+      "webkit_median_mib": 108.12710571289062,
+      "webkit_domain_complete_samples": 32
+    }
+  },
+  "resource_observed_peak_by_role_mib": {
+    "gui": 145.11072540283203,
+    "unclassified-descendant": 515.9870071411133,
+    "omp": 262.3763732910156,
+    "webkit-WebContent": 122.54772186279297,
+    "webkit-Networking": 4.406707763671875,
+    "webkit-GPU": 56.703857421875
+  },
+  "early_webkit_discovery_incomplete_samples": 1,
+  "physical_footprint_scope": "Summed per-process footprint, explicit PID/start identity; not unique system RAM. Sampling/capture overhead included. No SwiftMath whole-app baseline.",
+  "static_report": "static-report.json",
+  "selection_report": "selection-checks.json"
+}

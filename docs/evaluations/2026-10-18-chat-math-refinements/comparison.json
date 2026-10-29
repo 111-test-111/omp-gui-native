@@ -1,0 +1,31 @@
+{
+  "baseline_commit": "4218ecc",
+  "candidate_version": "0.1.130 (131)",
+  "hardware": "Apple M5",
+  "physical_memory_bytes": 25769803776,
+  "system": "ProductName:\t\tmacOS\nProductVersion:\t\t27.2\nBuildVersion:\t\t26B5101f",
+  "bounds": {
+    "cache_entries": 256,
+    "cache_cost_bytes": 16777216,
+    "atlas_max_pixels": 16000000,
+    "atlas_max_edge_pixels": 16384,
+    "idle_seconds": 20
+  },
+  "baseline": {
+    "median_all_96_ready_ms": 426.45512509625405,
+    "median_first_ready_ms": 143.1247916771099,
+    "first_round_all_ms": 602.9884999152273,
+    "first_round_first_ms": 332.2149582672864,
+    "snapshots_per_96": 12,
+    "stream_24_total_ms": 455.6092916755006
+  },
+  "candidate": {
+    "median_all_96_ready_ms": 294.90620840806514,
+    "median_first_ready_ms": 127.72712507285178,
+    "first_round_all_ms": 425.7976249791682,
+    "first_round_first_ms": 256.46133336704224,
+    "snapshots_per_96": 4,
+    "stream_24_total_ms": 457.42029161192477
+  },
+  "all_96_median_reduction_percent": 30.847071343906897
+}

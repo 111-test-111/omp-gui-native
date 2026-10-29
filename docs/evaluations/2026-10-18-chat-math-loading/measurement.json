@@ -1,0 +1,55 @@
+{
+  "baseline_commit": "947dd81",
+  "delivery_version": "0.1.132 (133)",
+  "machine": {
+    "chip": "Apple M5",
+    "memory_bytes": 25769803776,
+    "macOS": "27.2 (26B5101f)",
+    "swift": "6.4, Swift 6 language mode"
+  },
+  "scope": "Single owner-reported chat copied to isolated production RootView/ThreadRuntime. Timed after model bootstrap, before selected runtime load/window construction. Default lazy history, 238 distinct render keys; no provider. One sample per configuration, not distribution or GPU presentation latency.",
+  "first_visible_draw_ms": {
+    "baseline_cold": 1129.3452917598188,
+    "delivery_cold": 1116.5220416150987,
+    "delivery_new_process_disk": 498.5144166275859
+  },
+  "last_loaded_queue_drained_ms": {
+    "baseline_cold": 2299.2197501007468,
+    "delivery_cold": 1865.6617916421965,
+    "delivery_new_process_disk": 1099.9583749799058
+  },
+  "pixel_stage_profile_ms": {
+    "before_vimage": 493.7787081580609,
+    "delivery": 21.500708302482963,
+    "note": "Successful image conversion wall time on same 238-key copied chat; other stage waits/CPU scheduling differ."
+  },
+  "cache_files": 238,
+  "cache_file_bytes": 3240150,
+  "fixture_files": [
+    {
+      "bytes": 471,
+      "sha256": "8210b01cb1187bd7bbe77d3a6b2f8dc81a13cbd77d98faa907f52feb7de0f7db"
+    },
+    {
+      "bytes": 305017,
+      "sha256": "e9e1074522a252a83dc91b55abc139b6b9ad66b60b862217f0210d14f862b41a"
+    },
+    {
+      "bytes": 22165,
+      "sha256": "41a03521db7e589d99b02906424b83a290e76edfe478b2e7f2dd1e0fd0de3524"
+    },
+    {
+      "bytes": 24887,
+      "sha256": "f7122240b4d03d02d0133e8e1037319dad5a70f6dcb4b22c2e00cca9b5a740a1"
+    },
+    {
+      "bytes": 5110,
+      "sha256": "20b922835e070e5b743221971397405426cf0a6cd94d59b5a80634372ae84e45"
+    },
+    {
+      "bytes": 14829,
+      "sha256": "f7b62b88457439b4ccc563b384454816941fd8f7b3879fbadeaa27bef51c35ac"
+    }
+  ],
+  "memory_scope": "Observed physical footprint samples from helper including same-process second window; WebKit roots require launchd GUI PID-domain evidence. Missing early ownership is recorded. Sums may share pages; not unique memory or an increase versus baseline."
+}

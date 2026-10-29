@@ -1,0 +1,135 @@
+{
+  "date": "2026-10-24",
+  "scope": "Read-only source investigation; no native sessions, profiles, credentials or user transcripts read.",
+  "omp_gui_base": "43b5858841ce769023514d5665e7f62dfab4f734",
+  "omp": {
+    "root": "/Users/developer/.local/share/fnm/node-versions/v24.14.1/installation/lib/node_modules/@oh-my-pi/pi-coding-agent",
+    "package": "@oh-my-pi/pi-coding-agent",
+    "version": "18.12.5",
+    "files": [
+      {
+        "path": "package.json",
+        "sha256": "3d08bdc80e456cf4940bada8937f425e162bcdc5904971eeca3b24bd9b5645cb"
+      },
+      {
+        "path": "src/modes/rpc/rpc-types.ts",
+        "sha256": "f93e6412ff34986047c5de85d3288fb93614e4a5d7d22dcaa96aba651a01f047"
+      },
+      {
+        "path": "src/modes/rpc/rpc-mode.ts",
+        "sha256": "4e16d021d9268c64581c7bdc5600b09e9a818a4a34a63a0a7538f8e5df36f445"
+      },
+      {
+        "path": "src/modes/rpc/rpc-compat.ts",
+        "sha256": "b406f66cd4d148fc299f77ad43a1208f8b4ec8c920d05ee9cb0c4c61ed80dc30"
+      },
+      {
+        "path": "src/modes/rpc/rpc-messages.ts",
+        "sha256": "e0c11e294574cddbfd04192affc5b9ebae87f150f25aa24d25da2b756f751261"
+      },
+      {
+        "path": "src/modes/rpc/rpc-subagents.ts",
+        "sha256": "6302aff6d8e2e3c5bfb2d270befcfbd4c85253a5b95fb4f7c2c08bd0b6c6f35f"
+      },
+      {
+        "path": "src/modes/rpc/rpc-session-events.ts",
+        "sha256": "eeeb621ae2c968d6ec9c501848f69b661fc4e51f642c9dfda0af75f492f04e2b"
+      },
+      {
+        "path": "src/session/session-entries.ts",
+        "sha256": "896c9ac316c22ea0ff69db06da10f2f357b3fa2fff96539d83ab9b4fac9b2d1d"
+      },
+      {
+        "path": "src/session/session-manager.ts",
+        "sha256": "584d861d731dde4d0964f67f991f009480f6d0744e69ecfe843d4fb43ad7c9b2"
+      },
+      {
+        "path": "src/session/agent-session.ts",
+        "sha256": "e0281332ce1da65209903cfa22fe9e9196f00dbb8a6a3190f147d3f5bfe83f5f"
+      },
+      {
+        "path": "src/session/agent-session-events.ts",
+        "sha256": "459a277b182c56195a4bcc75a411ddfc0624c9e72c123850436e991982598ea5"
+      },
+      {
+        "path": "src/session/session-stats.ts",
+        "sha256": "18e227ca2b8c92baa34cbd21c2767851ec963e8a951c89ccde3f64e4aa96fb93"
+      },
+      {
+        "path": "src/session/session-persistence.ts",
+        "sha256": "85cdf1f3a2b486588388a14257df4834dcb83c2902864ed73d5018a5dd0ac5a0"
+      },
+      {
+        "path": "src/extensibility/extensions/types.ts",
+        "sha256": "d78dccdb66525d46101b65f9464b15f96029a974bd8217b2458e143cb9005e8b"
+      },
+      {
+        "path": "src/extensibility/extensions/runner.ts",
+        "sha256": "d6f7984441529ae4a2bfc6bd84eb19e1c324bb3dcc4715dee2ac2d3430ac46ee"
+      },
+      {
+        "path": "src/sdk.ts",
+        "sha256": "e5b099bda559884c6272f86ae238ea8e8853313bcb57041602f5d77ac1813d86"
+      },
+      {
+        "path": "node_modules/@oh-my-pi/pi-ai/src/types.ts",
+        "sha256": "78ec43f55e1e02a567cdee70e5450cc0293ad24e53d0701d47aa34bfbe6c15e9"
+      },
+      {
+        "path": "node_modules/@oh-my-pi/pi-agent-core/src/types.ts",
+        "sha256": "f71a59308e3696cd92b040aed841af655b105534175c515e8a114cd1972422c5"
+      },
+      {
+        "path": "node_modules/@oh-my-pi/pi-agent-core/src/agent.ts",
+        "sha256": "732b8127ceddfa7d91847d97d3ae07da647493c22ed15717380a36054cfa1c16"
+      }
+    ]
+  },
+  "pi_app": {
+    "root": "/Users/developer/githubs/pi-app",
+    "head": "8d754b781573f10161f9c20114b688cf4dfd600c",
+    "reference": "Local working directory, including existing uncommitted changes; not edited by this task.",
+    "files": [
+      {
+        "path": "package.json",
+        "sha256": "957822b6f8aedf7b6f01b20f911f2f5c1a5a6da207aa3c36ac10de29bda2e458"
+      },
+      {
+        "path": "docs/present-trajectory-implementation.md",
+        "sha256": "5916c34749ecb4d69ce7bf755f2e113ab60cc43f8072649bdfeca1fdaff5064e"
+      },
+      {
+        "path": "src/shared/trajectory.ts",
+        "sha256": "9e4c9dc2cdcefb4e9dd3e290941a45ac3b34eac5013fff10b5947ba2eb09ad22"
+      },
+      {
+        "path": "src/main/pi/trajectory/recorder.ts",
+        "sha256": "616841f783f0c959e612fae97358eaf9f4ba4012805e8b09bc3ff8dc42f82670"
+      },
+      {
+        "path": "src/main/pi/trajectory/storage.ts",
+        "sha256": "4e4e01e9875c547a475460c9890d56de9cc3e772fa7d5cd2753e9073c3cfa095"
+      },
+      {
+        "path": "src/main/pi/trajectory/client.ts",
+        "sha256": "204c1bc59ef4a0badf77aab88d7f870570f73aee760cdef3dc7957c58e92fcba"
+      },
+      {
+        "path": "src/main/pi/trajectory/jsonl.ts",
+        "sha256": "cab10ed611c406cbb121fa4e2bb74fd825a7b850df10a0fd58a629b4b5562ac9"
+      },
+      {
+        "path": "src/main/pi/trajectory/ipc.ts",
+        "sha256": "94b88f44e9013d08fee7c6f1236f85c0d5e24c3bbac4e38c3324aa15b2bd6392"
+      },
+      {
+        "path": "src/renderer/src/components/app/TrajectoryPane.tsx",
+        "sha256": "d01bac89cd20c6d4f1ee2e3dadc8fe43ad3589c03fcb17a58a1f96e66ce64a9e"
+      },
+      {
+        "path": "src/renderer/src/components/app/TrajectoryRecordRow.tsx",
+        "sha256": "26bc7ff3a85fed9ee9468b0db8b48aa9432031bd3c8864b4b07e6b90765ae0e1"
+      }
+    ]
+  }
+}

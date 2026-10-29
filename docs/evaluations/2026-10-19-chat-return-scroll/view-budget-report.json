@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "date": "2026-10-19T02:08:50.338579+00:00",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "python": "3.9.6 (default, Aug 17 2026, 12:07:42) \n[Clang 21.0.0 (clang-2100.3.34.1)]",
+  "tools": {
+    "xcrun": "/usr/bin/xcrun",
+    "swift_version": "swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.2.0"
+  },
+  "app_build": {
+    "schema": 1,
+    "source_sha256": "96e58cadb8e64a349eb3ec6c8494b6e11fc57e69880a7f41311d7fa5511e60f2",
+    "binary_sha256": "b4364c1c9b57a92125227847d0b4dd057722b73894d96a58fbee2effeb153783"
+  },
+  "runtimes": [],
+  "checks": [
+    {
+      "id": "functional:markdown-hosting",
+      "status": "passed",
+      "timeout_seconds": 30,
+      "definition": {
+        "area": "markdown-hosting",
+        "description": "Complete Markdown hosts settle with nested native math and width changes",
+        "tier": "functional",
+        "sources": [
+          "tests/functional/markdown/hosting_layout_tests.swift"
+        ],
+        "app": true,
+        "prepare": "",
+        "recipe": "capture",
+        "inputs": [
+          "OMPGUI/Resources/MarkdownPreview"
+        ],
+        "tools": [],
+        "dependencies": [],
+        "timeout": 30
+      },
+      "output": "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261019T020848Z-9a5b7dca/functional/markdown-hosting",
+      "inputs_sha256": "e33a3dd9b928ba18fb5abeed2db19116cb31700b1ff2ac512c9398542b860ff0",
+      "app_binary_sha256": "b4364c1c9b57a92125227847d0b4dd057722b73894d96a58fbee2effeb153783",
+      "commands": [
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "--version"
+          ],
+          "timeout_seconds": 15,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "xcrun",
+            "swiftc",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/module-cache",
+            "-I",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/tests/functional/markdown/hosting_layout_tests.swift",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS/OMP GUI Dev.debug.dylib",
+            "-Xlinker",
+            "-rpath",
+            "-Xlinker",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/development/Build/Products/Debug/OMP GUI Dev.app/Contents/MacOS",
+            "-o",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/183149c8e810817e/checks"
+          ],
+          "timeout_seconds": 30,
+          "returncode": 0
+        },
+        {
+          "argv": [
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/compiled/183149c8e810817e/checks",
+            "--website-captures",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/build.noindex/verification/runs/20261019T020848Z-9a5b7dca/functional/markdown-hosting",
+            "--fixture",
+            "/Users/developer/.codex/worktrees/mathjax-attachments/omp-gui-native/OMPGUI/Resources/MarkdownPreview"
+          ],
+          "timeout_seconds": 30,
+          "returncode": 0
+        }
+      ],
+      "seconds": 2.166
+    }
+  ]
+}

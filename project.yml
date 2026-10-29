@@ -1,10 +1,12 @@
-name: Tivano
+name: OMPGUI
 options:
-  bundleIdPrefix: dev.tivano
+  bundleIdPrefix: dev.ompgui
   deploymentTarget:
     macOS: "26.0"
   developmentLanguage: en
 packages:
+  CefSwift:
+    path: build.noindex/browser/dependencies/CefSwift
   SwiftTerm:
     url: https://github.com/migueldeicaza/SwiftTerm
     exactVersion: 1.20.0
@@ -16,14 +18,14 @@ settings:
     SWIFT_APPROACHABLE_CONCURRENCY: YES
     MACOSX_DEPLOYMENT_TARGET: "26.0"
 targets:
-  Tivano:
+  OMPGUI:
     type: application
     platform: macOS
     configFiles:
       Debug: config/dev.xcconfig
       Release: config/release.xcconfig
     sources:
-      - path: Tivano
+      - path: OMPGUI
         type: syncedFolder
       # The license, the third-party notices and the trademark policy travel with every copy of
       # the app; About shows them under Licenses.
@@ -35,26 +37,36 @@ targets:
         buildPhase: resources
     dependencies:
       - package: SwiftTerm
+      - package: CefSwift
+        product: CefSwiftUI
+    postBuildScripts:
+      - name: Embed CEF
+        script: python3 "$SRCROOT/scripts/browser_runtime.py" embed
+        basedOnDependencyAnalysis: false
     settings:
       base:
-        PRODUCT_NAME: "Tivano"
-        PRODUCT_MODULE_NAME: Tivano
-        PRODUCT_BUNDLE_IDENTIFIER: dev.tivano.Tivano
+        PRODUCT_NAME: "OMP GUI"
+        PRODUCT_MODULE_NAME: OMPGUI
+        PRODUCT_BUNDLE_IDENTIFIER: dev.ompgui.mac
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: "Tivano"
+        INFOPLIST_FILE: config/browser/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: "OMP GUI"
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
-        INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Jordy Spruit (Droppy). Tivano is based on Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app. GNU AGPL v3.0 with additional attribution terms."
+        INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Jordy Spruit (Droppy). OMP GUI is a modified fork of Tivano, based on Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app. GNU AGPL v3.0 with additional attribution terms."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        CODE_SIGN_ENTITLEMENTS: OMPGUI.entitlements
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "OMP GUI records audio only when you start local dictation, then transcribes it on this Mac into your draft."
         CODE_SIGN_STYLE: Automatic
         OTHER_CODE_SIGN_FLAGS: "--timestamp"
         DEAD_CODE_STRIPPING: YES
-        SWIFT_OBJC_BRIDGING_HEADER: Tivano/App/Window/Tivano-Bridging-Header.h
+        SWIFT_OBJC_BRIDGING_HEADER: OMPGUI/App/Window/OMPGUI-Bridging-Header.h
       configs:
         Debug:
-          PRODUCT_NAME: "Tivano Dev"
-          PRODUCT_BUNDLE_IDENTIFIER: dev.tivano.Tivano.dev
-          INFOPLIST_KEY_CFBundleDisplayName: "Tivano Dev"
+          PRODUCT_NAME: "OMP GUI Dev"
+          PRODUCT_BUNDLE_IDENTIFIER: dev.ompgui.mac.dev
+          INFOPLIST_KEY_CFBundleDisplayName: "OMP GUI Dev"
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIconDev
           CODE_SIGN_STYLE: Manual
           CODE_SIGN_IDENTITY: Developer ID Application

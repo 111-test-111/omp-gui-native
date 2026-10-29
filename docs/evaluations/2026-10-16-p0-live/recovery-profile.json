@@ -1,0 +1,28 @@
+{
+  "case": "5,000 legacy turns / 10,000 messages without turn-end markers",
+  "observed_layout_cycle_ms": 55191.788167,
+  "runtime_source_before_sha256": "58ae8309f7d9d4bc5fc1952570f654250399770a234a34968adc2f71d761c25c",
+  "sampled_hot_path": [
+    "ThreadRuntime.install(_:prepared:) / ThreadRuntime.swift:811",
+    "ThreadRuntime.entries.modify",
+    "ThreadRuntime._entries.didSet / ThreadRuntime.swift:176-177"
+  ],
+  "samples": [
+    {
+      "utc": "2026-10-15T18:42:38Z",
+      "install_insert_samples": 1252,
+      "main_thread_samples": 1376
+    },
+    {
+      "utc": "2026-10-15T18:42:49Z",
+      "install_insert_samples": 1216,
+      "main_thread_samples": 1364
+    },
+    {
+      "utc": "2026-10-15T18:43:22Z",
+      "install_insert_samples": 1214,
+      "main_thread_samples": 1404
+    }
+  ],
+  "conclusion": "Per-marker mutation repeatedly rebuilds full entry identity sets. Indexed batch recovery publishes the arrays once; regression verifies marker identity, order and persistence."
+}

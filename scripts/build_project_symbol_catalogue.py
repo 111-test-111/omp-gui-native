@@ -54,5 +54,5 @@ head = [
     '    private static let raw = """',
 ]
 text = '\n'.join(head) + '\n' + body + '\n' + '"""' + '\n}' + '\n'
-open('Tivano/UI/Chrome/ProjectSymbolCatalogue.swift', 'w').write(text)
+open('OMPGUI/UI/Chrome/ProjectSymbolCatalogue.swift', 'w').write(text)
 print('names', len(names), 'groups', len(lines), 'bytes', len(text))

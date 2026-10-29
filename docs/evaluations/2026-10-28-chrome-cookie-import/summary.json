@@ -1,0 +1,241 @@
+{
+  "export": {
+    "checks": [
+      "installed Chrome has a real local HttpOnly login",
+      "the extension exports the chosen Chrome profile name in the production format",
+      "selected-site export includes all five fixture cookies and excludes the unselected host",
+      "the actual cookies API exports partition keys and Secure host cookies",
+      "temporary Chrome Cookie and host permissions are revoked after export"
+    ],
+    "passed": true,
+    "status": "已导出 1 个所选站点的 5 个 Cookie，并撤销临时访问权限。",
+    "cookieCount": 5,
+    "cookieMetadata": [
+      {
+        "domain": "127.0.0.1",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "omp_path",
+        "path": "/restricted",
+        "sameSite": "lax",
+        "secure": false,
+        "session": false,
+        "expirationDate": 1793121783.851338
+      },
+      {
+        "domain": "127.0.0.1",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "omp_persistent",
+        "path": "/",
+        "sameSite": "lax",
+        "secure": false,
+        "session": false,
+        "expirationDate": 1793121783.851172
+      },
+      {
+        "domain": "127.0.0.1",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "omp_session",
+        "path": "/",
+        "sameSite": "strict",
+        "secure": false,
+        "session": true
+      },
+      {
+        "domain": "127.0.0.1",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "__Host-omp",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "expirationDate": 1793121783.85127
+      },
+      {
+        "domain": "127.0.0.1",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "omp_chip",
+        "path": "/",
+        "sameSite": "no_restriction",
+        "secure": true,
+        "session": false,
+        "expirationDate": 1793121783.851296,
+        "partitionKey": {
+          "topLevelSite": "http://127.0.0.1",
+          "hasCrossSiteAncestor": false
+        }
+      }
+    ]
+  },
+  "gui": {
+    "checks": [
+      "the original active profile begins signed out",
+      "import creates a source-named profile with an automatic collision suffix",
+      "settings select the new profile for the next launch without changing the running profile",
+      "importing in Settings never leaks cookies into the current browsing profile",
+      "duplicate manual creation was refused while automatic import remains allowed",
+      "the production quit path drains import hosts and shuts CEF down"
+    ],
+    "passed": true
+  },
+  "restart": {
+    "checks": [
+      "restart selects the imported, disambiguated Chrome profile",
+      "the production browser authenticates using imported persistent and session cookies after restart",
+      "all extension-exported Cookie values, flags, paths, expiry and partition keys persist in the active profile",
+      "manual and imported profiles keep separate catalogue identities",
+      "the production quit path drains import hosts and shuts CEF down"
+    ],
+    "passed": true
+  },
+  "exportReusedFrom": "build.noindex/chrome-cookie-import/20261028-002144-686818",
+  "schema": 1,
+  "date": "2026-10-28",
+  "timezone": "Asia/Hong_Kong",
+  "scope": "Isolated local HTTP fixture; Chrome extension UI and production BrowserSettingsPage/CEF helpers; no daily profiles or external accounts",
+  "dev_version": "0.1.325",
+  "dev_build": 326,
+  "environment": {
+    "chrome": "156.0.8078.48",
+    "cef": "154.0.34",
+    "chromium": "154.0.8037.98",
+    "macos": "27.2",
+    "architecture": "arm64",
+    "sandbox": true
+  },
+  "acceptance_output": "build.noindex/chrome-cookie-import/20261028-004224-721529",
+  "ui_observations": [
+    {
+      "stage": "initial_export_run",
+      "action": "Create OMP Cookie Test [Chrome], then enter \"  omp cookie test [chrome]  \"",
+      "result": "已存在同名浏览器配置。; Create disabled; cancelled"
+    },
+    {
+      "stage": "initial_export_run",
+      "action": "Save bundled extension; Chrome Developer mode > Load unpacked",
+      "result": "OMP GUI Cookie 导出工具 loaded without errors"
+    },
+    {
+      "stage": "initial_export_run",
+      "action": "Click export, reject actual Chrome site permission",
+      "result": "未获得 Chrome 访问授权，没有导出 Cookie。"
+    },
+    {
+      "stage": "initial_export_run",
+      "action": "Retry and allow selected 127.0.0.1 permission",
+      "result": "5 Cookies downloaded; temporary cookies/origins removed"
+    },
+    {
+      "stage": "fixed_gui_run",
+      "action": "First file selection opens import preview",
+      "result": "OMP Cookie Test (2) [Chrome]; 5 Cookies, 1 site, 0 expired"
+    },
+    {
+      "stage": "fixed_gui_run",
+      "action": "Confirm import in production Settings",
+      "result": "已导入到 OMP Cookie Test (2) [Chrome]。重启 OMP GUI 后启用此配置。; active remains 默认配置"
+    }
+  ],
+  "functional_evidence": [
+    {
+      "run": "20261027T161414Z-75f18121",
+      "id": "functional:browser-cookie-export",
+      "status": "passed",
+      "inputs_sha256": "851212a1675becebddd76ba134db94a2060beb97bcdabd3b614b621dc4b0e828"
+    },
+    {
+      "run": "20261027T162011Z-5c818ac4",
+      "id": "functional:browser-cookie-import",
+      "status": "passed",
+      "inputs_sha256": "8a99791c8c61fab2061584627dada02d790fc8aaffaf6c052dbcd3de01377999"
+    },
+    {
+      "run": "20261027T162011Z-5c818ac4",
+      "id": "functional:workspace-browser",
+      "status": "passed",
+      "inputs_sha256": "aa626dfe5bdd4162e06454be69ff358b97ff4fa30babb597d1c91895485147c7"
+    },
+    {
+      "run": "20261027T162011Z-5c818ac4",
+      "id": "functional:settings",
+      "status": "passed",
+      "inputs_sha256": "6313f6631463fef618bd65e4ca22f0ad11127a6743e092be4fb77b30567b7448"
+    }
+  ],
+  "resolved_failures": [
+    {
+      "kind": "implementation",
+      "finding": "Initial archive reload lost chromeSourceProfile; functional selection equality failed",
+      "fix": "Preserve source metadata when normalizing saved profile records; import/workspace/settings checks then passed"
+    },
+    {
+      "kind": "implementation",
+      "finding": "First visible file-selection preview opened empty because optional payload was only read in lazy popover content",
+      "fix": "Read payload in the presenting body; rebuild and repeat the affected GUI import/restart with the same passing real export"
+    },
+    {
+      "kind": "source_review",
+      "finding": "Import close timeout was not propagated to registry shutdown",
+      "fix": "Preserve an undrained state, skip deletion and CEF shutdown on timeout; verify actual startup cancellation and rerun final production Settings import/restart"
+    }
+  ],
+  "limits": [
+    "No external website/account tested",
+    "Chrome signed-in account autofill was not exercised; manual source profile name was used",
+    "No signed Developer ID/Keychain package tested",
+    "No full chat application relaunch; isolated production module helpers followed the production CEF shutdown/restart path"
+  ],
+  "source_sha256": {
+    "OMPGUI/App/Browser/AppSettings+CookieImport.swift": "2fbbf57c292e0ab4c87b9e6f5f10ae8044dc1568456619b1609e01a16443025c",
+    "OMPGUI/App/Browser/BrowserWorkspaceStore.swift": "e24e8552f614e049f0275d5633a09f54d756be925c0545d5a74405bd5c682a8b",
+    "OMPGUI/App/Views/Settings/BrowserSettingsPage.swift": "88e67761d7a9ccaff79160f89cc3a72d0b11f29466469de744a1a2087f08d0c6",
+    "OMPGUI/Core/Models/BrowserCookieArchive.swift": "f9ee946e8e64ce707173de62e176f2dbdaf8834be66b596720f33d4db5bc5176",
+    "OMPGUI/Core/Models/BrowserProfiles.swift": "dd2465911ed349407fa232b223617ba19676a0db1c9a741eedd904d9e095b9b1",
+    "OMPGUI/Resources/ChromeCookieExporter/_locales/en/messages.json": "43a71d5f1cdaa2971444538f5864cead18711144539d3866297a19c841d12bc3",
+    "OMPGUI/Resources/ChromeCookieExporter/_locales/zh_CN/messages.json": "03741f5f43ab842bc794a40b29ff705d2637457d5d42f1213962bbbbd76a1d29",
+    "OMPGUI/Resources/ChromeCookieExporter/background.js": "88f4adf4b29323222ae4b374896199353ef82571edc8d6dd886c3448ade170d5",
+    "OMPGUI/Resources/ChromeCookieExporter/export-core.mjs": "7bc51501ab86a5f9854a3993bf0f333f922c0ce33ae624dc662efd1c20e6c2ad",
+    "OMPGUI/Resources/ChromeCookieExporter/export.css": "09d8b1a30514f8ae3a8004d96695929f952483904b6f736afa3d2a55a54dc68d",
+    "OMPGUI/Resources/ChromeCookieExporter/export.html": "9ad7b2d26ded2270eb31b2931a03de8dd01c0ecb4e3d15a602e8c11f1a4a9b78",
+    "OMPGUI/Resources/ChromeCookieExporter/export.mjs": "bae59d521020f12b91c2a38051219193e07ff863b95c8722448261835fb2481b",
+    "OMPGUI/Resources/ChromeCookieExporter/manifest.json": "13053dffc480fe7d284bd77569460bd03dfc6daaaa9b64d897901ae9c95d2b8c",
+    "OMPGUI/Services/Browser/BrowserCookieImporter.swift": "e43aae066a264c697ac0e8cf70d7a3c2876b0bc442736b4e23b4d088b2425b7c",
+    "OMPGUI/UI/Chrome/Popovers.swift": "0fd42480b4e3826b87a488560591d4b4a9ea7b8cac4043a125b9c3b2a83a2ca3",
+    "tests/acceptance/chrome_cookie_import.py": "d49a57dcf2fc9dd62c3350dde32d37ac7c7f715a974ad594aeed42550d78238e",
+    "tests/acceptance/chrome_cookie_import.swift": "45d4657c1765207899def2a0b99a2d280851878f4b50f0ead69626652f7bdc1e",
+    "tests/acceptance/chrome_cookie_source.mjs": "40ca0d40ad155e34e3983a85ed0e5a409fc1f2d600d30c196c895d93fab3f5b0",
+    "tests/support/browser_acceptance_app.py": "107d1f55a0efb0512f27ec19b9b6125174500e5ce62eb778ecd967c27a15ae24",
+    "tests/support/browser_cdp.mjs": "a15ef583d272758004ec9a2910242b96ce5f9dded09612f67f9d599b0ce8eed7"
+  },
+  "cancellation": {
+    "checks": [
+      "cancellation during native startup publishes no profile",
+      "the unpublished profile is removed after close",
+      "the production quit path drains the canceled import before CEF shutdown"
+    ],
+    "passed": true
+  },
+  "cancellation_output": "build.noindex/chrome-cookie-import/20261028-004213-786254",
+  "static_evidence": {
+    "run": "20261027T164334Z-741604fc",
+    "status": "passed",
+    "checks": [
+      {
+        "id": "static:documentation",
+        "status": "passed"
+      },
+      {
+        "id": "static:harness",
+        "status": "passed"
+      },
+      {
+        "id": "static:syntax",
+        "status": "passed"
+      }
+    ]
+  }
+}

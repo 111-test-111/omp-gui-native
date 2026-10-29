@@ -19,14 +19,14 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CAPTURES = ROOT / "build.noindex" / "product-captures"
 DERIVED = ROOT / "build.noindex" / "product-captures-build"
-APP = DERIVED / "Build/Products/Debug/Tivano Dev.app"
+APP = DERIVED / "Build/Products/Debug/OMP GUI Dev.app"
 PROCESSED = CAPTURES / "processed"
 
 WIDTH = 1320
 HEIGHT = 824
 
 # App window size in points for each still, matching the stage sizes in
-# Tivano/App/Captures/ProductCaptures.swift (and ProductCaptures+Hydra.swift). Every
+# OMPGUI/App/Captures/ProductCaptures.swift (and ProductCaptures+Hydra.swift). Every
 # still is a 16:10 rect around the window: the frame grown by 72 pt on every
 # side, then widened/heightened to 1.6. The popover scenes (capture-pairs,
 # capture-slider, capture-recipes) photograph the window unioned with the open popover
@@ -67,13 +67,13 @@ def step(title):
 
 
 def build():
-    step("Building Tivano (Debug)")
+    step("Building OMP GUI (Debug)")
     if shutil.which("xcodegen"):
         subprocess.run(["xcodegen", "generate", "--quiet"], cwd=ROOT, check=True)
-    elif not (ROOT / "Tivano.xcodeproj").exists():
-        sys.exit("Install XcodeGen to generate Tivano.xcodeproj")
+    elif not (ROOT / "OMPGUI.xcodeproj").exists():
+        sys.exit("Install XcodeGen to generate OMPGUI.xcodeproj")
     result = subprocess.run([
-        "xcodebuild", "-project", "Tivano.xcodeproj", "-scheme", "Tivano", "-configuration", "Debug",
+        "xcodebuild", "-project", "OMPGUI.xcodeproj", "-scheme", "OMPGUI", "-configuration", "Debug",
         "-destination", "platform=macOS", "-derivedDataPath", str(DERIVED), "-skipPackagePluginValidation", "build",
     ], cwd=ROOT, capture_output=True, text=True)
     if result.returncode != 0:

@@ -1,69 +1,50 @@
-# Local package contract
+# Local packaging and installation
 
-An owner-requested build/package produces a package **and updates the corresponding
-installed app**, unless explicitly requested as build-only. Agent-initiated
-verification builds remain build-only. An explicit Dev package request also
-authorizes quitting Dev before replacing its bundle; verify it has exited first.
-Release packaging requires separate authorization to quit a running Release app.
-Packaging never authorizes launching or publishing.
+This fork publishes source on GitHub, not signed binary releases. The [release](../scripts/release.sh), [ship](../scripts/ship.sh) and [publisher](../scripts/publish_release.sh) scripts exit with an error. The inherited updater is gated by `UpdateChecker.hasReleaseFeed = false`. Tivano's old release and mirror procedures are [historical records](archive/README.md), not OMP GUI operations. See the [source-release notes](source-release.md) for public history and authentication boundaries.
 
-```bash
-scripts/package_local.sh --both     # current request: install both editions
-scripts/package_local.sh --dev      # only the requested Dev build
-scripts/package_local.sh --release  # only the requested Release build
+## Authorization and entry point
+
+A local package request uses [scripts/package_local.sh](../scripts/package_local.sh) and also updates the requested installed edition. Build-only verification uses `make build`; the package script has no build-only option. Packaging does not authorize launching, relaunching, publication or quitting a running app. Follow the owner's explicit scope and [AGENTS.md](../AGENTS.md).
+
+```sh
+# Run only for the requested edition(s), from this task's worktree:
+scripts/package_local.sh --dev
+scripts/package_local.sh --release
+scripts/package_local.sh --both
 ```
 
-The script verifies all requested builds before installing any; keeps prior apps
-under `build.noindex/install-backups/`; stages each verified bundle before a swap;
-and refuses to replace a running target. It never copies or deletes live session
-data. Both local editions use the same Developer ID Application team, with
-separate stable bundle IDs and install paths:
+The default, if no flag is supplied, is `--both`; always pass the intended flag. The script refuses to replace a running target. Obtain the owner's authorization to quit the specific instance if necessary, and verify it exited before continuing.
 
-| Edition | Installed app | Bundle ID | Initial display version |
+| Edition | Configuration | Installed bundle | Bundle ID |
 | --- | --- | --- | --- |
-| Release | `/Applications/Tivano.app` | `dev.tivano.Tivano` | `0.0.1` |
-| Dev | `/Applications/Tivano Dev.app` | `dev.tivano.Tivano.dev` | `dev-0.0.1` |
+| Release | Release | `/Applications/OMP GUI.app` | `dev.ompgui.mac` |
+| Dev | Debug, optimized for packaging | `/Applications/OMP GUI Dev.app` | `dev.ompgui.mac.dev` |
 
-Local ZIPs are in `build.noindex/packages/`. Both editions retain hardened
-runtime and secure timestamps. Local packaging does not submit to Apple
-notarization or upload publicly; public distribution uses the release pipeline.
-The public `release.sh` pipeline builds and notarizes Release without installing,
-quitting or launching it, and keeps its temporary outputs separate from local app backups.
+## Signing preflight and current limitation
+
+Both editions must name the same ten-character `DEVELOPMENT_TEAM` in [release.xcconfig](../config/release.xcconfig) and [dev.xcconfig](../config/dev.xcconfig), and the build Mac must have exactly one usable matching Developer ID Application identity with its private key.
+
+As of the documentation audit, Release defines `5WF7HRPLRX` and Dev has **no** `DEVELOPMENT_TEAM` entry. The script therefore stops with “Release and Dev must use the same Developer ID team.” even for a single-edition request. This is an unresolved configuration prerequisite, not evidence of a successful package. Reconcile it as part of an authorized packaging/configuration task; a passing unsigned development build does not resolve it.
+
+The script passes the selected identity/team explicitly to Xcode and verifies bundle identifier, Developer ID requirement, hardened runtime, secure timestamp and numeric version. Do not bypass these checks or replace them with ad-hoc signing. Local ZIPs are not notarized distribution artifacts; this script does not submit to Apple or create a DMG.
+
+The [browser runtime](browser.md) adds an embedded CEF framework and five helper bundles with edition-specific IDs. The Xcode embed phase signs nested dylibs, framework and helpers using the selected Developer ID, hardened runtime and timestamps before Xcode signs the main app. The main app and helpers carry the CEF JIT/unsigned executable memory entitlements. Library validation stays enabled because all embedded libraries are re-signed with the same Developer ID. The main Info.plist sets `LSEnvironment.MallocNanoZone=0`, as required by the Chromium allocator. Chromium sandbox stays enabled in both editions. The signed CEF/sandbox combination requires its own authorized package/runtime acceptance; an unsigned `make build` does not certify it.
+
+## Outputs and replacement
+
+Builds/logs are under `build.noindex/dev` and `build.noindex/release`. ZIPs are under `build.noindex/packages/` with the product name and display version. All requested builds are verified before installation starts.
+
+[scripts/install_app.sh](../scripts/install_app.sh) stages a verified app before swapping the corresponding bundle and keeps prior installations under `build.noindex/install-backups/`. It rechecks that the destination is not running. Each installation has rollback handling; installing both editions is not a transaction across the two destinations. Neither script copies or deletes live application data.
 
 ## Independent versions
 
-The authoritative version/build files are `config/release.xcconfig` and
-`config/dev.xcconfig`, attached to the corresponding target configurations in both
-the Xcode project and XcodeGen spec. Apple's `CFBundleShortVersionString` stays
-numeric; Dev's UI and package filenames add `dev-`.
+[config/dev.xcconfig](../config/dev.xcconfig) and [config/release.xcconfig](../config/release.xcconfig) own the numeric marketing version and internal build number. The app adds `dev-` only for Dev presentation; Apple's bundle version remains numeric.
 
-```bash
-scripts/set_version.py dev 0.0.2
-scripts/package_local.sh --dev
-# Release remains unchanged.
+```sh
+scripts/version.sh dev display
+scripts/version.sh release
 ```
 
-Packaging alone does not invent a new version or synchronize editions. Version
-changes are explicit; the setter increments that edition's internal build number.
+[scripts/set_version.py](../scripts/set_version.py) changes one edition and increments its build number. Release `catch-up-dev` copies Dev's numeric version; it does not select or promote a source revision. Packaging itself does not bump versions or synchronize editions. A Release catch-up must use the owner-approved code and scope.
 
-When the owner approves Dev and asks Release to catch up:
-
-```bash
-scripts/set_version.py release catch-up-dev
-scripts/package_local.sh --release
-```
-
-Before building, use the approved Dev code revision; copying a version number
-alone does not promote code. The release display name and unbadged icon remain
-Release's even when the numeric version catches up.
-
-## Edition data
-
-See [independent edition libraries](shared-library.md). Release and Dev each own
-their library and never read the other's, so Dev experiments cannot modify
-production conversations. Project folders and provider CLI configuration remain
-shared; keep backups before risky experiments on them.
-
-Source: [Apple CFBundleShortVersionString](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundleshortversionstring)
-requires three period-separated integers, so `dev-` is intentionally not stored
-in that system field.
+Edition data paths and external OMP ownership are documented once in [data and configuration](shared-library.md). Developer ID signing does not itself grant Keychain, Accessibility or Screen Recording access.

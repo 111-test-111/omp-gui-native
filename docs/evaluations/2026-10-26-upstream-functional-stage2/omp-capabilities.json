@@ -1,0 +1,129 @@
+{
+  "checked_on": "2026-10-26",
+  "omp_version": "18.12.5",
+  "source_scope": "installed npm SDK; source declarations are not service acceptance tests",
+  "usage_providers": [
+    {
+      "id": "alibaba-token-plan",
+      "source": "packages/ai/src/usage/alibaba-token-plan.ts"
+    },
+    {
+      "id": "openai-codex",
+      "source": "packages/ai/src/usage/openai-codex.ts"
+    },
+    {
+      "id": "kimi-code",
+      "source": "packages/ai/src/usage/kimi.ts"
+    },
+    {
+      "id": "minimax-code",
+      "source": "packages/ai/src/usage/minimax-code.ts"
+    },
+    {
+      "id": "muse-code",
+      "source": "packages/ai/src/usage/muse-code.ts"
+    },
+    {
+      "id": "google-antigravity",
+      "source": "packages/ai/src/usage/google-antigravity.ts"
+    },
+    {
+      "id": "google-gemini-cli",
+      "source": "packages/ai/src/usage/gemini.ts"
+    },
+    {
+      "id": "ollama",
+      "source": "packages/ai/src/usage/ollama.ts"
+    },
+    {
+      "id": "factory-droid",
+      "source": "packages/ai/src/usage/factory-droid.ts"
+    },
+    {
+      "id": "ollama-cloud",
+      "source": "packages/ai/src/usage/ollama.ts"
+    },
+    {
+      "id": "anthropic",
+      "source": "packages/ai/src/usage/claude.ts"
+    },
+    {
+      "id": "cline-pass",
+      "source": "packages/ai/src/usage/cline-pass.ts"
+    },
+    {
+      "id": "zai",
+      "source": "packages/ai/src/usage/zai.ts"
+    },
+    {
+      "id": "umans",
+      "source": "packages/ai/src/usage/umans.ts"
+    },
+    {
+      "id": "opencode-go",
+      "source": "packages/ai/src/usage/opencode-go.ts"
+    },
+    {
+      "id": "github-copilot",
+      "source": "packages/ai/src/usage/github-copilot.ts"
+    },
+    {
+      "id": "cursor",
+      "source": "packages/ai/src/usage/cursor.ts"
+    },
+    {
+      "id": "synthetic",
+      "source": "packages/ai/src/usage/synthetic.ts"
+    },
+    {
+      "id": "xai-oauth",
+      "source": "packages/ai/src/usage/xai-oauth.ts"
+    },
+    {
+      "id": "devin",
+      "source": "packages/ai/src/usage/devin.ts"
+    },
+    {
+      "id": "charm-hyper",
+      "source": "packages/ai/src/usage/charm-hyper.ts"
+    },
+    {
+      "id": "commandcode",
+      "source": "packages/ai/src/usage/commandcode.ts"
+    }
+  ],
+  "source_sha256": {
+    "src/modes/rpc/rpc-types.ts": "f93e6412ff34986047c5de85d3288fb93614e4a5d7d22dcaa96aba651a01f047",
+    "src/modes/rpc/rpc-live.ts": "3fa6f9a776fdb5627b5dc8329d49de125b8b31744be73e1fe88c1961a28fad7b",
+    "src/live/controller.ts": "2a74045b1595d50f59120b44b376fdc26572054f2c58eb9da12f663195c2deea",
+    "src/live/transport.ts": "a859df7308d159e4db246f54d8406e2b631547cd3b38b3cf056418f6b967ea14",
+    "src/cli/usage-cli.ts": "1495942572369a74f9be1f203bec101d37b633ba5a236ff44cbf654108b84763",
+    "node_modules/@oh-my-pi/pi-ai/src/usage.ts": "119490ef67850721496d23eef894d83d2c4569204f530a51dd5b471e06a83e93",
+    "node_modules/@oh-my-pi/pi-ai/src/usage/registry.ts": "4378c3101a0cb136870e49938d546ad7df69c75caad994c1510b979f3a317a9e"
+  },
+  "live_cli_shape": {
+    "version": "18.12.5",
+    "root_fields": [
+      "accountsWithoutUsage",
+      "capacity",
+      "disabledCredentials",
+      "generatedAt",
+      "reports"
+    ],
+    "reports": [
+      {
+        "provider": "openai-codex",
+        "fields": [
+          "fetchedAt",
+          "limits",
+          "metadata",
+          "provider",
+          "resetCredits"
+        ],
+        "has_limits": true
+      }
+    ],
+    "accounts_without_usage_count": 0
+  },
+  "live_voice_started": false
+}

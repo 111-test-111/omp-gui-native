@@ -1,0 +1,27 @@
+{
+  "method" : "3 recreated WebViews, 96 distinct formulas each, production queue, 15 pt \/ 2x; offscreen readiness, no GUI\/OMP",
+  "samples" : [
+    {
+      "all_96_ready_ms" : 301.21250008232892,
+      "first_ready_ms" : 233.8711250340566,
+      "p95_ready_ms" : 301.21250008232892,
+      "round" : 0,
+      "snapshots" : 3
+    },
+    {
+      "all_96_ready_ms" : 196.85499998740852,
+      "first_ready_ms" : 126.96945830248296,
+      "p95_ready_ms" : 196.85499998740852,
+      "round" : 1,
+      "snapshots" : 3
+    },
+    {
+      "all_96_ready_ms" : 185.82716677337885,
+      "first_ready_ms" : 118.83620836306363,
+      "p95_ready_ms" : 185.82716677337885,
+      "round" : 2,
+      "snapshots" : 3
+    }
+  ],
+  "stream_24_total_ms" : 453.24062509462237
+}

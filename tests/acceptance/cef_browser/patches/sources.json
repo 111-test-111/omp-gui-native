@@ -1,0 +1,21 @@
+{
+  "cefSwiftRevision": "ba6ebff9e232529289662a84704ade1240563031",
+  "ompVersion": "18.13.3",
+  "inputs": {
+    "Sources/CefKit/CefConfiguration.swift": {
+      "sha256": "f171e70ac3554c465102290e783a8887cb06be33f4454e0ab76e4e18fb49ff7b"
+    },
+    "Sources/CefKit/BrowserClient.swift": {
+      "sha256": "81dc8578314777cd82499ea3e2534372c2f10c8ccd96cf173d427d0d5e925917"
+    },
+    "src/tools/browser/frames.ts": {
+      "sha256": "8a41a8815b430ef5c30033cf264225ff131d5c65214cfeec02f26809884992e4"
+    },
+    "Sources/CefKit/CefBrowser.swift": {
+      "sha256": "8c2bb9512420a2398b884d22fbc363fedb06a0822d660ec3b12f44a494739167"
+    },
+    "src/tools/browser/tab-supervisor.ts": {
+      "sha256": "71a40a50bc0f2c0504f6085645ed14512aa74c32f33015801a3d57e3294b8857"
+    }
+  }
+}

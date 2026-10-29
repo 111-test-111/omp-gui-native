@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-27",
+  "edition": "Dev",
+  "version": "0.1.322",
+  "build": 323,
+  "macOS": "27.2",
+  "architecture": "arm64",
+  "cef": "154.0.34",
+  "chromium": "154.0.8037.98",
+  "sandbox": true,
+  "buildPassed": true,
+  "functional": {
+    "workspace-browser": {
+      "assertions": 127,
+      "passed": true
+    },
+    "settings": {
+      "assertions": 34,
+      "passed": true
+    }
+  },
+  "nativeAssertions": 75,
+  "phases": [
+    {
+      "account": "account-a",
+      "activeProfile": "00000000-0000-4000-8000-000000000001",
+      "checks": [
+        "creating a profile before the first browser keeps the launch selection frozen",
+        "login fixture loads in the production browser",
+        "a newly selected profile has no login, persistent/session cookies, localStorage or IndexedDB",
+        "real form login completes through HTTP",
+        "login and both storage APIs survive the expected profile/process boundary",
+        "login cookies remain HttpOnly",
+        "another conversation loads its independent tab",
+        "another conversation immediately shares the same authenticated account and storage",
+        "login cookies remain HttpOnly",
+        "conversation tabs stay independent while using one native profile",
+        "a conversation created after changing settings loads",
+        "pending profile selection cannot mix accounts in newly created conversations",
+        "login cookies remain HttpOnly",
+        "a new tab loads after every previous tab closed",
+        "closing all tabs and reopening cannot clear the shared login",
+        "login cookies remain HttpOnly",
+        "clean CEF shutdown writes the selected persistent profile"
+      ],
+      "passed": true,
+      "phase": "first"
+    },
+    {
+      "account": "account-a",
+      "activeProfile": "00000000-0000-4000-8000-000000000001",
+      "checks": [
+        "login fixture loads in the production browser",
+        "login and both storage APIs survive the expected profile/process boundary",
+        "login cookies remain HttpOnly",
+        "another conversation loads its independent tab",
+        "another conversation immediately shares the same authenticated account and storage",
+        "login cookies remain HttpOnly",
+        "conversation tabs stay independent while using one native profile",
+        "a conversation created after changing settings loads",
+        "pending profile selection cannot mix accounts in newly created conversations",
+        "login cookies remain HttpOnly",
+        "a new tab loads after every previous tab closed",
+        "closing all tabs and reopening cannot clear the shared login",
+        "login cookies remain HttpOnly",
+        "clean CEF shutdown writes the selected persistent profile"
+      ],
+      "passed": true,
+      "phase": "persisted"
+    },
+    {
+      "account": "account-b",
+      "activeProfile": "396D5A71-CB22-408F-848D-25B66D6ACEFD",
+      "checks": [
+        "login fixture loads in the production browser",
+        "a newly selected profile has no login, persistent/session cookies, localStorage or IndexedDB",
+        "real form login completes through HTTP",
+        "login and both storage APIs survive the expected profile/process boundary",
+        "login cookies remain HttpOnly",
+        "another conversation loads its independent tab",
+        "another conversation immediately shares the same authenticated account and storage",
+        "login cookies remain HttpOnly",
+        "conversation tabs stay independent while using one native profile",
+        "a conversation created after changing settings loads",
+        "pending profile selection cannot mix accounts in newly created conversations",
+        "login cookies remain HttpOnly",
+        "a new tab loads after every previous tab closed",
+        "closing all tabs and reopening cannot clear the shared login",
+        "login cookies remain HttpOnly",
+        "clean CEF shutdown writes the selected persistent profile"
+      ],
+      "passed": true,
+      "phase": "blank"
+    },
+    {
+      "account": "account-a",
+      "activeProfile": "00000000-0000-4000-8000-000000000001",
+      "checks": [
+        "login fixture loads in the production browser",
+        "login and both storage APIs survive the expected profile/process boundary",
+        "login cookies remain HttpOnly",
+        "another conversation loads its independent tab",
+        "another conversation immediately shares the same authenticated account and storage",
+        "login cookies remain HttpOnly",
+        "conversation tabs stay independent while using one native profile",
+        "a conversation created after changing settings loads",
+        "pending profile selection cannot mix accounts in newly created conversations",
+        "login cookies remain HttpOnly",
+        "a new tab loads after every previous tab closed",
+        "closing all tabs and reopening cannot clear the shared login",
+        "login cookies remain HttpOnly",
+        "clean CEF shutdown writes the selected persistent profile"
+      ],
+      "passed": true,
+      "phase": "restored"
+    },
+    {
+      "account": "account-b",
+      "activeProfile": "396D5A71-CB22-408F-848D-25B66D6ACEFD",
+      "checks": [
+        "login fixture loads in the production browser",
+        "login and both storage APIs survive the expected profile/process boundary",
+        "login cookies remain HttpOnly",
+        "another conversation loads its independent tab",
+        "another conversation immediately shares the same authenticated account and storage",
+        "login cookies remain HttpOnly",
+        "conversation tabs stay independent while using one native profile",
+        "a conversation created after changing settings loads",
+        "pending profile selection cannot mix accounts in newly created conversations",
+        "login cookies remain HttpOnly",
+        "a new tab loads after every previous tab closed",
+        "closing all tabs and reopening cannot clear the shared login",
+        "login cookies remain HttpOnly",
+        "clean CEF shutdown writes the selected persistent profile"
+      ],
+      "passed": true,
+      "phase": "blank-restored"
+    }
+  ],
+  "cuaSettings": {
+    "observedCreateAndSwitch": true,
+    "blankNameDisabled": true,
+    "pendingRestartMessageObserved": true,
+    "saved": {
+      "active": "00000000-0000-4000-8000-000000000001",
+      "profiles": [
+        {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "name": ""
+        },
+        {
+          "id": "61AB7A77-9985-46A1-B200-614F9388D48B",
+          "name": "工作账号"
+        }
+      ],
+      "selected": "61AB7A77-9985-46A1-B200-614F9388D48B"
+    }
+  },
+  "scope": "Isolated production browser panel and AppSettings with a local HTTP form-login server; no real accounts, OMP session or signed Release acceptance."
+}

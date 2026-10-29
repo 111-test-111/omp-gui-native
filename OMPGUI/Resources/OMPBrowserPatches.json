@@ -1,0 +1,274 @@
+{
+  "version": "18.13.3",
+  "files": [
+    {
+      "path": "src/tools/browser/frames.ts",
+      "sourceSHA256": "8a41a8815b430ef5c30033cf264225ff131d5c65214cfeec02f26809884992e4",
+      "patchedSHA256": "8958704dd569fd3a2e1cb5ecceaeb0b74929c729ed2bee6a9741d2179d73c752",
+      "changes": [
+        {
+          "before": "import * as path from \"node:path\";\n\nimport { Snowflake, untilAborted } from \"@oh-my-pi/pi-utils\";\nimport type { ElementHandle, ElementScreenshotOptions, Frame, Page } from \"puppeteer-core\";\nimport { formatScreenshot, resizeImage } from \"../../utils/image-resize\";\nimport { throwIfAborted } from \"../tool-errors\";\nimport { ToolError } from \"@oh-my-pi/pi-tui/tools/tool-errors\";\n",
+          "after": "import * as path from \"node:path\";\n\nimport { Snowflake, untilAborted } from \"@oh-my-pi/pi-utils\";\nimport type { ElementHandle, Frame, Page } from \"puppeteer-core\";\nimport { formatScreenshot, resizeImage } from \"../../utils/image-resize\";\nimport { throwIfAborted } from \"../tool-errors\";\nimport { ToolError } from \"@oh-my-pi/pi-tui/tools/tool-errors\";\n"
+        },
+        {
+          "before": "\t\t\t}),\n\t\t).catch(() => undefined);\n\t\tcaptureScale = (await readPageViewport(frame.page(), signal)).deviceScaleFactor ?? 1;\n\t\tconst screenshotOptions: ElementScreenshotOptions = { type: \"png\", scrollIntoView: false };\n\t\tbuffer = (await whileDrawing(frame.page(), signal, () =>\n\t\t\tuntilAborted(signal, () => handle.screenshot(screenshotOptions)),\n\t\t)) as Buffer;\n\t} finally {\n\t\tawait handle.dispose().catch(() => undefined);\n",
+          "after": "\t\t\t}),\n\t\t).catch(() => undefined);\n\t\tcaptureScale = (await readPageViewport(frame.page(), signal)).deviceScaleFactor ?? 1;\n\t\t// boundingBox() is relative to the TOP frame viewport. ElementHandle.screenshot()\n\t\t// adds the CHILD frame's visualViewport offset, losing the top-page scroll.\n\t\t// Resolve the document clip in the same coordinate space as Page.screenshot().\n\t\tconst box = await untilAborted(signal, () => handle.boundingBox());\n\t\tif (!box || box.width <= 0 || box.height <= 0) {\n\t\t\tthrow new ToolError(`frame.screenshot(${JSON.stringify(selector)}) target has no visible box`);\n\t\t}\n\t\tconst offset = await untilAborted(signal, () => frame.page().mainFrame().evaluate(() => ({\n\t\t\tx: window.visualViewport?.pageLeft ?? window.scrollX,\n\t\t\ty: window.visualViewport?.pageTop ?? window.scrollY,\n\t\t})));\n\t\tbuffer = (await whileDrawing(frame.page(), signal, () =>\n\t\t\tuntilAborted(signal, () => frame.page().screenshot({\n\t\t\t\ttype: \"png\", captureBeyondViewport: true,\n\t\t\t\tclip: { ...box, x: box.x + offset.x, y: box.y + offset.y },\n\t\t\t})),\n\t\t)) as Buffer;\n\t} finally {\n\t\tawait handle.dispose().catch(() => undefined);\n"
+        }
+      ]
+    },
+    {
+      "path": "src/tools/browser/tab-supervisor.ts",
+      "sourceSHA256": "71a40a50bc0f2c0504f6085645ed14512aa74c32f33015801a3d57e3294b8857",
+      "patchedSHA256": "0392861def10913066c5f6025e187022a9a06afe4a8129e703eec86f929c2a3f",
+      "changes": [
+        {
+          "before": "\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n\t\t\t} else if (opts.dialogs !== undefined && opts.dialogs !== existing.dialogPolicy) {\n\t\t\t\tholdBrowser(browser);\n\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n",
+          "after": "\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n\t\t\t} else if (opts.dialogs !== undefined && opts.dialogs !== existing.dialogPolicy) {\n\t\t\t\tif (existing.backend === \"worker\") {\n\t\t\t\t\t// Settle the current dialog before closing the old worker: its\n\t\t\t\t\t// page-hook disposal would otherwise wait on the paused renderer.\n\t\t\t\t\tawait runInTabWithSnapshot(name, {\n\t\t\t\t\t\tcode: `await tab.setDialogs(${JSON.stringify(opts.dialogs)});`,\n\t\t\t\t\t\ttimeoutMs: opts.timeoutMs, signal: opts.signal,\n\t\t\t\t\t}, { cwd: getProjectDir() });\n\t\t\t\t}\n\t\t\t\tholdBrowser(browser);\n\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n"
+        },
+        {
+          "before": "import { gracefulKillTreeOnce, pickElectronTarget } from \"./attach\";",
+          "after": "import { gracefulKillTreeOnce, pickElectronTarget } from \"./attach\";\nimport { isGuiTarget, resolveGuiTarget, workerOpenOptions } from \"./omp-gui.js\";"
+        },
+        {
+          "before": "\townsPage: boolean;",
+          "after": "\townsPage: boolean;\n\t/** CEF compatibility applies only to the exact target supplied by OMP GUI. */\n\tompGUI?: boolean;"
+        },
+        {
+          "before": "\t\townsPage: ownsPage(initPayload),",
+          "after": "\t\townsPage: ownsPage(initPayload),\n\t\tompGUI: initPayload.mode === \"attach\" && initPayload.ompGUI,"
+        },
+        {
+          "before": "\tlet page: AttachPage;\n\tif (browser.kind.kind === \"relay\" && !opts.target) {",
+          "after": "\tconst ompGUI = isGuiTarget(opts.target);\n\tlet page: AttachPage;\n\tif (ompGUI) {\n\t\tpage = { kind: \"borrowed\", targetId: await resolveGuiTarget(\n\t\t\tbrowserConnection(browser.browser), opts.target, opts.signal, opts.timeoutMs) };\n\t} else if (browser.kind.kind === \"relay\" && !opts.target) {"
+        },
+        {
+          "before": "\t\tpage,\n\t\tdialogs: opts.dialogs,",
+          "after": "\t\tpage,\n\t\tompGUI,\n\t\tdialogs: opts.dialogs,"
+        },
+        {
+          "before": "\t\tpage: { kind: tab.ownsPage ? \"owned\" : \"borrowed\", targetId: tab.targetId },",
+          "after": "\t\tpage: { kind: tab.ownsPage ? \"owned\" : \"borrowed\", targetId: tab.targetId },\n\t\tompGUI: tab.ompGUI,"
+        },
+        {
+          "before": "\townsPage: boolean;\n\t/** CEF compatibility",
+          "after": "\townsPage: boolean;\n\t/** Initial open contract, retained when native recovery replaces the worker. */\n\tinitialOptions: Pick<AcquireTabOptions, \"downloadsPath\" | \"initScripts\" | \"userAgent\" | \"ignoreHttpsErrors\" | \"viewport\">;\n\t/** CEF compatibility"
+        },
+        {
+          "before": "\t\townsPage: ownsPage(initPayload),\n",
+          "after": "\t\townsPage: ownsPage(initPayload),\n\t\tinitialOptions: workerOpenOptions(initPayload),\n"
+        },
+        {
+          "before": "\t\tallowedDomains: tab.allowedDomains,",
+          "after": "\t\tallowedDomains: tab.allowedDomains,\n\t\t...tab.initialOptions,"
+        },
+        {
+          "before": "\t\tpage,\n\t\tompGUI,",
+          "after": "\t\tpage,\n\t\tviewport: opts.viewport,\n\t\tompGUI,"
+        },
+        {
+          "before": "\t\t\t\t\tif (opts.url) await navigateOpenedTab(name, opts.url, opts, startedAt);",
+          "after": "\t\t\t\t\t// Reuse may apply a new viewport without replacing the worker.\n\t\t\t\t\tconst reused = tabs.get(name);\n\t\t\t\t\tif (opts.viewport && reused?.backend === \"worker\") {\n\t\t\t\t\t\treused.initialOptions.viewport = { ...opts.viewport };\n\t\t\t\t\t}\n\t\t\t\t\tif (opts.url) await navigateOpenedTab(name, opts.url, opts, startedAt);"
+        }
+      ]
+    },
+    {
+      "path": "src/tools/browser/tab-protocol.ts",
+      "sourceSHA256": "f4d30c89a00c3009acde23d1a085e143b466416213232a08f233cc21272fecd4",
+      "changes": [
+        {
+          "before": "\t\t\tpage: AttachPage;",
+          "after": "\t\t\tpage: AttachPage;\n\t\t\t/** Exact GUI target; still borrowed, with call-scoped background focus. */\n\t\t\tompGUI?: boolean;"
+        },
+        {
+          "before": "\t\t\tpage: AttachPage;\n",
+          "after": "\t\t\tpage: AttachPage;\n\t\t\tviewport?: { width: number; height: number; deviceScaleFactor?: number };\n"
+        }
+      ],
+      "patchedSHA256": "253eecfa89f57be0c0c2e4c032204ceb94ea145abdb0378be1d3220ee051480f"
+    },
+    {
+      "path": "src/tools/browser/tab-worker.ts",
+      "sourceSHA256": "ec5015cc4ad6ccae6b3fb1e952f00a25958d6c34cdf26f01184e7706f880a7e9",
+      "changes": [
+        {
+          "before": "import * as fs from \"node:fs\";",
+          "after": "import * as fs from \"node:fs\";\nimport { GuiPageStateError, installGuiNavigationErrors, isGuiPage, markGuiPage, recoverGuiTarget, setGuiPageActive, settleGuiRunDialog } from \"./omp-gui.js\";"
+        },
+        {
+          "before": "\t\t\t\tif (payload.recover) await this.#recoverAttachedTarget(target);",
+          "after": "\t\t\t\tif (payload.recover) {\n\t\t\t\t\tif (payload.ompGUI) await recoverGuiTarget(target);\n\t\t\t\t\telse await this.#recoverAttachedTarget(target);\n\t\t\t\t}"
+        },
+        {
+          "before": "\t\t\t\tthis.#page = page;\n\t\t\t\tawait this.#claimRelayTarget(page);",
+          "after": "\t\t\t\tthis.#page = page;\n\t\t\t\tif (payload.ompGUI) {\n\t\t\t\t\tmarkGuiPage(page);\n\t\t\t\t\tinstallGuiNavigationErrors(page);\n\t\t\t\t\tawait setGuiPageActive(page, true);\n\t\t\t\t}\n\t\t\t\tawait this.#claimRelayTarget(page);"
+        },
+        {
+          "before": "\t\t\tconst info = await this.#currentReadyInfo();\n\t\t\tthis.#started = true;",
+          "after": "\t\t\tconst info = await this.#currentReadyInfo();\n\t\t\tawait setGuiPageActive(this.#page, false);\n\t\t\tthis.#started = true;"
+        },
+        {
+          "before": "\t\t\tconst page = this.#page;\n\t\t\tawait this.#webmcp?.dispose()",
+          "after": "\t\t\tconst page = this.#page;\n\t\t\tif (page) await setGuiPageActive(page, false).catch(() => undefined);\n\t\t\tawait this.#webmcp?.dispose()"
+        },
+        {
+          "before": "\t\t\tawait untilAborted(signal, () => this.#emulation?.reapply() ?? Promise.resolve());",
+          "after": "\t\t\tawait setGuiPageActive(this.#requirePage(), true, signal, this.#dialogs?.state().open);\n\t\t\tif (!(isGuiPage(this.#requirePage()) && this.#dialogs?.state().open)) {\n\t\t\tawait untilAborted(signal, () => this.#emulation?.reapply() ?? Promise.resolve());\n\t\t\t}"
+        },
+        {
+          "before": "\t\t\t\tawait runPage?.restoreInterception();",
+          "after": "\t\t\t\tconst cleanup = await Promise.allSettled([\n\t\t\t\t\trunPage?.restoreInterception(),\n\t\t\t\t\tthis.#recording.status().active ? undefined : setGuiPageActive(this.#requirePage(), false, undefined, this.#dialogs?.state().open),\n\t\t\t\t]);\n\t\t\t\tfor (const result of cleanup) if (result.status === \"rejected\") throw result.reason;"
+        },
+        {
+          "before": "\t\tthis.#emulation?.dispose();\n\t\tif (this.#ownsPage",
+          "after": "\t\tthis.#emulation?.dispose();\n\t\tif (page) await setGuiPageActive(page, false, undefined, guiDialogPending).catch(() => undefined);\n\t\tif (this.#ownsPage"
+        },
+        {
+          "before": "const recoverTab = error instanceof RequestInterceptionCleanupError || undefined;",
+          "after": "const recoverTab = error instanceof RequestInterceptionCleanupError || error instanceof GuiPageStateError || undefined;"
+        },
+        {
+          "before": "\t\tthis.#dialogs?.dispose();\n\t\tawait this.#network?.close();",
+          "after": "\t\tconst guiDialogPending = this.#dialogs?.state().open;\n\t\tthis.#dialogs?.dispose();\n\t\tawait this.#network?.close();"
+        },
+        {
+          "before": "\t\t\thandleDialog: opts =>\n\t\t\t\top(\"tab.handleDialog()\", actionOpMs, sig => untilAborted(sig, () => this.#requireDialogs().handle(opts))),",
+          "after": "\t\t\thandleDialog: opts =>\n\t\t\t\top(\"tab.handleDialog()\", actionOpMs, async sig => {\n\t\t\t\t\tawait untilAborted(sig, () => this.#requireDialogs().handle(opts));\n\t\t\t\t\tawait setGuiPageActive(page, true, sig, this.#requireDialogs().state().open);\n\t\t\t\t}),"
+        },
+        {
+          "before": "\t\t\tsetDialogs: policy =>\n\t\t\t\top(\"tab.setDialogs()\", actionOpMs, sig =>\n\t\t\t\t\tuntilAborted(sig, () => this.#requireDialogs().setPolicy(policy)),\n\t\t\t\t),",
+          "after": "\t\t\tsetDialogs: policy =>\n\t\t\t\top(\"tab.setDialogs()\", actionOpMs, async sig => {\n\t\t\t\t\tawait untilAborted(sig, () => this.#requireDialogs().setPolicy(policy));\n\t\t\t\t\tawait setGuiPageActive(page, true, sig, this.#requireDialogs().state().open);\n\t\t\t\t}),"
+        },
+        {
+          "before": "\t\t\trunPage?.detach();",
+          "after": "\t\t\trunPage?.detach();\n\t\t\ttry {\n\t\t\t\tawait settleGuiRunDialog(this.#requirePage(), this.#dialogs, timeoutSignal.aborted || ac.signal.aborted);\n\t\t\t} catch (error) {\n\t\t\t\tthis.#log(\"warn\", \"Interrupted GUI dialog cleanup failed before worker recovery\", {\n\t\t\t\t\terror: error instanceof Error ? error.message : String(error),\n\t\t\t\t});\n\t\t\t}"
+        },
+        {
+          "before": "\t\t\t\tawait this.#claimRelayTarget(page);",
+          "after": "\t\t\t\tawait this.#claimRelayTarget(page);\n\t\t\t\tif (payload.viewport) await applyViewport(page, payload.viewport);"
+        }
+      ],
+      "patchedSHA256": "c0a9f1c58b2cd574fb1808ec4eade1fe71b1416d31bf591605de2bb915cbe85c"
+    },
+    {
+      "path": "src/tools/browser/storage-state.ts",
+      "sourceSHA256": "3cec4c7cd03482c5892ab5adc374482cb016323b75472d791be824a3fe5f2fbc",
+      "changes": [
+        {
+          "before": "import * as os from \"node:os\";",
+          "after": "import * as os from \"node:os\";\nimport { isGuiPage, readGuiCookies, restoreGuiCookies, assertGuiStateCookies } from \"./omp-gui.js\";"
+        },
+        {
+          "before": "\t\tuntilAborted(signal, () => page.browserContext().cookies()),",
+          "after": "\t\tisGuiPage(page) ? readGuiCookies(page, signal) : untilAborted(signal, () => page.browserContext().cookies()),"
+        },
+        {
+          "before": "export async function readStorageStateFile(\n\trequestedPath: string,\n\tcwd: string,\n\tsignal?: AbortSignal,",
+          "after": "export async function readStorageStateFile(\n\trequestedPath: string,\n\tcwd: string,\n\tsignal?: AbortSignal,\n\tguiState = false,"
+        },
+        {
+          "before": "\t\treturn parseStorageState(JSON.parse(text) as unknown);",
+          "after": "\t\tconst value = JSON.parse(text);\n\t\tif (guiState) assertGuiStateCookies(value?.cookies);\n\t\treturn parseStorageState(value as unknown);"
+        },
+        {
+          "before": "\tconst state = await readStorageStateFile(requestedPath, cwd, options.signal);",
+          "after": "\tconst state = await readStorageStateFile(requestedPath, cwd, options.signal, isGuiPage(page));"
+        },
+        {
+          "before": "\t\t\tawait untilAborted(options.signal, () => page.browserContext().setCookie(...state.cookies));",
+          "after": "\t\t\tif (isGuiPage(page)) await restoreGuiCookies(page, state.cookies, options.signal);\n\t\t\telse await untilAborted(options.signal, () => page.browserContext().setCookie(...state.cookies));"
+        },
+        {
+          "before": "if (!options.allowOtherOrigins || (origin.sessionStorage?.length ?? 0) > 0) {",
+          "after": "if (!options.allowOtherOrigins || isGuiPage(page) || (origin.sessionStorage?.length ?? 0) > 0) {\n\t\t\t// CEF cannot create a sibling in this request context via BrowserContext.\n\t\t\t// Report skipped origins instead of writing into the wrong profile."
+        }
+      ],
+      "patchedSHA256": "c4742d57aad5027f2f9cc4f72e5491a1055d1797e60b350054a18aa31deecfc7"
+    },
+    {
+      "path": "src/tools/browser/tab-call.ts",
+      "sourceSHA256": "b13819e1b60e8e99eafe35ca3c965bbad01e019d64013ecc826fe06d0d9e2894",
+      "changes": [
+        {
+          "before": "${renderElementStep(handleStep)};",
+          "after": "${frameHandle ? renderCallChain([handleStep]) : renderElementStep(handleStep)};"
+        }
+      ],
+      "patchedSHA256": "b4aef3165bc60fca6ac2962c1daa94d91fa1ae86dd5e80391da3931d9427ff31"
+    },
+    {
+      "path": "src/eval/js/worker-core.ts",
+      "sourceSHA256": "bad72ec1d7c65d97ecdfc1f714bca7e74d9db97c35e9416ef1f0d55a4a0dec4f",
+      "changes": [
+        {
+          "before": "\t\treturn await promise;\n\t}\n\n\t#deliverToolReply",
+          "after": "\t\ttry {\n\t\t\treturn await promise;\n\t\t} catch (error) {\n\t\t\t// Remote tool stacks omit the originating cell. Retain that ownership so a\n\t\t\t// delayed floating rejection is reported by the native guard, not a fatal\n\t\t\t// process error that silently discards every persistent Eval variable.\n\t\t\tif (error instanceof Error && !error.stack?.includes(active.filename)) {\n\t\t\t\terror.stack = `${error.stack ?? error.message}\\n    at eval tool bridge (${active.filename})`;\n\t\t\t}\n\t\t\tthrow error;\n\t\t}\n\t}\n\n\t#deliverToolReply"
+        }
+      ],
+      "patchedSHA256": "992ab96f0e484c11b52074ea575715ba01230630f676ddddc70c729c16fdd9c4"
+    },
+    {
+      "path": "src/eval/js/context-manager.ts",
+      "sourceSHA256": "d1a7c52a8469668d114a9ce22995e2adb90cdd6f8175c471e6c70b249374320b",
+      "changes": [
+        {
+          "before": "const resettingSessions = new Map<string, Promise<void>>();",
+          "after": "const resettingSessions = new Map<string, Promise<void>>();\n// Weak ownership: a crash notice cannot retain a disposed conversation.\nconst unexpectedWorkerLoss = new WeakMap<ToolSession, Set<string>>();"
+        },
+        {
+          "before": "\tif (options.reset) {\n\t\t// Coalesce",
+          "after": "\tif (options.reset) {\n\t\tunexpectedWorkerLoss.get(options.session)?.delete(options.sessionKey);\n\t\t// Coalesce"
+        },
+        {
+          "before": "\tconst result = await runOnce(session, options);",
+          "after": "\tif (unexpectedWorkerLoss.get(options.session)?.delete(options.sessionKey)) {\n\t\toptions.runState.onText?.((process.env.OMP_GUI_EVAL_RESTART_NOTICE ?? \"JavaScript kernel restarted after an unexpected worker exit; previous variables are no longer available.\") + \"\\n\");\n\t}\n\tconst result = await runOnce(session, options);"
+        },
+        {
+          "before": "\t\tvoid killSessionFor(session, error, { force: true });\n\t});\n\ttry {",
+          "after": "\t\tif (session.state === \"alive\") {\n\t\t\tfor (const owner of session.stateSessions) {\n\t\t\t\tconst lost = unexpectedWorkerLoss.get(owner) ?? new Set<string>();\n\t\t\t\tlost.add(session.sessionKey);\n\t\t\t\tunexpectedWorkerLoss.set(owner, lost);\n\t\t\t}\n\t\t}\n\t\tvoid killSessionFor(session, error, { force: true });\n\t});\n\ttry {"
+        }
+      ],
+      "patchedSHA256": "a4a8146c5a481c000fa33d00cd63f594d2fae3cd1a67e2d7489edb721b66d243"
+    },
+    {
+      "path": "src/tools/browser/downloads.ts",
+      "sourceSHA256": "b3a0458d3059f16db5cd969d378b26c197dccad15438074cba8e341d09e1ce6a",
+      "changes": [
+        {
+          "before": "import * as fs from \"node:fs/promises\";",
+          "after": "import * as fs from \"node:fs/promises\";\nimport { isGuiPage } from \"./omp-gui.js\";"
+        },
+        {
+          "before": "\t#session?: CDPSession;",
+          "after": "\t#session?: CDPSession;\n\t/** CEF profile override lives on its page session until this manager closes. */\n\t#profileSession?: CDPSession;"
+        },
+        {
+          "before": "\t\tconst context = this.#page.browserContext() as { id?: string };\n\t\tawait this.#session!.send(\"Browser.setDownloadBehavior\", {\n\t\t\tbehavior: this.#perTab ? \"allowAndName\" : \"allow\",\n\t\t\tdownloadPath: resolved,\n\t\t\teventsEnabled: true,\n\t\t\t...(context.id ? { browserContextId: context.id } : {}),\n\t\t});",
+          "after": "\t\tif (isGuiPage(this.#page)) {\n\t\t\t// CEF's named request context has no Puppeteer BrowserContext ID.\n\t\t\t// Enable browser events without redirecting the default profile, then\n\t\t\t// bind the path to the page's actual context. Keep that session alive:\n\t\t\t// detaching it immediately removes Chromium's download override.\n\t\t\tawait this.#session!.send(\"Browser.setDownloadBehavior\", { behavior: \"default\", eventsEnabled: true });\n\t\t\tthis.#profileSession ??= await this.#page.createCDPSession();\n\t\t\tawait this.#profileSession.send(\"Page.setDownloadBehavior\", { behavior: \"allow\", downloadPath: resolved });\n\t\t} else {\n\t\tconst context = this.#page.browserContext() as { id?: string };\n\t\tawait this.#session!.send(\"Browser.setDownloadBehavior\", {\n\t\t\tbehavior: this.#perTab ? \"allowAndName\" : \"allow\",\n\t\t\tdownloadPath: resolved,\n\t\t\teventsEnabled: true,\n\t\t\t...(context.id ? { browserContextId: context.id } : {}),\n\t\t});\n\t\t}"
+        },
+        {
+          "before": "\t\tthis.#session = undefined;\n\t\tawait session.detach().catch(() => undefined);",
+          "after": "\t\tthis.#session = undefined;\n\t\tconst profileSession = this.#profileSession;\n\t\tthis.#profileSession = undefined;\n\t\tawait Promise.allSettled([session.detach(), profileSession?.detach()]);"
+        }
+      ],
+      "patchedSHA256": "b8060ee31f8c606fd2d28183979f62bfa0c94a241f6c478f969494ab6c91d230"
+    },
+    {
+      "path": "src/tools/browser.ts",
+      "sourceSHA256": "12c658b5e81e905d6b48e29003148b48f209483f8e2b4fccfa222836e827098b",
+      "changes": [
+        {
+          "before": "\t\t\t\t\tparams.ignore_https_errors === true)",
+          "after": "\t\t\t\t\tparams.ignore_https_errors !== undefined)"
+        }
+      ],
+      "patchedSHA256": "06b6028f3c52e3e96edf16cb00e832c5d39897679952aeea93d3dafd9959642f"
+    }
+  ],
+  "additions": [
+    {
+      "path": "src/tools/browser/omp-gui.js",
+      "resource": "OMPBrowserSupport.js",
+      "sha256": "09da871058d952f05054b661b36f1fd57d315bfe5c35d09bc33ca3edc2639325"
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Hong_Kong",
+  "owner_authorization": "授权启动、验收并退出本任务实例",
+  "status": "selected_checks_complete_q_remaining_open",
+  "resource_run": {
+    "os": "27.2",
+    "hardware": "Mac17,4",
+    "memory_bytes": 25769803776,
+    "revision": "db7f8bf79c5162a2f78e9231877b356fc8fef33c",
+    "dirty": false,
+    "dylib_sha256": "6801d9cd8715168065e8587eacd1bd70b10b0e68da5a42dfa0883a11c41e72f8",
+    "workload_sha256": "32539b27b14852e95271fbc3bdad3266ca7b76d3accb5558c3133dba394a375e",
+    "driver_sha256": "dc25581fe5ab6020fa9cbdf4b319d6d03a7f98bea4d5f743e0162233a5495afb",
+    "memory_comparison": {
+      "before_bytes": 417189080,
+      "after_bytes": 423759136.0,
+      "delta_bytes": 6570056.0,
+      "budget_bytes": 41718908.0,
+      "measured_scope_within_budget": true,
+      "full_application_within_budget": true,
+      "basis": "Median observed simultaneous physical footprint during two 60-second idle phases"
+    },
+    "full_application_resource_coverage": false,
+    "steady_state_resource_coverage": true,
+    "webkit_service_enumeration_complete": false,
+    "resource_scope": "GUI, native OMP and observed descendants, explicit MCP roots, and WebContent/Networking/GPU instances in this GUI's launchd PID domain; excludes shared OS services and sampling-interval peaks.",
+    "window_visibility_scope": "Activity/visibility recorded at phase transitions only; this does not certify an uninterrupted foreground window",
+    "raw_run": "/Users/developer/.codex/worktrees/omp-resource-options/omp-gui-native/build.noindex/omp-p5-live/20261017-012036-639b8b38",
+    "run_status": "failed",
+    "failure": "Inspection must be explicitly completed: the 300-second inspection marker deadline elapsed after measured phases completed.",
+    "completed_workload": {
+      "chat_switches": 100,
+      "preview_cycles": 20,
+      "history_entries": 10000,
+      "stale_preview_ready_rejections": 0,
+      "cold_history_layout_cycle_ms": 966.480041,
+      "recent_history_layout_cycle_ms": 125.601208
+    },
+    "phases": {
+      "idle-before": {
+        "sample_count": 213,
+        "incomplete_samples": 0,
+        "gui_cpu_percent_of_one_core": 0.03241839938338456,
+        "median_physical_bytes": 417189080,
+        "observed_peak_by_role_bytes": {
+          "gui": 249578936,
+          "omp": 161072544,
+          "mcp": 6898048,
+          "webkit": 11076304
+        }
+      },
+      "chat-switches": {
+        "sample_count": 16,
+        "incomplete_samples": 0,
+        "gui_cpu_percent_of_one_core": 62.00095800754485,
+        "median_physical_bytes": 418401496.0,
+        "observed_peak_by_role_bytes": {
+          "gui": 251315640,
+          "omp": 160957856,
+          "mcp": 6898048
+        }
+      },
+      "preview-cycles": {
+        "sample_count": 58,
+        "incomplete_samples": 6,
+        "gui_cpu_percent_of_one_core": 80.2592175283453,
+        "median_physical_bytes": 544593260.0,
+        "observed_peak_by_role_bytes": {
+          "gui": 300287512,
+          "omp": 160957856,
+          "mcp": 6898048,
+          "webkit": 194283872
+        }
+      },
+      "idle-after": {
+        "sample_count": 206,
+        "incomplete_samples": 0,
+        "gui_cpu_percent_of_one_core": 0.030250288065353396,
+        "median_physical_bytes": 423759136.0,
+        "observed_peak_by_role_bytes": {
+          "gui": 268453376,
+          "omp": 148604320,
+          "mcp": 6734208,
+          "webkit": 11469616
+        }
+      }
+    },
+    "scope": "One selected run only. The two complete 60-second idle phases support steady-state CPU and memory comparison. Active-preview coverage and whole-run completion remain incomplete; helper/layout timings are not screen p95."
+  },
+  "initial_manual_observations": {
+    "version": "0.1.60",
+    "build": 61,
+    "gui_pid": 65932,
+    "initial_native_pid": 65949,
+    "lead_native_pid": 72558,
+    "provider_requests": 5,
+    "provider_source_sha256": "a821902e5f2da92620a53ca353eb32a8478c87229fa60813ca6708a3f1ab54b7",
+    "main_stream_chunks": 80,
+    "main_stream_interval_seconds": 0.25,
+    "btw_started_after_main_seconds": 9.36825704574585,
+    "observed": [
+      "Goal create with 2048-token budget, pause, resume, drop and explicit dropped state",
+      "Chinese multiline text, Escape, draft retention and composer focus return",
+      "BTW answer during main stream, follow-up cancellation and independent draft retention",
+      "Usage Fast refusal then disable clears panel error; retry disabled override; unsupported Slow; warming off acknowledgement; scrollable bottom actions"
+    ],
+    "localization_defects": [
+      "Missing Refresh and Not set zh-Hans catalog entries"
+    ],
+    "completion": "The legacy inspection marker timed out; this is observed UI evidence, not a passed entire acceptance run."
+  },
+  "targeted_recheck": {
+    "run": "build.noindex/native-controls-live/20261017-013949-de635d8d",
+    "status": "completed",
+    "version": "0.1.61",
+    "build": 62,
+    "gui_pid": 78835,
+    "omp_pid": 78874,
+    "width_points": 860,
+    "language": "zh-Hans",
+    "observed": [
+      "Refresh appears as 刷新",
+      "A newly created goal with no budget shows 未设置",
+      "Native goal and side-question sheets fit the minimum-width window with complete actions and focus return"
+    ],
+    "sheet_cycles": {
+      "goal": 10,
+      "side_question": 10,
+      "observer": "CUA: fresh full AX state before action, after open and after Escape"
+    },
+    "resource_comparison": {
+      "before": {
+        "sample_count": 243,
+        "incomplete": 0,
+        "gui_cpu_percent_of_one_core": 0.9000914524037684,
+        "median_gui_bytes": 67749064,
+        "median_gui_omp_bytes": 225446432,
+        "unmeasured_roles": [
+          "mcp",
+          "webkit"
+        ]
+      },
+      "after": {
+        "sample_count": 240,
+        "incomplete": 0,
+        "gui_cpu_percent_of_one_core": 0.1237823541569569,
+        "median_gui_bytes": 66012336.0,
+        "median_gui_omp_bytes": 223693320.0,
+        "unmeasured_roles": [
+          "mcp",
+          "webkit"
+        ]
+      }
+    },
+    "returncode": 0,
+    "provider_requests": 1,
+    "operator_notes": {
+      "language": "zh-Hans",
+      "content_width_points": 860,
+      "goal_open_close_cycles": 10,
+      "side_question_open_close_cycles": 10,
+      "count_method": "CUA actions with a fresh full accessibility state before each entry, after open, and after Escape; each operation checked the expected sheet/window.",
+      "labels_confirmed": [
+        "刷新",
+        "Token 预算 未设置"
+      ],
+      "settle_after_cycles_seconds": 30,
+      "scope": "Closed-sheet GUI and one explicit native OMP root; MCP/WebKit roots are not independently attributed in this additional sample.",
+      "baseline_note": "Static syntax validation ran for approximately 2 seconds at the beginning of the initial 60-second baseline; host load was not isolated."
+    },
+    "native_process_exited": true,
+    "sidecar_save_acknowledged": false
+  },
+  "remaining": [
+    "Actual input/menu/stream-to-pixel and first-readable-frame p95",
+    "Same-load parent-revision comparison",
+    "Complete active WebKit/XPC and short-lived process peaks",
+    "Real IME composition, VoiceOver speech, sleep/wake and system accessibility settings matrix",
+    "Complete multi-window/request and approval/answer keyboard regression matrix",
+    "Real-account global Slow and paid warming lifecycles"
+  ],
+  "targeted_attempts": [
+    {
+      "run": "build.noindex/native-controls-live/20261017-013831-a2d6d9ad",
+      "status": "failed",
+      "reason": "Aborted at initial UI observation: workspace lacked a Git boundary and discovered the parent worktree. Launcher corrected to initialize and verify its own scratch Git root; only this affected manual launch was repeated.",
+      "gui_pid": 78741,
+      "omp_pid": 78780
+    }
+  ],
+  "compiled_change": {
+    "worktree_base_commit": "70812c1",
+    "uncommitted_at_measurement": true,
+    "dev_version": "0.1.61",
+    "build": 62,
+    "build_evidence": {
+      "schema": 1,
+      "source_sha256": "f3bd83cc102e09c57df0601fdb50f098e513a2ee27c8bd5f9c40c55afebe6cad",
+      "binary_sha256": "d8b4b46340bff41ed3a8eef08ef31ed07a586a741ab35e73c23526594b30ecf5"
+    },
+    "scope": "Two catalog labels and a DEBUG-only focused manual inspection entry; normal OMP behavior is unchanged."
+  },
+  "english_layout": {
+    "run": "build.noindex/native-controls-live/20261017-014715-99ab64da",
+    "status": "completed",
+    "returncode": 0,
+    "gui_pid": 79642,
+    "language": "en",
+    "width_points": 860,
+    "provider_requests": 1,
+    "operator_notes": {
+      "language": "en",
+      "content_width_points": 860,
+      "observed": [
+        "Goal Refresh and Not set source labels, complete goal actions and wrapped notes",
+        "Side question title, description, input and bottom action",
+        "Usage scroll reaches all three warming actions; English actions stack vertically",
+        "Escape restores composer focus"
+      ],
+      "scope": "Layout and label spot-check only; no repeated resource or native compatibility matrix."
+    },
+    "native_process_exited": true,
+    "scope": "Locale-specific layout/labels only. The resource sample and native compatibility checks were not repeated."
+  },
+  "verification": {
+    "build": "make build: passed once for the compiled Q changes",
+    "static_harness_syntax": "build.noindex/verification/runs/20261016T173741Z-56ec73f7/report.json",
+    "syntax_after_fixture_git_boundary_fix": "build.noindex/verification/runs/20261016T174152Z-9e824088/report.json",
+    "documentation": {
+      "report": "build.noindex/verification/runs/20261016T175108Z-c24ba5e6/report.json",
+      "status": "passed",
+      "markdown_files": 66,
+      "local_links": 560
+    },
+    "reused": "N0–N4 API/native/benchmark evidence retains its documented source scope. No unrelated matrix rerun."
+  },
+  "process_cleanup": {
+    "own_gui_and_omp_pids_confirmed_absent": [
+      65932,
+      65949,
+      72558,
+      78741,
+      78780,
+      78835,
+      78874,
+      79642,
+      79681
+    ],
+    "preexisting_user_gui_pid_55779": "untouched and still running",
+    "local_http_provider_66856": "stopped by exact PID; focused driver providers closed by their own launchers"
+  }
+}

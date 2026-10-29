@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-17",
+  "timezone": "Asia/Hong_Kong",
+  "feature": "native-side-question",
+  "base_commit": "6022490",
+  "dev_version": "0.1.59",
+  "build": 60,
+  "build_evidence": {
+    "schema": 1,
+    "source_sha256": "8cf62463a27c7d5f6a9d74d13f75179e60fb6f404538c7b8e042988dbacbfa6e",
+    "binary_sha256": "13e477d2a1189746d05ceab1a217fd84092a28e3c8c0dfa37e02fbc86e695507"
+  },
+  "production_sha256": {
+    "OMPGUI/Core/Models/OMPSideQuestion.swift": "ed147aeda6cafa40e0ed3953a74e9261c11a30145da7015d25ff2fce6e21a8dc",
+    "OMPGUI/Services/Providers/OMPSideQuestionController.swift": "d228526022dca7fd95f445561398865066e4f068885f184e1b0952172aa8e0c4",
+    "OMPGUI/Services/Providers/OMPSession+SideQuestion.swift": "7c75f4ff66ad2772bdcd86baf75a28019e4fb4f1c9a4b875c049d95e5ffbce7b",
+    "OMPGUI/App/Runtime/ThreadRuntime+SideQuestion.swift": "7a647aba858719e4996c89a59444309233411aa9f7206ea57ab62d1a7c5119db",
+    "OMPGUI/App/Views/Composer/OMPSideQuestionSheet.swift": "7cc95362f5a438aa974e7e4ca4a5eeaacd67389d676b50720cebbcddd22e5955",
+    "OMPGUI/Services/Providers/OMPSession.swift": "589e3ab98ea3125be28b47f97b2ffb42ed1db07eecced2bf98c9587c83e2594a",
+    "OMPGUI/Services/Providers/OMPRPC.swift": "e73b587157353110754cd854e3d73eccf60311b49d7dd28b5fbc66950fdd0712",
+    "OMPGUI/App/Runtime/ThreadRuntime.swift": "c5e51ccfd385ca2f232cb45437d66c8322a3fb3a4244e8104ce0c341fcc47910"
+  },
+  "functional": {
+    "report": "build.noindex/verification/runs/20261016T170307Z-aa3533dc/report.json",
+    "checks": 47,
+    "status": "passed",
+    "inputs_sha256": "f55b8c87bb77cdb1e0dbbddf8b3b9964035e8e6c2b66e6c3973599ed7044ad30",
+    "model_calls": 0,
+    "final_interleavings": [
+      "reset while successful admission awaits record projection does not alter replacement connection",
+      "Goal settlement get_state survives concurrent BTW admission and cancellation, allowing native EOF without polling"
+    ]
+  },
+  "reused_functional": {
+    "report": "build.noindex/verification/runs/20261016T165845Z-6b9377a8/report.json",
+    "rpc_checks": 95,
+    "lifecycle_checks": 67,
+    "default_metrics_checks": 2,
+    "status": "passed",
+    "reason": "Later source fixes only fence stale BTW admission callbacks and remove unnecessary BTW stateRevision mutations; RPC transport and main lifecycle coverage paths unchanged."
+  },
+  "native": {
+    "report": "build.noindex/verification/runs/20261016T165944Z-43bcf8f1/report.json",
+    "matrix": "build.noindex/verification/runs/20261016T165944Z-43bcf8f1/native/side-question/matrix.json",
+    "checks": 11,
+    "status": "passed",
+    "tested_dylib_raw_sha256": "a19315031e66fb8961339cfe2a83cb1687b0013b7d7007df34377871815a7e52",
+    "assertions": [
+      "Native side questions use a newly generated isolated session",
+      "The actual native lead is running when the side question is submitted",
+      "Public BTW completes alongside the native prompt through the loopback provider",
+      "Answer completion does not claim a native checkpoint acknowledgement",
+      "The native cumulative record preserves the exact follow-up topic",
+      "A side-only follow-up creates no main reply or duplicate token spend",
+      "Actual cancellation targets this topic and waits for its cancelled lifecycle",
+      "Finished side work leaves the lead idle without manufacturing a main turn",
+      "Idle disposal uses native stdin EOF to drain sidecar writes",
+      "Native output and disposal finish before releasing the persistence blocker",
+      "The isolated native sidecar contains both follow-ups and the cancelled final turn after exit"
+    ],
+    "asset": {
+      "version": "18.11.2",
+      "source": "https://github.com/can1357/oh-my-pi/releases/download/v18.11.2/omp-darwin-arm64",
+      "sha256": "dfbf52e9ec966e3066e5d8f6df31829dbb4882ca74d82b2fb511b659017f69cc",
+      "bytes": 194785312,
+      "read_only_runtime_from": "N2 task worktree",
+      "system_installation_modified": false
+    },
+    "provider": "isolated loopback deterministic HTTP",
+    "external_paid_model_requests": 0,
+    "evidence_reuse": "Later fixes cover stale connection reset and Goal settlement interleavings in the final 47-check functional run. Public BTW/provider/cancellation/EOF sidecar paths covered by this native run are unchanged; the final binary was not rerun natively."
+  },
+  "static": {
+    "selection": "make verify TIER=static AREAS=\"documentation harness syntax\"",
+    "status": "passed",
+    "harness_tests": 29,
+    "prior_report": "build.noindex/verification/runs/20261016T165845Z-51dab195/report.json",
+    "delivery_report_directory": "build.noindex/verification/runs/",
+    "scope": "Delivery static selection follows archive/index/evaluation creation and final Swift/Python fixture changes."
+  },
+  "prior_failed_checks": [],
+  "limitations": [
+    "Public BTW protocol has no durable-save success ACK; EOF plus actual exit is the disposal boundary and known save errors remain protected.",
+    "Native proof covers one official runtime and a deterministic local provider, not arbitrary model quality or storage faults."
+  ],
+  "not_run": [
+    "GUI launch and manual UI acceptance",
+    "Q whole-app latency/resource workloads",
+    "Goal or general native RPC compatibility reruns",
+    "External paid providers"
+  ]
+}

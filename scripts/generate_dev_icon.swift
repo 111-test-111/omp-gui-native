@@ -4,8 +4,8 @@ import AppKit
 // Derived asset only: the current release AppIcon and archived artwork stay unchanged.
 // Keep the full-bleed System-Masked input; never add an outer rounded mask here.
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-let source = root.appendingPathComponent("Tivano/Resources/Assets.xcassets/AppIcon.appiconset")
-let output = root.appendingPathComponent("Tivano/Resources/Assets.xcassets/AppIconDev.appiconset")
+let source = root.appendingPathComponent("OMPGUI/Resources/Assets.xcassets/AppIcon.appiconset")
+let output = root.appendingPathComponent("OMPGUI/Resources/Assets.xcassets/AppIconDev.appiconset")
 let metadata = try Data(contentsOf: source.appendingPathComponent("Contents.json"))
 let catalog = try JSONSerialization.jsonObject(with: metadata) as! [String: Any]
 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)

@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-16",
+  "version": "dev-0.1.24",
+  "build": 25,
+  "native_version": "omp/18.3.2",
+  "model": "kimi-code/k3",
+  "status": "passed_with_documented_native_boundaries",
+  "p3": {
+    "source_run": "20261016-051453-20a3d757",
+    "component_status": "passed",
+    "native_checks": [
+      "Fresh native profile has no RPC login directory before its first authenticated model",
+      "Production plugin service installs the self-authored local plugin through real OMP",
+      "Real native inventory reports the installed plugin and scope",
+      "Real native plugin diagnostics return structured checks",
+      "Installed extension registers an unauthenticated synthetic native provider",
+      "Native login RPC persists synthetic credentials only in the isolated profile",
+      "Native profile discovery stays inside the isolated acceptance directory",
+      "Real native role writes preserve unknown role assignments",
+      "Native agent form serialization preserves negative sentinel values",
+      "Unknown native profile fields survive writes",
+      "External CLI-style changes reject stale form saves",
+      "Native settings reload after the external modification",
+      "Native MCP file edits retain unknown server fields",
+      "Real native rich option descriptions reach the GUI",
+      "Real native editor preserves multiline Unicode prefill",
+      "Native prepared text does not overwrite active user typing",
+      "Native receives the exact edited whitespace and Unicode",
+      "Real native status and above/below widgets reach the composer",
+      "Native command discovery preserves extension source",
+      "Applying prepared text retains the displaced draft without submitting it",
+      "Real native timeout clears its GUI request and returns cancellation",
+      "Real native cancel clears its GUI request and returns cancellation",
+      "Production service uninstalls the local plugin from the isolated native registry"
+    ],
+    "gui_checks": [
+      "Fresh-profile native terminal login fallback visible",
+      "Synthetic login input submitted via actual UI",
+      "Rich native selection description visible and submitted",
+      "Native multiline prefill and exact Unicode edit submitted",
+      "Prepared text applied while retaining displaced draft",
+      "First role sheet preserves default and smol values",
+      "Native plan role saved as @smol from the form; future fields retained",
+      "Plugin list reload shows actual installed package; doctor output visible",
+      "First worker-model form preserves configured acceptance selector",
+      "First disabled-agent form preserves disabled-acceptance",
+      "Hydra maximum depth -1 displays Unlimited",
+      "MCP disabled configuration and connection unknown displayed separately"
+    ],
+    "authentication": "Synthetic local provider through actual native OMP RPC; no external-account reauthorization",
+    "parent_run_status": "failed",
+    "parent_run_error": "Actual model calls the registered native selected-context host tool",
+    "parent_run_resolution": "P3 completed; P4 harness was corrected to recognize the native xd:// toolDevice transport and revalidated separately"
+  },
+  "p4": {
+    "error": null,
+    "worker_model": "kimi-code/k3",
+    "worker_changes_applied": null,
+    "status": "completed",
+    "synthetic_login": false,
+    "worker_has_output_artifact": false,
+    "phase": "inspection-p4-transcript",
+    "worker_isolated": null,
+    "worker_steering_supported": false,
+    "checks": [
+      "Actual model calls the registered native selected-context host tool",
+      "Actual model opens a linked-worktree file through the native host tool",
+      "Native host open preserves the selected source worktree and line",
+      "Clearing explicit context revokes the production host callback",
+      "Real OMP worker exposes durable session and observation identity",
+      "Parent cannot recycle while native child work remains",
+      "Actual native unknown-command response keeps worker steering unavailable",
+      "Actual native unknown-command response keeps worker stop unavailable",
+      "Hydra reports the actual native worker model",
+      "Real native worker preserves worktree, parent and source metadata"
+    ],
+    "source_run": "20261016-052219-8681bf2c",
+    "gui_checks": [
+      "Both rounds retain readable assistant final replies: P4_HOST_OK and P4_PARENT_FINAL",
+      "Completed Hydra card displays the actual kimi-code/k3 model and successful native finish",
+      "Native report displays project source, parent and child journal identities, creating tool ID, effort and exact isolated working directory",
+      "Missing isolation/application result facts display OMP has not reported",
+      "Worker steps reopen with durable read, bash and final reply after visibility changes",
+      "Linked source preview retains Unicode content and source worktree line 2"
+    ]
+  },
+  "native_runtime_boundaries": [
+    "No cancel_subagent or steer_subagent RPC in installed 18.3.2; GUI controls correctly unavailable",
+    "No MCP connection state in this native RPC",
+    "Native async worker did not report isolation/application booleans or output artifact; GUI keeps unknown"
+  ],
+  "deferred": [
+    "P0 remaining acceptance",
+    "Cross-version matrix",
+    "Full VoiceOver and reduce-motion matrix",
+    "External-provider OAuth reauthorization"
+  ]
+}

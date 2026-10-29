@@ -1,0 +1,337 @@
+{
+  "cached_reopen_ms" : 0,
+  "cold_disk_hits" : 0,
+  "cold_ms" : 6784.2585000908002,
+  "cold_typeset" : 238,
+  "cold_webview_creations" : 1,
+  "first_queue_idle_ms" : -1,
+  "heartbeats" : 24,
+  "last_queue_drained_ms" : -1,
+  "main_actor_gap_ms" : [
+    367.12220835033804,
+    261.44137501250952,
+    289.13462499622256,
+    252.76687496807426,
+    308.95212502218783,
+    409.23808328807354,
+    252.37279164139181,
+    261.42325007822365,
+    264.81570827309042,
+    266.94337499793619,
+    256.5125833498314,
+    264.12954169791192,
+    254.23191662412137,
+    430.62079162336886,
+    254.533416708,
+    267.27087504696101,
+    266.25849993433803,
+    266.44837507046759,
+    252.69862497225404,
+    255.91308332514018,
+    264.3260833574459,
+    263.19924998097122,
+    252.35170836094767,
+    260.68941666744649
+  ],
+  "math_queue_drained" : true,
+  "paint_ms" : [
+    1043.3038750197738,
+    1043.3938334463164,
+    1043.4305417584255,
+    1043.4402917744592,
+    1043.4767083497718,
+    1043.5236666817218,
+    1043.5706250136718,
+    1043.5966250952333,
+    1259.3656250974163,
+    1259.4320001080632,
+    1259.4722084468231,
+    1259.5070417737588
+  ],
+  "renderer_stages" : [
+    {
+      "ms" : 165.77683330979198,
+      "stage" : "navigation"
+    },
+    {
+      "ms" : 26.810166775248945,
+      "stage" : "mathjax_fonts_layout"
+    },
+    {
+      "ms" : 3.0462499707937241,
+      "stage" : "snapshot"
+    },
+    {
+      "ms" : 346.50137496646494,
+      "stage" : "snapshot"
+    },
+    {
+      "ms" : 3.5881249932572246,
+      "stage" : "pixel_masks"
+    },
+    {
+      "ms" : 0.47900003846734762,
+      "stage" : "clear"
+    },
+    {
+      "ms" : 0.0067916698753833771,
+      "stage" : "navigation"
+    },
+    {
+      "ms" : 157.19166665803641,
+      "stage" : "mathjax_fonts_layout"
+    },
+    {
+      "ms" : 9.046791703440249,
+      "stage" : "snapshot"
+    },
+    {
+      "ms" : 5.6185832945629954,
+      "stage" : "pixel_masks"
+    },
+    {
+      "ms" : 1.2544166529551148,
+      "stage" : "clear"
+    },
+    {
+      "ms" : 0.0065832864493131638,
+      "stage" : "navigation"
+    },
+    {
+      "ms" : 128.32516664639115,
+      "stage" : "mathjax_fonts_layout"
+    },
+    {
+      "ms" : 9.2083750059828162,
+      "stage" : "snapshot"
+    },
+    {
+      "ms" : 4.7034583985805511,
+      "stage" : "pixel_masks"
+    },
+    {
+      "ms" : 1.3667916646227241,
+      "stage" : "clear"
+    },
+    {
+      "ms" : 0.0058750156313180923,
+      "stage" : "navigation"
+    },
+    {
+      "ms" : 312.61433335021138,
+      "stage" : "mathjax_fonts_layout"
+    },
+    {
+      "ms" : 23.313374957069755,
+      "stage" : "snapshot"
+    },
+    {
+      "ms" : 14.303958276286721,
+      "stage" : "pixel_masks"
+    },
+    {
+      "ms" : 2.1142500918358564,
+      "stage" : "clear"
+    },
+    {
+      "ms" : 0.006041722372174263,
+      "stage" : "navigation"
+    },
+    {
+      "ms" : 38.922625011764467,
+      "stage" : "mathjax_fonts_layout"
+    },
+    {
+      "ms" : 7.2523750131949782,
+      "stage" : "snapshot"
+    },
+    {
+      "ms" : 3.6005832953378558,
+      "stage" : "pixel_masks"
+    },
+    {
+      "ms" : 0.97858335357159376,
+      "stage" : "clear"
+    }
+  ],
+  "reopen_paint_ms" : [
+
+  ],
+  "reopen_typeset" : 0,
+  "scope" : "Production RootView\/ThreadRuntime and staged chat, visible isolated window; no live provider",
+  "timeline" : [
+    {
+      "ms" : 406.90354176331311,
+      "painted_unique" : 0,
+      "rendering" : true,
+      "snapshots" : 0,
+      "typeset" : 0
+    },
+    {
+      "ms" : 668.34491677582264,
+      "painted_unique" : 0,
+      "rendering" : true,
+      "snapshots" : 0,
+      "typeset" : 8
+    },
+    {
+      "ms" : 957.4795417720452,
+      "painted_unique" : 0,
+      "rendering" : true,
+      "snapshots" : 0,
+      "typeset" : 8
+    },
+    {
+      "ms" : 1210.2464167401195,
+      "painted_unique" : 8,
+      "rendering" : true,
+      "snapshots" : 1,
+      "typeset" : 72
+    },
+    {
+      "ms" : 1519.1985417623073,
+      "painted_unique" : 12,
+      "rendering" : true,
+      "snapshots" : 3,
+      "typeset" : 200
+    },
+    {
+      "ms" : 1928.4366250503808,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 2180.8094166917726,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 2442.2326667699963,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 2707.0483750430867,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 2973.9917500410229,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 3230.5043333908543,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 3494.6338750887662,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 3748.8657917128876,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 4179.4865833362564,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 4434.0200000442564,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 4701.2908750912175,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 4967.5493750255555,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 5233.9977500960231,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 5486.6963750682771,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 5742.6094583934173,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 6006.9355417508632,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 6270.1347917318344,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 6522.4865000927821,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    },
+    {
+      "ms" : 6783.1759167602286,
+      "painted_unique" : 12,
+      "rendering" : false,
+      "snapshots" : 5,
+      "typeset" : 238
+    }
+  ],
+  "widths" : [
+    1320,
+    920,
+    1320
+  ]
+}
