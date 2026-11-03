@@ -90,6 +90,7 @@ final class OMPSession: ProviderSession {
     private var turnError: String?
     private var interruptRequested = false
     var sessionFile = ""
+    private var startingResumeTarget: OMPResumeTarget?
     private var availableModels: [ModelOption] = []
     private var fastMode = false
     var agentMetadata: [String: AgentSpawn] = [:]
@@ -181,6 +182,12 @@ final class OMPSession: ProviderSession {
         if let file = configuration.resumeID, !FileManager.default.fileExists(atPath: file) {
             throw ProviderError.failed(AppText.localized("OMP no longer has this conversation."))
         }
+        if let file = configuration.resumeID {
+            startingResumeTarget = try await OMPResumeTarget.prepare(file, executable: executable,
+                environment: configuration.environment, directory: configuration.workingDirectory)
+            try Task.checkCancellation()
+            guard !stopped else { throw ProviderError.notRunning }
+        }
         var arguments = ["--mode", "rpc-ui", "--no-title", "--session-dir", StoragePaths.directory("omp/sessions").path]
         if let file = configuration.resumeID { arguments += ["--resume", file] }
         if let model, !model.isEmpty, model != "default" { arguments += ["--model", model] }
@@ -208,8 +215,6 @@ final class OMPSession: ProviderSession {
             var environment = configuration.environment
             environment["OMP_GUI_MEMORY_CONFIG"] = configuration.memory.json.compactString
             environment["OMP_GUI_BROWSER_COMPAT_ROOT"] = StoragePaths.directory("browser/sdk-compat").path
-            environment["OMP_GUI_EVAL_RESTART_NOTICE"] = AppText.localized(
-                "JavaScript kernel restarted after an unexpected worker exit; previous variables are no longer available.")
             let captureRoot = StoragePaths.directory("omp/requests")
             try FileManager.default.createDirectory(at: captureRoot, withIntermediateDirectories: true,
                                                     attributes: [.posixPermissions: 0o700])
@@ -232,6 +237,7 @@ final class OMPSession: ProviderSession {
             let todoRevision = todos.revision
             let revision = stateRevision
             let state = try await readState(timeout: .seconds(60))
+            startingResumeTarget = nil
             todos.accept(await todoSnapshot(state), revision: todoRevision)
             sessionFile = state["sessionFile"]?.string ?? ""
             guard !sessionFile.isEmpty else { throw ProviderError.failed(AppText.localized("OMP did not return a session file.")) }
@@ -978,7 +984,11 @@ final class OMPSession: ProviderSession {
             return try await read.task.value
         }
         let id = UUID()
-        let task = Task { try await rpc.request("get_state", timeout: timeout) }
+        let task = Task {
+            let state = try await rpc.request("get_state", timeout: timeout)
+            try startingResumeTarget?.validate(state)
+            return state
+        }
         stateRead = (id, revision, stateRevision, task)
         defer { if stateRead?.id == id { stateRead = nil } }
         let value = try await task.value

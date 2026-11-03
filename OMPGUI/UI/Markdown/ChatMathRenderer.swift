@@ -44,6 +44,13 @@ import Accelerate
     // Immutable copied CoreGraphics pixels can be prepared and cached away from
     // the main actor; cells only draw them on the native text view's thread.
     final class Image: @unchecked Sendable {
+        private let identity = UUID().uuidString
+        @MainActor private static let tintedImages: NSCache<NSString, CGImage> = {
+            let cache = NSCache<NSString, CGImage>()
+            cache.countLimit = 512
+            cache.totalCostLimit = 16 * 1024 * 1024
+            return cache
+        }()
         let mask: CGImage
         let foregroundMask: CGImage
         let explicitColors: CGImage?
@@ -138,20 +145,43 @@ import Accelerate
             axis = geometry.axis
         }
 
-        func draw(at origin: NSPoint, context: CGContext, flipped: Bool, color: NSColor, selected: Bool) {
+        /// Native text layers may record drawing for later composition. Give
+        /// them an ordinary RGBA image, with no image-mask or soft-clip command
+        /// to replay. Baking foreground opacity also preserves the caller's alpha.
+        @MainActor private func tintedImage(color: NSColor, selected: Bool) -> CGImage? {
+            let resolved = color.usingColorSpace(.sRGB) ?? color
+            let key = "\(identity):\(selected):\(resolved.redComponent):\(resolved.greenComponent):\(resolved.blueComponent):\(resolved.alphaComponent)" as NSString
+            if let image = Self.tintedImages.object(forKey: key) { return image }
+            guard let bitmap = CGContext(data: nil, width: mask.width, height: mask.height,
+                bitsPerComponent: 8, bytesPerRow: mask.width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+            let rect = CGRect(x: 0, y: 0, width: mask.width, height: mask.height)
+            bitmap.setFillColor(resolved.cgColor)
+            bitmap.draw(selected ? mask : foregroundMask, in: rect)
+            if !selected, let explicitColors {
+                bitmap.setAlpha(resolved.alphaComponent)
+                bitmap.draw(explicitColors, in: rect)
+            }
+            guard let image = bitmap.makeImage() else { return nil }
+            Self.tintedImages.setObject(image, forKey: key, cost: image.bytesPerRow * image.height)
+            return image
+        }
+
+        @MainActor func draw(at origin: NSPoint, context: CGContext, flipped: Bool, color: NSColor, selected: Bool) {
             context.saveGState(); defer { context.restoreGState() }
             context.translateBy(x: origin.x, y: origin.y + (flipped ? size.height : 0))
             if flipped { context.scaleBy(x: 1, y: -1) }
             let rect = CGRect(origin: .zero, size: size)
             context.interpolationQuality = .high
-            context.saveGState()
-            context.clip(to: rect, mask: selected ? mask : foregroundMask)
-            context.setFillColor(color.cgColor)
-            context.fill(rect)
-            context.restoreGState()
-            if !selected, let explicitColors {
-                context.setAlpha(color.alphaComponent)
-                context.draw(explicitColors, in: rect)
+            if let image = tintedImage(color: color, selected: selected) {
+                context.draw(image, in: rect)
+            } else {
+                context.setFillColor(color.cgColor)
+                context.draw(selected ? mask : foregroundMask, in: rect)
+                if !selected, let explicitColors {
+                    context.setAlpha(color.alphaComponent)
+                    context.draw(explicitColors, in: rect)
+                }
             }
         }
     }

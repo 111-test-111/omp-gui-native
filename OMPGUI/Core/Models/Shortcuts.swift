@@ -127,6 +127,14 @@ enum AppShortcut: String, CaseIterable, Identifiable {
     case toggleFilePreview
     case previousPreviewTab
     case nextPreviewTab
+    case openGitPanel
+    case openSessionHistoryPanel
+    case openReviewPanel
+    case openContextPanel
+    case openTerminalPanel
+    case openDebugPanel
+    case openBrowserPanel
+    case openFilesPanel
     case toggleActivityView
     case showMainWindow
     case openSettings
@@ -134,6 +142,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
     enum Section: String, CaseIterable, Identifiable {
         case threads
         case window
+        case workspacePanels
 
         var id: String { rawValue }
 
@@ -141,6 +150,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
             switch self {
             case .threads: "Threads"
             case .window: "Window and panels"
+            case .workspacePanels: "Workspace panels"
             }
         }
 
@@ -148,6 +158,7 @@ enum AppShortcut: String, CaseIterable, Identifiable {
             switch self {
             case .threads: "bubble.middle.bottom"
             case .window: "macwindow"
+            case .workspacePanels: "sidebar.right"
             }
         }
 
@@ -164,6 +175,8 @@ enum AppShortcut: String, CaseIterable, Identifiable {
             .threads
         case .commandPalette, .toggleSidebar, .toggleTerminal, .toggleChanges, .openFilePreview, .toggleFilePreview, .previousPreviewTab, .nextPreviewTab, .toggleActivityView, .showMainWindow, .openSettings:
             .window
+        case .openGitPanel, .openSessionHistoryPanel, .openReviewPanel, .openContextPanel, .openTerminalPanel, .openDebugPanel, .openBrowserPanel, .openFilesPanel:
+            .workspacePanels
         }
     }
 
@@ -189,6 +202,14 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .toggleFilePreview: "Toggle workspace sidebar"
         case .previousPreviewTab: "Previous sidebar tab"
         case .nextPreviewTab: "Next sidebar tab"
+        case .openGitPanel: "Open Git panel"
+        case .openSessionHistoryPanel: "Open session history panel"
+        case .openReviewPanel: "Open review panel"
+        case .openContextPanel: "Open context panel"
+        case .openTerminalPanel: "Open sidebar terminal"
+        case .openDebugPanel: "Open debug panel"
+        case .openBrowserPanel: "Open browser panel"
+        case .openFilesPanel: "Open files panel"
         case .toggleActivityView: "Activity view"
         case .showMainWindow: "Show Tivano"
         case .openSettings: "Settings"
@@ -217,6 +238,14 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .toggleFilePreview: "Shows or hides the workspace sidebar."
         case .previousPreviewTab: "Selects the previous sidebar tab."
         case .nextPreviewTab: "Selects the next sidebar tab."
+        case .openGitPanel: "Browse branches, commits and working changes."
+        case .openSessionHistoryPanel: "Inspect conversation turns, tool calls and model requests."
+        case .openReviewPanel: "Review file changes made in this conversation."
+        case .openContextPanel: "Inspect context usage and token counts."
+        case .openTerminalPanel: "Run commands in a terminal beside the conversation."
+        case .openDebugPanel: "Inspect debug runs, breakpoints and variables."
+        case .openBrowserPanel: "Browse the web without leaving the conversation."
+        case .openFilesPanel: "Browse workspace files and open native previews."
         case .toggleActivityView: "Lists every thread by when it was last active."
         case .showMainWindow: "Brings the main window to the front."
         case .openSettings: "Opens this window."
@@ -245,6 +274,14 @@ enum AppShortcut: String, CaseIterable, Identifiable {
         case .toggleFilePreview: KeyChord(keyCode: 35, modifiers: [.option, .command])
         case .previousPreviewTab: KeyChord(keyCode: 123, modifiers: [.option, .command])
         case .nextPreviewTab: KeyChord(keyCode: 124, modifiers: [.option, .command])
+        case .openGitPanel: KeyChord(keyCode: 5, modifiers: [.shift, .command])
+        case .openSessionHistoryPanel: KeyChord(keyCode: 4, modifiers: [.shift, .command])
+        case .openReviewPanel: KeyChord(keyCode: 15, modifiers: [.shift, .command])
+        case .openContextPanel: KeyChord(keyCode: 8, modifiers: [.shift, .command])
+        case .openTerminalPanel: KeyChord(keyCode: 17, modifiers: [.shift, .command])
+        case .openDebugPanel: KeyChord(keyCode: 2, modifiers: [.shift, .command])
+        case .openBrowserPanel: KeyChord(keyCode: 11, modifiers: [.shift, .command])
+        case .openFilesPanel: KeyChord(keyCode: 3, modifiers: [.shift, .command])
         case .toggleActivityView: KeyChord(keyCode: 32, modifiers: [.option, .command])
         case .showMainWindow: KeyChord(keyCode: 29, modifiers: .command)
         case .openSettings: KeyChord(keyCode: 43, modifiers: .command)
@@ -263,6 +300,7 @@ final class ShortcutStore {
     }
 
     private static let defaultsKey = "keyboardShortcuts"
+    private static var defaults: UserDefaults { CaptureRun.defaults ?? .standard }
 
     /// Chords macOS and the app already answer to, which no command may take.
     private static let reserved: [KeyChord] = {
@@ -275,13 +313,13 @@ final class ShortcutStore {
     private var overrides: [String: Override] {
         didSet {
             if let data = try? JSONEncoder().encode(overrides) {
-                UserDefaults.standard.set(data, forKey: Self.defaultsKey)
+                Self.defaults.set(data, forKey: Self.defaultsKey)
             }
         }
     }
 
     private init() {
-        if let data = UserDefaults.standard.data(forKey: Self.defaultsKey),
+        if let data = Self.defaults.data(forKey: Self.defaultsKey),
            let stored = try? JSONDecoder().decode([String: Override].self, from: data) {
             overrides = stored
         } else {

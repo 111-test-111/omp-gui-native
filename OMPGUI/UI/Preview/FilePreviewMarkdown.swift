@@ -24,14 +24,12 @@ struct PreviewMarkdownRenderer: NSViewRepresentable {
     let state: PreviewReaderState
     let findRequest: Int
     let onOpen: (FilePreviewReference, URL) -> Void
-    @AppStorage("performanceMode", store: CaptureRun.defaults ?? .standard) private var performanceMode = false
     func makeNSView(context: Context) -> PreviewMarkdownHost { PreviewMarkdownHost() }
     func updateNSView(_ view: PreviewMarkdownHost, context: Context) {
         let openURL = context.environment.openURL
         view.onOpenURL = { openURL($0) }
         _ = CodeHighlighting.shared.theme
         view.updateFonts(revision: AppFont.revision)
-        view.updateGlass(performanceMode: performanceMode)
         view.update(url: url, source: source, revision: revision, state: state,
                     findRequest: findRequest, onOpen: onOpen)
     }
@@ -146,9 +144,15 @@ final class PreviewMarkdownHost: NSView, WKNavigationDelegate, NSSearchFieldDele
     let web: WKWebView
     let resources: PreviewMarkdownResources
     private let messages = PreviewMarkdownMessages()
+    /// The text preview's system find bar, rebuilt from the same AppKit controls
+    /// because a WKWebView cannot host NSTextFinder: 20 pt small controls in a
+    /// 32 pt header bar.
+    private static let findBarHeight: CGFloat = 32
+    private let findBar = NSVisualEffectView()
+    private let findBarRule = NSBox()
     private let search = NSSearchField()
-    private lazy var searchSurface = PreviewGlassInputSurface(field: search)
-    private let previous = NSButton(), next = NSButton(), close = NSButton()
+    private let matchNav = NSSegmentedControl()
+    private let doneSearch = NSButton()
     private let status = NSTextField(labelWithString: "")
     private var searchVisible = false
     private var state: PreviewReaderState?
@@ -193,23 +197,40 @@ final class PreviewMarkdownHost: NSView, WKNavigationDelegate, NSSearchFieldDele
         if transparentCanvas { web.setValue(false, forKey: "drawsBackground") }
         web.underPageBackgroundColor = transparentCanvas ? .clear : resolvedBackgroundColor()
         addSubview(web)
+        findBar.material = .headerView
+        findBar.blendingMode = .withinWindow
+        findBar.state = .followsWindowActiveState
+        addSubview(findBar)
+        findBarRule.boxType = .separator
+        addSubview(findBarRule)
         search.placeholderString = Chrome.localized("Find in preview")
         search.delegate = self
         search.target = self; search.action = #selector(nextResult)
         search.sendsSearchStringImmediately = true
-        addSubview(searchSurface)
-        for (button, title, symbol, action) in [
-            (previous, "Previous match", "chevron.up", #selector(previousResult)),
-            (next, "Next match", "chevron.down", #selector(nextResult)),
-            (close, "Close search", "xmark", #selector(hideSearch))
-        ] {
-            button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: Chrome.localized(title))
-            button.toolTip = Chrome.localized(title); button.target = self; button.action = action
-            button.bezelStyle = .inline; addSubview(button)
+        search.controlSize = .small
+        search.font = .systemFont(ofSize: 11)
+        addSubview(search)
+        matchNav.segmentCount = 2
+        matchNav.segmentStyle = .roundRect
+        matchNav.controlSize = .small
+        matchNav.trackingMode = .momentary
+        matchNav.target = self
+        matchNav.action = #selector(stepMatch)
+        for (index, symbol, title) in [(0, "chevron.left", "Previous match"), (1, "chevron.right", "Next match")] {
+            matchNav.setImage(NSImage(systemSymbolName: symbol, accessibilityDescription: Chrome.localized(title)), forSegment: index)
+            matchNav.setWidth(16, forSegment: index)
+            matchNav.setToolTip(Chrome.localized(title), forSegment: index)
         }
+        addSubview(matchNav)
+        doneSearch.title = Chrome.localized("Done")
+        doneSearch.bezelStyle = .roundRect
+        doneSearch.controlSize = .small
+        doneSearch.font = .systemFont(ofSize: 11)
+        doneSearch.target = self
+        doneSearch.action = #selector(hideSearch)
+        addSubview(doneSearch)
         status.font = .systemFont(ofSize: 13); status.textColor = .secondaryLabelColor
         status.isHidden = true; addSubview(status)
-        updateGlass(performanceMode: (CaptureRun.defaults ?? .standard).bool(forKey: "performanceMode"))
         setSearchVisible(false)
         web.load(URLRequest(url: URL(string: "omp-preview://bundle/index.html")!))
     }
@@ -391,28 +412,33 @@ final class PreviewMarkdownHost: NSView, WKNavigationDelegate, NSSearchFieldDele
     }
     override func layout() {
         super.layout()
-        let bar: CGFloat = searchVisible ? 36 : 0
+        let bar: CGFloat = searchVisible ? Self.findBarHeight : 0
         web.frame = NSRect(x: 0, y: 0, width: bounds.width, height: max(0, bounds.height - bar))
-        searchSurface.frame = NSRect(x: 8, y: bounds.height - 28, width: max(50, bounds.width - 110), height: 22)
-        for (i, button) in [previous, next, close].enumerated() {
-            button.frame = NSRect(x: bounds.width - CGFloat(3 - i) * 28 - 6, y: bounds.height - 29, width: 26, height: 24)
-        }
+        layoutFindBar()
         status.frame = NSRect(x: 16, y: max(0, bounds.height - bar - 72), width: max(0, bounds.width - 32), height: 56)
         status.maximumNumberOfLines = 3
     }
+    /// Match the text preview's finder: 20 pt controls inset 8 pt from the bar's
+    /// edges, with the search field stretching to the joined navigation segments.
+    private func layoutFindBar() {
+        let bar = NSRect(x: 0, y: bounds.height - Self.findBarHeight, width: bounds.width, height: Self.findBarHeight)
+        findBar.frame = bar
+        findBarRule.frame = NSRect(x: 0, y: bar.minY, width: bounds.width, height: 1)
+        let height: CGFloat = 20
+        let y = bar.minY + 6
+        let doneWidth = max(48, ceil(doneSearch.fittingSize.width))
+        doneSearch.frame = NSRect(x: bar.maxX - 8 - doneWidth, y: y, width: doneWidth, height: height)
+        matchNav.frame = NSRect(x: doneSearch.frame.minX - 8 - 32, y: y, width: 32, height: height)
+        search.frame = NSRect(x: 8, y: y, width: max(60, matchNav.frame.minX - 16), height: height)
+    }
     private func setSearchVisible(_ visible: Bool) {
         searchVisible = visible
-        for view in [searchSurface as NSView, previous, next, close] { view.isHidden = !visible }
+        for view in [findBar, findBarRule, search, matchNav, doneSearch] as [NSView] { view.isHidden = !visible }
         needsLayout = true
-    }
-    func updateGlass(performanceMode: Bool) {
-        searchSurface.update(performanceMode: performanceMode)
-        for button in [previous, next, close] {
-            PreviewNativeGlass.update(button, performanceMode: performanceMode)
-        }
     }
     private func showFind() { setSearchVisible(true); window?.makeFirstResponder(search) }
     @objc private func hideSearch() { setSearchVisible(false); window?.makeFirstResponder(web) }
+    @objc private func stepMatch() { if matchNav.selectedSegment == 1 { nextResult() } else { previousResult() } }
     @objc private func previousResult() { find(backwards: true) }
     @objc private func nextResult() { find(backwards: false) }
     private func find(backwards: Bool) {

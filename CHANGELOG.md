@@ -6,6 +6,64 @@ Changes are recorded under `## [Unreleased]`. The public repository distributes 
 
 ## [Unreleased]
 
+- Place archived subagent avatars directly beside the conversation title on the leading side, using a shared Chrome row title accessory. Keep restore/delete actions trailing and preserve bounded avatar rendering. Advance Dev to 0.1.370 / build 371.
+
+- Combine About's description and licensing copy into one localized paragraph. Group archived subagents under their owning conversation with bounded avatar-only indicators, parent-based search/project counts and recursive archive/restore. Include panel helpers and retained native aliases in family operations, and keep filtered deletion scoped to selected archived roots and their descendants. Advance Dev to 0.1.369 / build 370.
+
+- Add the project's GitHub repository to About and open its LICENSE file directly on GitHub instead of previewing the license in the app. Keep bundled third-party notices and trademark policy in a separate notices popover, with zh-Hans labels. Advance Dev to 0.1.368 / build 369.
+
+- Keep the composer's disabled send arrow visible with theme-adaptive secondary text and a circular outline. Reuse the shared tinted glass button surface and align its appearance with all delivery gates while preserving the running stop action. Advance Dev to 0.1.367 / build 368.
+
+- Display the About settings LICENSE as selectable, wrapping plain text so its original indentation, clause numbers and angle-bracket placeholders are preserved without Markdown code-block or list styling. Keep third-party notices and trademarks rendered as Markdown. Advance Dev to 0.1.366 / build 367.
+
+- Upgrade the reviewed OMP runtime to 18.15.0, rebase the guarded browser SDK repairs, retire superseded frame/restart patches, and explicitly install native CLI lifecycle handlers. Check native session leases and resumed identities before adopting a conversation. Add Hydra controls for native per-call model selection and maximum task effort with zh-Hans translations. Advance Dev to 0.1.365 / build 366.
+
+- Replace the Markdown preview's glass find field and floating glass buttons with the text preview's native finder: a small search field, joined previous/next segments and Done in a 32 pt header bar. Advance Dev to 0.1.364 / build 365.
+
+- Remove the browsing-history source picker and always show visits from all sources. Apply time-range cleanup across the combined history and update its confirmation in English and zh-Hans. Advance Dev to 0.1.363 / build 364.
+
+- Capture file-backed `write` URLs through OMP's native, session-bound resolver so `local://` writes show inline diffs during a turn. Keep prepared write baselines accurate across native edits and within the retained-text budget; preserve every multi-file edit target and decode one-sided native create/delete snapshots. Remove late disk comparisons that could attribute another write to a call, and retain native output when patches are missing. Cover native URL writes, edit/write batches, multi-file changes, delayed events and live timeline results. Advance Dev to 0.1.362 / build 363.
+
+- Composite chat formula masks into transparent RGBA images before drawing native text layers, with a bounded tint cache, preserving explicit colors, selection and inherited opacity. Restore TextKit attachment frames for ordinary formulas to prevent clipped tops; retain oversized-formula scrolling. Replace the speculative all-attachment overlay and callback-omission test with native scroll, complete-ink and opacity checks. Advance Dev to 0.1.361 / build 362.
+
+- Paint all intersecting chat math attachments after native prose, so ordinary inline formulas retain a drawing path when TextKit omits attachment callbacks during viewport changes. Cache image geometry with a vertical index, preserve oversized-formula scrolling and native selection, and share paragraph spacing with the math host's measurement probe. Add a long-scroll pixel regression with omitted native drawing. Advance Dev to 0.1.360 / build 361.
+
+- Use `wallet.bifold` for the Context workspace panel so its sidebar tab and new-panel card match the wallet-like context surface instead of the redaction glyph. Advance Dev to 0.1.359 / build 360.
+
+- Present Chrome history import in a button-anchored native popover, using the same shared backdrop and placement as Cookie import. Retain content-driven height and bound its width to the screen. Advance Dev to 0.1.358 / build 359.
+
+- Place Chrome history import beside the time-range picker and cleanup action in the browser-history header. Keep the source filter above the list. Advance Dev to 0.1.357 / build 358.
+
+- Add native Chrome history import with profile/time-range preview, local favicons, source filtering and atomic writes. Preserve GUI history and recent pages; retain deletion exclusions and deduplicate repeat imports. Report locked Chrome databases with quit-and-retry guidance, share bounded read-only snapshots with Cookie import, and migrate existing history in place. Include zh-Hans strings. Advance Dev to 0.1.356 / build 357.
+
+- Give the workspace new-panel picker cards native interactive Liquid Glass through a shared Chrome surface and one local glass container. Keep descriptions and shortcut hints opaque, remove the flat card fill beneath glass, and retain solid performance/Reduce Transparency fallback. Record the owner-requested card exception. Advance Dev to 0.1.355 / build 356.
+
+- Let browser history grow with its visible entries up to a 360 pt content limit, paging complete rows and date groups without an inner scroll view. Match date-heading whitespace to row-to-row spacing, preserve the empty state, and prevent empty or loading history cleanup from opening a confirmation. Advance Dev to 0.1.354 / build 355.
+
+- Present the workspace panel picker as responsive cards with concise descriptions and live shortcut hints. Add configurable Shift-Command shortcuts using each panel's function letter in Settings and the Window menu, reopening or focusing each conversation's existing panel. Include zh-Hans strings. Advance Dev to 0.1.353 / build 354.
+
+- Remove parent-to-helper connector lines from the conversation sidebar and move helper rows, Hydra avatars and folded summaries 16 pt closer to the leading edge. Keep the parent row's expand/collapse action and bounded avatar wrapping. Advance Dev to 0.1.352 / build 353.
+
+- Show real website favicons in recent pages and browser history, persisting the browser's accepted icons with bounded origin fallback for older records. Preserve colored artwork and theme-adaptive template marks, remove orphaned icons with history cleanup, and increase date-heading spacing from 4 pt to 10 pt. Advance Dev to 0.1.351 / build 352.
+
+- Handle first-click selection in the address field's dedicated native field editor, covering AppKit's direct cell/editor mouse route and focus established before mouse delivery. Preserve subsequent caret clicks, drag/word selections and submission cleanup; add a mouse-event regression that fails on the previous implementation. Advance Dev to 0.1.350 / build 351.
+
+- Add persistent browser visit history with date grouping, bounded paging, per-entry deletion and time-range cleanup. Show the five most recently visited distinct pages on blank tabs, with an independent clear action. Consolidate browser settings into browsing preferences, profiles (including Chrome import), and history; include English/Simplified Chinese controls. Advance Dev to 0.1.349 / build 350.
+
+- Finish the address field's first native click before selecting its text, preserving later caret edits and repeated Command-L. End editing and clear the old selection on successful navigation before displaying the destination URL, while invalid input keeps focus. Advance Dev to 0.1.348 / build 349.
+
+- Select the browser address on focus and repeated Command-L, keep native blank tabs free of Chromium startup, and defer restored-page creation out of layout. Move CEF-delivered Quit to a later run-loop turn so asynchronous saving and browser close callbacks can complete, preserving sidebar tabs during shutdown and rejecting late page resurrection. Advance Dev to 0.1.347 / build 348.
+
+- Let the browser address bar navigate or search with the selected engine. Classify explicit schemes, validated IPs, ports, local hosts and bundled IANA TLDs, default ambiguous words/operators to search, and support a leading question mark to force search. Preserve query text, same-tab ownership, invalid-input focus and URL-only automation boundaries; add English/Chinese address-field text. Advance Dev to 0.1.346 / build 347.
+
+- Show each browser tab's actual page favicon, decoded by its Chromium renderer, with native light/dark template drawing for neutral marks and original colors for artwork. Bound and coalesce the profile/URL/appearance cache, expire failed downloads, refresh icons on reload, and reject stale document/appearance/close results. Advance Dev to 0.1.345 / build 346.
+
+- Trim the context inspector's method explanations: fold the four one-sentence measurement notes into two coherent paragraphs shared by the info popover and the exported report, and drop the inline estimate, composition-basis, difference and totals notes while keeping state, limit and warning lines. Advance Dev to 0.1.344 / build 345.
+
+- Replace the PDF preview's glass find field and floating glass buttons with the system find bar's native layout: small search field, match count, joined previous/next segments and Done in a header bar, so the search glyph no longer overlaps the placeholder and the bar matches the text preview's finder. Advance Dev to 0.1.343 / build 344.
+
+- Shorten the Playwright quick-connect card summary to a single line so the browser cards keep equal height, dropping the page-opening phrase the sample tools already show and matching the Chinese text to the new source. Advance Dev to 0.1.342 / build 343.
+
 - Prepare the first public source snapshot with bilingual setup documentation, explicit upstream lineage, anonymized machine paths, completed third-party notices and fork-owned optional GitHub OAuth configuration. Preserve original local worktrees and public upstream history; do not publish credentials, generated products or signed-installation claims.
 
 - Stop automatically quarantining files created by the GUI and its local toolchain. Explicitly quarantine completed GUI browser downloads, surface marking failures before exposing the file, and retain browser-helper quarantine, Chromium sandboxing and system Gatekeeper. Existing file flags are not bulk-cleared; the updated app needs a fresh launch. Advance Dev to 0.1.341 / build 342.

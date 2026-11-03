@@ -7,6 +7,7 @@ extension AppShortcut.Section {
         switch self {
         case .threads: Chrome.blue
         case .window: Color(red: 0.686, green: 0.322, blue: 0.871)
+        case .workspacePanels: Chrome.accent
         }
     }
 }

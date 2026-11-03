@@ -84,7 +84,7 @@ export async function checkBrowserEval(repaired, output) {
         await manager.executeInVmContext({ ...options, sessionKey: key + "-other" });
         assert.equal(notices.length, 0, "A different kernel owned by the same session did not lose state");
         await manager.executeInVmContext(options);
-        assert.equal(notices.length, 1); assert.match(notices[0], /previous variables/);
+        assert.equal(notices.length, 1); assert.match(notices[0], /Kernel restarted:.*state is unavailable/);
         await manager.executeInVmContext(options);
         assert.equal(notices.length, 1, "Only the first cell after an unexpected exit reports lost state");
         await manager.executeInVmContext({ ...options, reset: true });

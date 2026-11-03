@@ -10,6 +10,87 @@ struct OrganizationChecks {
         checks += 1
     }
 
+    @MainActor private static func checkArchivedFamilies(_ app: AppModel, project: Project, other: Project) throws {
+        let parent = app.newThread(in: project, workspace: .local)!
+        let unrelated = app.newThread(in: other, workspace: .local)!
+        let active = app.newThread(in: project, workspace: .local)!
+        func helper(of parent: ChatThread, index: Int? = nil) -> ChatThread {
+            var child = ChatThread(projectID: parent.projectID, provider: .omp, model: nil, effort: nil, runtimeMode: .auto)
+            child.parentThreadID = parent.id
+            child.isInPanel = true
+            child.isPinned = true
+            child.isSettled = true
+            child.settledAt = .now
+            child.title = String(repeating: "A long worker task\n", count: 80)
+            if let index {
+                var info = HydraHeadInfo(index: index, task: "Needle from nested worker", kind: .native, origin: .delegated)
+                info.status = .completed
+                child.hydra = info
+            }
+            return child
+        }
+        let head = helper(of: parent, index: 0)
+        var nested = helper(of: head, index: 1)
+        nested.projectID = other.id
+        let panelHelper = helper(of: parent)
+        var alias = head
+        alias.id = UUID()
+        alias.hydra?.nativeCanonicalID = head.id
+        var alreadyArchived = helper(of: active, index: 2)
+        alreadyArchived.isArchived = true
+        for child in [head, nested, panelHelper, alias, alreadyArchived] { app.insertThread(child) }
+        let familyIDs: Set<UUID> = [parent.id, head.id, nested.id, panelHelper.id, alias.id]
+        app.selectedThreadID = head.id
+        app.archive(parent.id)
+        expect(familyIDs.allSatisfy {
+            guard let thread = app.thread($0) else { return false }
+            return thread.isArchived && !thread.isPinned && !thread.isSettled && thread.settledAt == nil
+        }, "Archiving a conversation includes nested workers, panel helpers and retained native aliases")
+        expect(app.selectedThreadID.map { !familyIDs.contains($0) } ?? true,
+               "Archiving a selected worker's parent moves selection outside the entire family")
+        // Older libraries can have an archived parent and a live grandchild.
+        app.updateThread(nested.id) { $0.isArchived = false }
+        let conversations = app.archivedConversations
+        let family = conversations.first { $0.id == parent.id }!
+        expect(Set(family.helpers.map(\.id)) == [head.id, nested.id, panelHelper.id],
+               "The archive attaches all descendants to one root and shows each canonical worker once")
+        expect(conversations.allSatisfy { !familyIDs.subtracting([parent.id]).contains($0.id) && $0.id != alreadyArchived.id },
+               "Workers never consume archive rows, including archived workers of an active conversation")
+        expect(ArchiveFilter.projects(in: [family], from: app.projects).map(\.id) == [project.id],
+               "Archive project grouping follows the parent instead of a worker's execution project")
+        var filter = ArchiveFilter()
+        filter.query = "needle from nested"
+        filter.project = .project(project.id)
+        expect(filter.apply(to: conversations, known: Set(app.projects.map(\.id))).map(\.id) == [parent.id],
+               "Searching a worker's task returns its owning conversation once")
+        app.unarchive(parent.id)
+        expect(familyIDs.allSatisfy { app.thread($0)?.isArchived == false },
+               "Restoring a conversation recursively restores every descendant, including native aliases")
+        var library = Library()
+        library.threads = app.threads
+        let restored = try JSONDecoder.storage.decode(Library.self, from: JSONEncoder.storage.encode(library))
+        expect(restored.threads.filter { familyIDs.contains($0.id) }.allSatisfy { !$0.isArchived },
+               "Recursive restoration survives library serialization")
+        app.archive(parent.id)
+        app.archive(unrelated.id)
+        let captured = Set(filter.apply(to: app.archivedConversations, known: Set(app.projects.map(\.id))).map(\.id))
+        app.deleteArchivedThreads(ids: captured)
+        expect(familyIDs.allSatisfy { app.thread($0) == nil } && app.thread(unrelated.id)?.isArchived == true,
+               "Filtered archive deletion removes the whole selected family and preserves other roots")
+        app.unarchive(unrelated.id)
+        app.deleteArchivedThreads(ids: [unrelated.id])
+        expect(app.thread(unrelated.id)?.isArchived == false,
+               "A conversation restored after bulk confirmation is excluded from deletion")
+        app.deleteArchivedThreads()
+        expect(app.thread(active.id)?.isArchived == false && app.thread(alreadyArchived.id) != nil,
+               "Clearing the archive does not delete attached workers of an active conversation")
+        var orphan = head
+        orphan.parentThreadID = UUID()
+        orphan.isArchived = true
+        expect(ArchiveFilter.conversations(in: [orphan]).map(\.id) == [orphan.id],
+               "An imported worker whose parent is absent keeps an accessible archive entry")
+    }
+
     @MainActor static func main() async throws {
         guard CaptureRun.storageRoot != nil, let defaults = CaptureRun.defaults else { fatalError("Isolated capture storage required") }
         defaults.removePersistentDomain(forName: CaptureRun.suiteName)
@@ -171,12 +252,13 @@ struct OrganizationChecks {
         app.updateThread(recentTask.id) { $0.title = "Different archived task" }
         var filter = ArchiveFilter()
         filter.query = "Different"
-        let matches = filter.apply(to: app.archivedThreads, known: Set(app.projects.map(\.id)))
+        let matches = filter.apply(to: app.archivedConversations, known: Set(app.projects.map(\.id)))
         expect(matches.map(\.id) == [recentTask.id], "Archive search filters before bulk deletion")
         filter.query = ""; filter.project = .none
-        expect(filter.apply(to: app.archivedThreads, known: Set(app.projects.map(\.id))).count == 2, "Archive can isolate chats without a project")
+        expect(filter.apply(to: app.archivedConversations, known: Set(app.projects.map(\.id))).count == 2, "Archive can isolate chats without a project")
         app.deleteArchivedThreads(ids: Set(matches.map(\.id)))
         expect(app.thread(recentTask.id) == nil && app.thread(second.id) != nil, "Filtered deletion preserves other archived records")
+        try checkArchivedFamilies(app, project: project, other: other)
         app.selectedThreadID = nil
         app.settings.remember(model: "native/recent-at-launch", effort: "medium", for: .omp)
         let lastSettings = AppSettings()

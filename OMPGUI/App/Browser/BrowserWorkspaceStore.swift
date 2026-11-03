@@ -7,6 +7,7 @@ final class BrowserPage: Identifiable {
     let id: UUID
     private(set) var record: BrowserPageRecord
     let model: CefWebViewModel
+    let favicon: BrowserFaviconState
     private(set) var targetID: String?
     var error: String?
     var notice: String?
@@ -28,6 +29,9 @@ final class BrowserPage: Identifiable {
     @ObservationIgnored private var isDisposing = false
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var initialURL: URL
+    @ObservationIgnored private var historyNavigation = BrowserHistoryNavigation()
+    @ObservationIgnored private var historyTitle = ""
+    @ObservationIgnored private var historyIcon: BrowserHistoryIcon?
 
     var title: String {
         if BrowserAddress.isBlankPage(record.url) { return BrowserLocalization.localized("New browser tab") }
@@ -42,7 +46,35 @@ final class BrowserPage: Identifiable {
         self.record = record
         self.owner = workspace
         initialURL = Self.bootstrapURL()
-        model = CefWebViewModel(url: initialURL)
+        let viewModel = CefWebViewModel(url: initialURL)
+        model = viewModel
+        favicon = BrowserFaviconState(profileID: BrowserProfileConfiguration.activeProfile.id) { [weak viewModel] url, bypass, completion in
+            guard let browser = viewModel?.browser, !browser.isClosed else { completion(nil); return }
+            browser.downloadFavicon(url, bypassCache: bypass) { image in
+                completion(image.map(AdaptiveIconImage.prepared))
+            }
+        }
+        favicon.onImageLoaded = { [weak self] document, image in
+            guard let self, acceptsFaviconUpdates, owner?.isShuttingDown != true,
+                  let visit = historyNavigation.visit, BrowserFaviconState.documentURL(for: visit.url) == document,
+                  let icon = BrowserHistoryIconCodec.encode(image), icon != historyIcon else { return }
+            historyIcon = icon
+            owner?.history.updateIcon(icon, visitID: visit.id)
+        }
+        favicon.navigate(to: record.url)
+        model.onFaviconChanged = { [weak self] urls in
+            guard let self, acceptsFaviconUpdates else { return }
+            favicon.receive(urls)
+        }
+        model.onMainFrameLoadStarted = { [weak self] in
+            guard let self, acceptsFaviconUpdates else { return }
+            favicon.startedLoading()
+        }
+        model.onLoadingChanged = { [weak self] loading in
+            guard let self, !loading, acceptsFaviconUpdates else { return }
+            favicon.finishedLoading()
+            updateHistoryTitle(model.title)
+        }
         model.onBrowserCreated = { [weak self] browser in self?.created(browser) }
         model.onBrowserClosed = { [weak self] in
             guard let self else { return }
@@ -54,20 +86,39 @@ final class BrowserPage: Identifiable {
             }
         }
         model.onURLChanged = { [weak self] url in
-            guard let self, targetID != nil, let url, !BrowserAddress.isBootstrapURL(url) else { return }
+            guard let self, !isDisposing, owner?.isShuttingDown != true,
+                  targetID != nil, let url, !BrowserAddress.isBootstrapURL(url) else { return }
             recordURL(url.absoluteString)
+            if let visit = historyNavigation.navigate(to: url.absoluteString) {
+                historyTitle = ""
+                historyIcon = nil
+                owner?.history.record(visit)
+            }
+            // History API updates can change the address without loading a
+            // new document or causing another native favicon notification.
+            if !model.isLoading, acceptsFaviconUpdates {
+                favicon.receive(model.faviconURL.map { [$0] } ?? [])
+                updateHistoryTitle(model.title)
+            }
         }
         model.onTitleChanged = { [weak self] title in
-            guard let self, targetID != nil, !BrowserAddress.isBlankPage(self.url),
+            guard let self, !isDisposing, owner?.isShuttingDown != true,
+                  targetID != nil, !BrowserAddress.isBlankPage(self.url),
                   !BrowserAddress.isBlankPage(title),
                   model.url.map({ !BrowserAddress.isBootstrapURL($0) }) == true else { return }
-            self.record.title = String(title.prefix(512)); owner?.changed()
+            let title = String(title.prefix(512))
+            updateHistoryTitle(title)
+            guard record.title != title else { return }
+            self.record.title = title; owner?.changed()
         }
         model.onLoadError = { [weak self] code, text, _ in
-            guard code != -3 else { return } // A replaced/canceled navigation.
-            self?.error = String(format: BrowserLocalization.localized("The page could not load: %@"), text)
+            guard let self, !isDisposing, code != -3 else { return } // A replaced/canceled navigation.
+            error = String(format: BrowserLocalization.localized("The page could not load: %@"), text)
         }
-        model.onRendererTerminated = { [weak self] in self?.error = BrowserLocalization.localized("The browser page stopped responding. Reload to recover it.") }
+        model.onRendererTerminated = { [weak self] in
+            guard let self, !isDisposing else { return }
+            error = BrowserLocalization.localized("The browser page stopped responding. Reload to recover it.")
+        }
         model.onNavigation = { [weak self] url in
             guard BrowserAddress.allowsPageNavigation(url) else {
                 self?.notice = BrowserLocalization.localized("This link uses a protocol that the embedded browser does not open.")
@@ -83,19 +134,19 @@ final class BrowserPage: Identifiable {
             }
             // Creating native browsers inside CEF's popup callback is reentrant.
             Task { @MainActor [weak self] in
-                guard let self, let owner else { return }
+                guard let self, !isDisposing, let owner else { return }
                 do { _ = try owner.open(url: url, select: request.disposition != .newBackgroundTab) }
                 catch { self.notice = error.localizedDescription }
             }
             return .handled
         }
         model.onDialog = { [weak self] dialog, callback in
-            guard let self else { callback.cancel(); return }
+            guard let self, !isDisposing else { callback.cancel(); return }
             self.dialog = dialog; dialogCallback = callback
             isBeforeUnload = false; promptText = dialog.defaultPromptText
         }
         model.onBeforeUnload = { [weak self] message, _, callback in
-            guard let self else { callback.cancel(); return }
+            guard let self, !isDisposing else { callback.continue(success: true); return }
             dialog = CefJSDialog(kind: .confirm, message: message, origin: self.record.url)
             isBeforeUnload = true; dialogCallback = callback
         }
@@ -115,7 +166,7 @@ final class BrowserPage: Identifiable {
             } catch { notice = error.localizedDescription; return .deny }
         }
         model.onDownloadProgress = { [weak self] item in
-            guard let self else { return }
+            guard let self, !isDisposing else { return }
             if item.isComplete, let file = item.fullPath,
                !quarantinedDownloadIDs.contains(item.id), downloadErrors[item.id] == nil {
                 do {
@@ -138,10 +189,17 @@ final class BrowserPage: Identifiable {
         }
     }
 
+    private var acceptsFaviconUpdates: Bool {
+        !isDisposing && targetID != nil && !BrowserAddress.isBlankPage(url)
+            && model.browser?.url?.absoluteString == url
+    }
+
     func materialize() throws {
+        guard owner?.isShuttingDown != true else { throw WorkspaceBrowserError.closed }
         guard host == nil, !isDisposing else { return }
         guard BrowserWorkspaceRegistry.shared.livePageCount < 64 else { throw WorkspaceBrowserError.limit }
         try EmbeddedBrowserRuntime.shared.start()
+        guard !isDisposing, owner?.isShuttingDown != true else { throw WorkspaceBrowserError.closed }
         generation &+= 1
         model.options.runtimeStyle = .alloy
         model.options.profile = EmbeddedBrowserRuntime.shared.browsingProfile()
@@ -153,6 +211,7 @@ final class BrowserPage: Identifiable {
     }
 
     private func created(_ browser: CefBrowser) {
+        guard !isDisposing else { browser.close(force: true); return }
         guard !browser.isClosed else { error = WorkspaceBrowserError.unavailable.localizedDescription; return }
         browser.setAccessibilityEnabled(true)
         identityTask?.cancel()
@@ -174,25 +233,54 @@ final class BrowserPage: Identifiable {
     }
 
     func navigate(_ input: String) {
+        guard !isDisposing else { return }
         guard let url = BrowserAddress.resolve(input) else { error = WorkspaceBrowserError.invalidAddress.localizedDescription; return }
         error = nil; notice = nil
         recordURL(url.absoluteString)
         if targetID != nil { model.load(url) }
     }
 
-    func search(_ input: String, using engine: BrowserSearchEngine) {
-        guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        guard let url = engine.searchURL(for: input) else {
-            error = BrowserLocalization.localized("Enter a shorter search query.")
-            return
+    @discardableResult
+    func submitAddress(_ input: String, using engine: BrowserSearchEngine) -> Bool {
+        switch BrowserOmnibox.classify(input) {
+        case .empty: return false
+        case .navigate(let url): navigate(url.absoluteString); return true
+        case .search(let query): return search(query, using: engine)
+        case .invalid:
+            error = BrowserLocalization.localized("Enter a valid web address or search query.")
+            return false
         }
-        navigate(url.absoluteString)
     }
 
-    private func recordURL(_ value: String) { record.url = value; owner?.changed() }
+    @discardableResult
+    func search(_ input: String, using engine: BrowserSearchEngine) -> Bool {
+        guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard let url = engine.searchURL(for: input) else {
+            error = BrowserLocalization.localized("Enter a shorter search query.")
+            return false
+        }
+        navigate(url.absoluteString)
+        return true
+    }
+
+    private func recordURL(_ value: String) {
+        favicon.navigate(to: value)
+        record.url = value; owner?.changed()
+    }
+
+    private func updateHistoryTitle(_ value: String) {
+        let title = String(value.trimmingCharacters(in: .whitespacesAndNewlines).prefix(512))
+        guard !isDisposing, owner?.isShuttingDown != true, !title.isEmpty, title != historyTitle,
+              !BrowserAddress.isBlankPage(title), let visit = historyNavigation.visit,
+              visit.url == model.url?.absoluteString, visit.url == url else { return }
+        historyTitle = title
+        owner?.history.updateTitle(title, visitID: visit.id)
+    }
 
     func reload() {
+        guard owner?.isShuttingDown != true else { return }
         error = nil
+        favicon.reload()
         if targetID == nil {
             // Failed startup/discovery gets a fresh target, never a sibling.
             dispose()
@@ -212,6 +300,11 @@ final class BrowserPage: Identifiable {
 
     private func clearDialog() { dialog = nil; dialogCallback = nil; isBeforeUnload = false; promptText = "" }
 
+    func prepareForDisplay() throws {
+        guard !BrowserAddress.isBlankPage(url) else { return }
+        try materialize()
+    }
+
     func requestClose() {
         if let browser = model.browser { browser.close(force: false) }
         else { owner?.didClose(id) }
@@ -220,6 +313,8 @@ final class BrowserPage: Identifiable {
     @discardableResult func dispose() -> CefBrowser? {
         generation &+= 1
         isDisposing = true
+        isPresented = false
+        favicon.reset()
         identityTask?.cancel(); identityTask = nil
         targetID = nil
         let browser = model.browser
@@ -257,16 +352,19 @@ final class BrowserPage: Identifiable {
 @MainActor @Observable
 final class BrowserWorkspaceStore {
     let threadID: UUID
+    let history: BrowserHistoryStore
     private(set) var pages: [BrowserPage] = []
     var selectedID: UUID? { didSet { if oldValue != selectedID { changed() } } }
     var error: String?
     @ObservationIgnored var onChange: (() -> Void)?
+    @ObservationIgnored private(set) var isShuttingDown = false
     var selectedPage: BrowserPage? { pages.first { $0.id == selectedID } }
     var record: BrowserWorkspaceRecord { BrowserWorkspaceRecord(pages: pages.map(\.record), selectedID: selectedID) }
     var downloadDirectory: URL { StoragePaths.directory("browser/downloads").appendingPathComponent(threadID.uuidString, isDirectory: true) }
 
-    init(threadID: UUID, record: BrowserWorkspaceRecord = .init()) {
+    init(threadID: UUID, record: BrowserWorkspaceRecord = .init(), history: BrowserHistoryStore = .shared) {
         self.threadID = threadID
+        self.history = history
         var ids = Set<UUID>()
         pages = record.pages.prefix(16).filter { ids.insert($0.id).inserted }.map {
             var page = $0
@@ -278,11 +376,12 @@ final class BrowserWorkspaceStore {
     }
 
     @discardableResult func open(url: URL = URL(string: "about:blank")!, select: Bool = true, materialize: Bool = true) throws -> BrowserPage {
+        guard !isShuttingDown else { throw WorkspaceBrowserError.closed }
         guard pages.count < 16 else { throw WorkspaceBrowserError.limit }
         guard BrowserAddress.resolve(url.absoluteString) != nil else { throw WorkspaceBrowserError.invalidAddress }
         let page = BrowserPage(record: BrowserPageRecord(url: url.absoluteString), owner: self)
         pages.append(page)
-        do { if materialize { try page.materialize() } }
+        do { if materialize { try page.prepareForDisplay() } }
         catch { pages.removeAll { $0 === page }; throw error }
         if select || selectedID == nil { selectedID = page.id }
         changed()
@@ -290,14 +389,15 @@ final class BrowserWorkspaceStore {
     }
 
     func activate() {
+        guard !isShuttingDown else { return }
         do {
             if pages.isEmpty { _ = try open() }
-            else { try selectedPage?.materialize() }
             error = nil
         } catch { self.error = error.localizedDescription }
     }
 
     func didClose(_ id: UUID) {
+        guard !isShuttingDown else { return }
         guard let index = pages.firstIndex(where: { $0.id == id }) else { return }
         pages[index].dispose()
         pages.remove(at: index)
@@ -306,10 +406,19 @@ final class BrowserWorkspaceStore {
     }
 
     @discardableResult func closeAll() -> [CefBrowser] {
+        guard !isShuttingDown else { return [] }
         let closing = pages.compactMap { $0.dispose() }
         pages.removeAll(); selectedID = nil
         changed()
         return closing
+    }
+
+    func prepareForShutdown() -> [CefBrowser] {
+        isShuttingDown = true
+        onChange = nil
+        // Keep the selected tab and native sidebar layout while AppKit awaits
+        // the quit reply. Closing the app is not the user's Close Panel action.
+        return pages.compactMap { $0.dispose() }
     }
 
     func changed() { onChange?() }
@@ -323,6 +432,7 @@ final class BrowserWorkspaceRegistry {
     private var workspaces: [UUID: BrowserWorkspaceStore] = [:]
     private var saved: [String: BrowserWorkspaceRecord] = [:]
     private var saveTask: Task<Void, Never>?
+    private var isShuttingDown = false
     private let persistenceURL: URL
     var livePageCount: Int { workspaces.values.flatMap(\.pages).filter { $0.host != nil }.count }
 
@@ -339,15 +449,23 @@ final class BrowserWorkspaceRegistry {
     func workspace(for id: UUID) -> BrowserWorkspaceStore {
         if let workspace = workspaces[id] { return workspace }
         let workspace = BrowserWorkspaceStore(threadID: id, record: saved[id.uuidString] ?? .init())
-        workspace.onChange = { [weak self] in self?.scheduleSave() }
+        if isShuttingDown { _ = workspace.prepareForShutdown() }
+        else { workspace.onChange = { [weak self] in self?.scheduleSave() } }
         workspaces[id] = workspace
         return workspace
     }
 
-    func closePanel(for id: UUID) { workspaces[id]?.closeAll(); saved[id.uuidString] = nil; scheduleSave() }
-    func remove(_ id: UUID) { closePanel(for: id); workspaces[id] = nil }
+    func closePanel(for id: UUID) {
+        guard !isShuttingDown else { return }
+        workspaces[id]?.closeAll(); saved[id.uuidString] = nil; scheduleSave()
+    }
+    func remove(_ id: UUID) {
+        guard !isShuttingDown else { return }
+        closePanel(for: id); workspaces[id] = nil
+    }
 
     private func scheduleSave() {
+        guard !isShuttingDown else { return }
         saveTask?.cancel()
         saveTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(300))
@@ -364,15 +482,13 @@ final class BrowserWorkspaceRegistry {
     }
 
     func shutdown() async {
-        let importDrained = await BrowserCookieImporter.shared.shutdown()
+        guard !isShuttingDown else { return }
+        isShuttingDown = true
         save()
         DiskWriter.shared.writeSynchronously(saved, to: persistenceURL)
-        // Preserve saved URLs for restart while dropping every live CEF ref.
-        let closing = workspaces.values.flatMap { workspace in
-            workspace.onChange = nil
-            return workspace.closeAll()
-        }
-        workspaces.removeAll()
+        let closing = workspaces.values.flatMap { $0.prepareForShutdown() }
+        await BrowserHistoryStore.shared.flush()
+        let importDrained = await BrowserCookieImporter.shared.shutdown()
         let deadline = ContinuousClock.now + .seconds(5)
         while closing.contains(where: { !$0.isClosed }) {
             // A failed helper must not make Quit wait forever. In this rare

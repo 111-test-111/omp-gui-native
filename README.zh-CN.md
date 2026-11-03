@@ -37,7 +37,7 @@
 
 - Apple Silicon，**macOS 26 或更新系统**。
 - 完整 Xcode、兼容的 macOS SDK 与 Swift 工具链，Git、Python 3。
-- 独立安装并认证的 OMP。当前审阅的接入基线为 **OMP 18.13.3**；依赖 SDK 的配置与浏览器接入还要求 **Bun 1.4.4 或更新版本**。安装及账号认证遵循 OMP 官方说明。
+- 独立安装并认证的 OMP。当前审阅的接入基线为 **OMP 18.15.0**；依赖 SDK 的配置与浏览器接入还要求 **Bun 1.4.4 或更新版本**。安装及账号认证遵循 OMP 官方说明。
 - 首次构建需要联网下载固定版本的 Swift 包与 Chromium Embedded Framework。
 
 模型服务商、OAuth／API key、模型角色、MCP、技能、扩展、worker 隔离及任务执行均由外部 OMP 管理。GUI 从登录 shell 或设置中的二进制路径发现 `omp`。

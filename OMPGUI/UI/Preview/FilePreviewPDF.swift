@@ -92,12 +92,15 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
     private let pdf = PDFView()
     var onOpenURL: ((URL) -> Void)?
     private(set) var controls = PreviewFloatingControlsModel(kind: .pdf)
+    /// The native find bar: the system search field, its match count, the joined
+    /// previous/next segments and Done, all small-sized at the same 20 pt height.
+    private static let findBarHeight: CGFloat = 35
+    private let findBar = NSVisualEffectView()
+    private let findBarRule = NSBox()
     private let search = NSSearchField()
-    private lazy var searchSurface = PreviewGlassInputSurface(field: search)
     private let matchLabel = NSTextField(labelWithString: "")
-    private let previousMatch = NSButton()
-    private let nextMatch = NSButton()
-    private let closeSearch = NSButton()
+    private let matchNav = NSSegmentedControl()
+    private let doneSearch = NSButton()
     private let status = NSTextField(labelWithString: "")
     private let password = NSSecureTextField()
     private lazy var passwordSurface = PreviewGlassInputSurface(field: password)
@@ -128,17 +131,43 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
         pdf.minScaleFactor = 0.05
         pdf.maxScaleFactor = 20
         addSubview(pdf)
+        findBar.material = .headerView
+        findBar.blendingMode = .withinWindow
+        findBar.state = .followsWindowActiveState
+        addSubview(findBar)
+        findBarRule.boxType = .separator
+        addSubview(findBarRule)
         search.placeholderString = Chrome.localized("Find in PDF")
         search.delegate = self
+        search.target = self
+        search.action = #selector(nextResult)
         search.sendsSearchStringImmediately = true
-        addSubview(searchSurface)
+        search.controlSize = .small
+        search.font = .systemFont(ofSize: 11)
+        addSubview(search)
         matchLabel.font = .systemFont(ofSize: 11)
         matchLabel.textColor = .secondaryLabelColor
+        matchLabel.alignment = .right
         addSubview(matchLabel)
-        configure(previousMatch, title: "Previous match", symbol: "chevron.up", action: #selector(previousResult))
-        configure(nextMatch, title: "Next match", symbol: "chevron.down", action: #selector(nextResult))
-        configure(closeSearch, title: "Close search", symbol: "xmark", action: #selector(hideSearch))
-        addSubview(previousMatch); addSubview(nextMatch); addSubview(closeSearch)
+        matchNav.segmentCount = 2
+        matchNav.segmentStyle = .roundRect
+        matchNav.controlSize = .small
+        matchNav.trackingMode = .momentary
+        matchNav.target = self
+        matchNav.action = #selector(stepMatch)
+        for (index, symbol, title) in [(0, "chevron.left", "Previous match"), (1, "chevron.right", "Next match")] {
+            matchNav.setImage(NSImage(systemSymbolName: symbol, accessibilityDescription: Chrome.localized(title)), forSegment: index)
+            matchNav.setWidth(16, forSegment: index)
+            matchNav.setToolTip(Chrome.localized(title), forSegment: index)
+        }
+        addSubview(matchNav)
+        doneSearch.title = Chrome.localized("Done")
+        doneSearch.bezelStyle = .roundRect
+        doneSearch.controlSize = .small
+        doneSearch.font = .systemFont(ofSize: 11)
+        doneSearch.target = self
+        doneSearch.action = #selector(hideSearch)
+        addSubview(doneSearch)
         status.font = .systemFont(ofSize: 13)
         status.textColor = .secondaryLabelColor
         status.alignment = .center
@@ -184,23 +213,10 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
         }
         positionChanged()
     }
-    private func configure(_ button: NSButton, title: String, symbol: String, action: Selector) {
-        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: Chrome.localized(title))
-        button.imagePosition = .imageOnly
-        button.bezelStyle = .inline
-        button.isBordered = false
-        button.target = self
-        button.action = action
-        button.toolTip = Chrome.localized(title)
-        button.setAccessibilityLabel(Chrome.localized(title))
-    }
 
     func updateGlass(performanceMode: Bool) {
-        searchSurface.update(performanceMode: performanceMode)
         passwordSurface.update(performanceMode: performanceMode)
-        for button in [previousMatch, nextMatch, closeSearch, unlockButton] {
-            PreviewNativeGlass.update(button, performanceMode: performanceMode)
-        }
+        PreviewNativeGlass.update(unlockButton, performanceMode: performanceMode)
     }
 
     func update(url: URL, revision: String, state: PreviewReaderState, findRequest: Int) {
@@ -253,6 +269,9 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
         if findRequest != state.consumedFindRequest {
             state.consumedFindRequest = findRequest
             setSearchVisible(true)
+            // Hidden search dropped its matches; reopening with a query searches it
+            // again so the count and the segments describe what is on screen.
+            if !search.stringValue.isEmpty { beginSearch() }
             window?.makeFirstResponder(search)
         }
     }
@@ -284,19 +303,29 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
 
     override func layout() {
         super.layout()
-        let searchHeight: CGFloat = searchVisible ? 34 : 0
-        let pdfFrame = NSRect(x: 0, y: 0, width: bounds.width, height: max(0, bounds.height - searchHeight))
+        let findHeight: CGFloat = searchVisible ? Self.findBarHeight : 0
+        let pdfFrame = NSRect(x: 0, y: 0, width: bounds.width, height: max(0, bounds.height - findHeight))
         if pdf.frame != pdfFrame { pdf.frame = pdfFrame }
         updateScrollSurface()
-        let y = bounds.height - 29
-        searchSurface.frame = NSRect(x: 8, y: y, width: max(60, bounds.width - 180), height: 24)
-        matchLabel.frame = NSRect(x: max(72, bounds.width - 164), y: y + 4, width: 90, height: 18)
-        previousMatch.frame = NSRect(x: bounds.width - 72, y: y, width: 22, height: 24)
-        nextMatch.frame = NSRect(x: bounds.width - 48, y: y, width: 22, height: 24)
-        closeSearch.frame = NSRect(x: bounds.width - 24, y: y, width: 22, height: 24)
+        layoutFindBar()
         status.frame = NSRect(x: 8, y: bounds.midY + 20, width: max(0, bounds.width - 16), height: 24)
         passwordSurface.frame = NSRect(x: max(8, bounds.midX - 110), y: bounds.midY - 12, width: min(220, max(0, bounds.width - 16)), height: 24)
         unlockButton.frame = NSRect(x: max(8, bounds.midX - 55), y: bounds.midY - 46, width: 110, height: 28)
+    }
+
+    /// The bar's row of 20 pt small controls, laid out from the trailing edge in the
+    /// system find bar's order: search field, match count, previous/next, Done.
+    private func layoutFindBar() {
+        let bar = NSRect(x: 0, y: bounds.height - Self.findBarHeight, width: bounds.width, height: Self.findBarHeight)
+        findBar.frame = bar
+        findBarRule.frame = NSRect(x: 0, y: bar.minY, width: bounds.width, height: 1)
+        let height: CGFloat = 20
+        let y = bar.minY + floor((Self.findBarHeight - height) / 2)
+        let doneWidth = max(48, ceil(doneSearch.fittingSize.width))
+        doneSearch.frame = NSRect(x: bar.maxX - 8 - doneWidth, y: y, width: doneWidth, height: height)
+        matchNav.frame = NSRect(x: doneSearch.frame.minX - 8 - 32, y: y, width: 32, height: height)
+        matchLabel.frame = NSRect(x: matchNav.frame.minX - 6 - 92, y: y + 3, width: 92, height: 14)
+        search.frame = NSRect(x: 8, y: y, width: max(60, matchLabel.frame.minX - 12), height: height)
     }
 
     private func updateScrollSurface() {
@@ -379,7 +408,7 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
 
     private func setSearchVisible(_ visible: Bool) {
         searchVisible = visible
-        for view in [searchSurface, matchLabel, previousMatch, nextMatch, closeSearch] as [NSView] { view.isHidden = !visible }
+        for view in [findBar, findBarRule, search, matchLabel, matchNav, doneSearch] as [NSView] { view.isHidden = !visible }
         needsLayout = true
     }
     @objc private func hideSearch() {
@@ -410,6 +439,7 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
         searchGeneration += 1
         matches = []
         matchIndex = -1
+        matchNav.isEnabled = false
         pdf.highlightedSelections = nil
         matchLabel.stringValue = ""
         guard !search.stringValue.isEmpty, let document = pdf.document else { return }
@@ -437,6 +467,11 @@ final class PreviewPDFHost: NSView, NSSearchFieldDelegate, PDFViewDelegate {
         if search.stringValue.isEmpty { matchLabel.stringValue = "" }
         else if matches.isEmpty { matchLabel.stringValue = Chrome.localized("No matches") }
         else { matchLabel.stringValue = String(format: Chrome.localized(matches.count == PreviewPDFFindBudget.limit ? "%d+ matches" : "%d matches"), matches.count) }
+        matchNav.isEnabled = !matches.isEmpty
+    }
+    /// The joined segments navigate like the system find bar's arrows.
+    @objc private func stepMatch() {
+        if matchNav.selectedSegment == 1 { nextResult() } else { previousResult() }
     }
     @objc private func previousResult() { guard !matches.isEmpty else { return }; matchIndex = (matchIndex - 1 + matches.count) % matches.count; showResult() }
     @objc private func nextResult() { guard !matches.isEmpty else { return }; matchIndex = (matchIndex + 1) % matches.count; showResult() }

@@ -1,6 +1,80 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "OMP could not read this conversation's native session identity." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"OMP 无法读取此对话的原生会话标识。"}}}},
+    "OMP resumed a different session. The original conversation is preserved. Close its other owner and try again." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"OMP 恢复了另一个会话。原对话已保留，请关闭占用原会话的其他进程后重试。"}}}},
+    "This conversation is open in another OMP process. Close it there before continuing here." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"此对话已在另一个 OMP 进程中打开。请先在那里关闭，再回到此处继续。"}}}},
+    "Per-task model" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"逐次任务模型"}}}},
+    "Let each call choose an exact model already allowed by your OMP configuration." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"允许每次调用从 OMP 配置已授权的模型中选择一个精确模型。"}}}},
+    "Eval only" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"仅 Eval"}}}},
+    "Maximum task effort" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"任务思考强度上限"}}}},
+    "Limit per-task effort hints and per-call model choices. OMP enforces the model's supported levels." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"限制每次任务指定的思考强度及逐次模型选择的强度，由 OMP 按模型支持的等级执行。"}}}},
+    "All sources" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"全部来源"}}}},
+    "History source" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"历史记录来源"}}}},
+    "Import Chrome history…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导入 Chrome 历史记录…"}}}},
+    "Import Chrome history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导入 Chrome 历史记录"}}}},
+    "Import saved visits and website icons. Your OMP GUI history and recently opened pages are kept. Chrome data is never changed." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导入已保存的访问记录和网站图标，保留 OMP GUI 自己的历史记录和最近打开列表，不修改 Chrome 数据。"}}}},
+    "Importing history…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"正在导入历史记录…"}}}},
+    "Reading Chrome history…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"正在读取 Chrome 历史记录…"}}}},
+    "Import preview" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导入预览"}}}},
+    "History import complete" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"历史记录导入完成"}}}},
+    "New: %ld · Already imported: %ld · Previously deleted: %ld · Skipped: %ld" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"新增：%ld · 已导入：%ld · 已删除：%ld · 跳过：%ld"}}}},
+    "No new visits to import. Previously deleted records stay deleted." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"没有可新增的访问记录，之前删除的记录不会恢复。"}}}},
+    "Reset import exclusions…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"重置导入排除记录…"}}}},
+    "Reset Chrome history exclusions?" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"重置 Chrome 历史记录的导入排除项？"}}}},
+    "Reset exclusions" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"重置排除记录"}}}},
+    "Only this Chrome profile's deletion markers will be reset. Deleted visits can return the next time you preview and import. Existing history is kept." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"仅重置此 Chrome 配置的删除标记。下次预览并导入时，已删除的访问记录可以重新导入；现有历史记录将保留。"}}}},
+    "Import history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导入历史记录"}}}},
+    "Preview import" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"预览导入"}}}},
+    "No Chrome profiles with browsing history were found." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"未找到包含浏览历史记录的 Chrome 配置。"}}}},
+    "Chrome is using its history database. Quit Chrome completely, then retry." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"Chrome 正在占用历史记录数据库，请完全退出 Chrome 后重试。"}}}},
+    "macOS blocked access to Chrome history. Allow OMP GUI in Privacy & Security, then retry." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"macOS 阻止了对 Chrome 历史记录的访问，请在“隐私与安全性”中允许 OMP GUI 访问后重试。"}}}},
+    "Chrome history exceeds the import limit. Choose a smaller time range or reduce the source database size." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"Chrome 历史记录超出导入上限，请缩小时间范围或减小源数据库大小。"}}}},
+    "This Chrome history database format is not supported." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"暂不支持此 Chrome 历史记录数据库格式。"}}}},
+    "History changed while preparing the import. Preview it again before importing." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"准备导入期间历史记录发生了变化，请重新预览后再导入。"}}}},
+    "Chrome history could not be read or imported. No records were added." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"无法读取或导入 Chrome 历史记录，未新增任何记录。"}}}},
+    "Delete browsing history for %@? Matching recent pages will also be removed. Chrome's original history, cookies and open tabs are kept." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"删除“%@”范围内的全部来源浏览历史记录？对应的最近打开条目也会移除；Chrome 原始历史记录、Cookie 和已打开的标签页将保留。"}}}},
+    "Workspace panels" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"工作区面板"}}}},
+    "Open Git panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开 Git 面板"}}}},
+    "Open session history panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开会话记录面板"}}}},
+    "Open review panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开审阅面板"}}}},
+    "Open context panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开上下文面板"}}}},
+    "Open sidebar terminal" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开侧栏终端"}}}},
+    "Open debug panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开调试面板"}}}},
+    "Open browser panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开浏览器面板"}}}},
+    "Open files panel" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"打开文件面板"}}}},
+    "Browse branches, commits and working changes." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"浏览分支、提交和工作区改动。"}}}},
+    "Inspect conversation turns, tool calls and model requests." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"查看对话轮次、工具调用和模型请求。"}}}},
+    "Review file changes made in this conversation." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"审阅本次对话产生的文件改动。"}}}},
+    "Inspect context usage and token counts." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"查看上下文使用情况和 token 计数。"}}}},
+    "Run commands in a terminal beside the conversation." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"在对话旁的终端中运行命令。"}}}},
+    "Inspect debug runs, breakpoints and variables." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"查看调试运行、断点和变量。"}}}},
+    "Browse the web without leaving the conversation." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"在对话中直接浏览网页。"}}}},
+    "Browse workspace files and open native previews." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"浏览工作区文件，打开原生预览。"}}}},
+    "History actions" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"历史记录操作"}}}},
+    "Today · %@" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"今天 · %@"}}}},
+    "Yesterday · %@" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"昨天 · %@"}}}},
+    "Browsing preferences" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"浏览偏好"}}}},
+    "Browsing history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"历史记录"}}}},
+    "Recently opened" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"最近打开"}}}},
+    "Clear recent pages" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"清空最近打开"}}}},
+    "Clear recent pages without deleting browsing history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"清空最近列表，保留浏览历史记录"}}}},
+    "Browser history could not be saved or loaded. Try again." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"无法保存或读取浏览历史记录，请重试。"}}}},
+    "No browsing history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"暂无浏览历史记录"}}}},
+    "No history on this page" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"本页暂无历史记录"}}}},
+    "History time range" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"历史记录时间范围"}}}},
+    "Clear browsing history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"清理浏览历史记录"}}}},
+    "Clear browsing history?" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"清理浏览历史记录？"}}}},
+    "Delete browsing history for %@? Matching recent pages will also be removed. Cookies and open tabs are kept." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"删除“%@”内的浏览历史记录？对应的最近打开条目也会移除，Cookie 和已打开的标签页将保留。"}}}},
+    "Delete from history" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"从历史记录中删除"}}}},
+    "Last hour" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"最近一小时"}}}},
+    "Last 7 days" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"最近 7 天"}}}},
+    "Clear…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"清理…"}}}},
+    "Page %lld" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"第 %lld 页"}}}},
+    "Newer" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"较新记录"}}}},
+    "Older" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"更早记录"}}}},
+    "Search or enter web address" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"搜索或输入网址"}}}},
+    "Enter a valid web address or search query." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"请输入有效的网址或搜索内容。"}}}},
     "JavaScript kernel restarted after an unexpected worker exit; previous variables are no longer available." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"JavaScript 工作进程意外退出，内核已重启；此前的变量已不再可用。"}}}},
     "A browser profile with this name already exists." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"已存在同名浏览器配置。"}}}},
     "Import from Chrome" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"从 Chrome 导入"}}}},
@@ -206,9 +280,8 @@
     "All chat models are shown by default. Hidden models stay available here but do not appear in the composer picker. Judge and other model kinds use OMP's native model roles." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"默认显示全部聊天模型。隐藏的模型仍保留在此处，但不会出现在输入框底部的模型选择器中。评判等其他类型的模型使用 OMP 的原生模型角色配置。"}}}},
     "Hide the thinking" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"收起思考过程"}}}},
     "Show the thinking" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"展开思考过程"}}}},
-    "Auto-refresh runs every 5 seconds during active work; — means unknown." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"会话进行中每 5 秒自动更新；— 表示未知。"}}}},
     "Category" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"类别"}}}},
-    "Context and composition are estimates; usage is reported by the provider." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"上下文占用与组成是估算值，用量来自服务商回报。"}}}},
+    "Context and composition are estimates; usage is reported by the provider. Input includes cache reads and writes, and reasoning counts as output." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"上下文占用与组成是估算值，用量来自服务商回报。输入包含缓存读写，推理已计入输出。"}}}},
     "Context report" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"上下文报告"}}}},
     "Copy context report as Markdown" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"以 Markdown 复制上下文报告"}}}},
     "Could not copy context report." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"无法复制上下文报告。"}}}},
@@ -217,7 +290,6 @@
     "Export JSON…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导出 JSON…"}}}},
     "Export Markdown…" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导出 Markdown…"}}}},
     "Export context report" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"导出上下文报告"}}}},
-    "Input includes cache reads and writes. Reasoning is part of output." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"输入包含缓存读写，推理已计入输出。"}}}},
     "Latest saved response" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"最近一次已保存响应"}}}},
     "Local estimate" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"本地估算"}}}},
     "Metric" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"指标"}}}},
@@ -228,7 +300,7 @@
     "Saved context snapshot" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"已保存的上下文快照"}}}},
     "Share of estimate" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"估算占比"}}}},
     "Snapshot time" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"快照时间"}}}},
-    "Totals include retained branches and reported task usage." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"累计包含保留分支及已回报的任务用量。"}}}},
+    "Totals include retained branches, native auxiliary calls and reported task usage; in-flight usage may not be saved yet. Auto-refresh runs every 5 seconds during active work, and — means unknown." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"累计包含保留分支、原生辅助调用及已回报的任务用量；进行中的用量可能尚未保存。会话进行中每 5 秒自动更新；— 表示未知。"}}}},
     "Used tokens" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"已用 token"}}}},
     "Value" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"数值"}}}},
     "Yes" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"是"}}}},
@@ -256,23 +328,17 @@
     "Current context" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"当前上下文"}}}},
     "Current session projection" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"当前会话投影"}}}},
     "Detailed composition is available for requests recorded with the context inspector." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"使用上下文检查器记录的请求可显示详细组成。"}}}},
-    "Detailed live breakdown requires OMP's public SDK context interface." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"详细实时分项需要 OMP 的公开 SDK 上下文接口。"}}}},
-    "Estimated from OMP's current session projection; request hooks may change it." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"根据 OMP 当前会话投影估算；请求钩子可能改变实际内容。"}}}},
     "Extension content" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"扩展内容"}}}},
     "Framing and other content" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"协议封装与其他内容"}}}},
     "Fresh input" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"非缓存输入"}}}},
     "How these values are measured" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"这些数值如何计算"}}}},
-    "Includes all retained branches and native auxiliary usage in this session file, plus reported task usage. In-flight usage may not be saved yet." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"包含此会话文件中所有保留分支、原生辅助调用及已回报的任务用量；进行中的用量可能尚未保存。"}}}},
     "Instructions and tools" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"指令与工具"}}}},
     "Last successful context refresh" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"上次成功刷新上下文的时间"}}}},
     "Latest observed request" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"最近观测的请求"}}}},
     "Latest request · reported usage" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"最近请求 · 回报用量"}}}},
-    "Measured from the transformed SDK request before provider serialization." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"根据服务商序列化之前、经转换的 SDK 请求计算。"}}}},
     "Native context usage combines OMP's provider anchor with estimated local changes. Categories use OMP's own tokenizer when available; they are not exact billed tokens." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"原生上下文占用结合 OMP 的服务商用量基准与本地变化估算。分项在可用时使用 OMP 自己的 tokenizer，不代表精确计费用量。"}}}},
     "No request capture is available on this branch." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"当前分支没有可用的请求记录。"}}}},
     "No saved native accounting is available yet." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"尚无已保存的原生用量记录。"}}}},
-    "OMP estimate based on provider usage and local context changes." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"OMP 根据服务商用量与本地上下文变化计算的估算值。"}}}},
-    "OMP local estimate; no provider usage anchor is available yet." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"OMP 本地估算值；尚无服务商用量基准。"}}}},
     "Provider payload observed" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"已观测服务商请求载荷"}}}},
     "Reasoning totals cover only calls that report reasoning separately." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"推理累计仅涵盖单独回报推理量的调用。"}}}},
     "Recorded session total" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"已记录的会话累计"}}}},
@@ -292,7 +358,6 @@
     "Showing the latest saved response. Pending input and tool results may be absent." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"显示最近一次已保存响应的数据，可能不包含待处理输入与工具结果。"}}}},
     "Skill descriptions" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"技能描述"}}}},
     "Some request captures are unavailable or exceeded their retention limits." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"部分请求记录不可用或已超出保留范围。"}}}},
-    "The difference includes provider framing and request transformations; it is not assigned to system text." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"差值包含服务商协议封装与请求转换的影响，不归入系统文本。"}}}},
     "Tool declarations" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"工具声明"}}}},
     "Tool-call arguments" : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"工具调用参数"}}}},
     "Usage remains unknown until OMP receives the provider's report." : {"extractionState":"manual","localizations":{"zh-Hans":{"stringUnit":{"state":"translated","value":"OMP 收到服务商回报前，用量保持未知。"}}}},
@@ -8555,13 +8620,13 @@
         }
       }
     },
-    "Drives a real browser: open pages, click, fill forms, screenshot" : {
+    "Drives a real browser: click, fill forms, screenshot" : {
       "extractionState" : "manual",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "驱动真实浏览器：打开页面、点击、填写表单、截图"
+            "value" : "驱动真实浏览器：点击、填表、截图"
           }
         }
       }
@@ -18664,6 +18729,127 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitHub"
+          }
+        }
+      }
+    },
+    "A native OMP interface, forked from Tivano and based on Droppy Code by Jordy Spruit (Droppy). Licensed under GNU AGPL v3.0 with attribution terms; SwiftTerm is MIT licensed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原生 OMP 界面，从 Tivano 派生，基于 Jordy Spruit（Droppy）的 Droppy Code。采用 GNU AGPL v3.0 许可证并附带署名条款；SwiftTerm 采用 MIT 许可证。"
+          }
+        }
+      }
+    },
+    "Subagent": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "子代理"
+          }
+        }
+      }
+    },
+    "%lld more subagents": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "另有 %lld 个子代理"
+          }
+        }
+      }
+    },
+    "The histories of the %lld matching chats and their subagents will be removed. Files in your projects stay as they are.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将移除 %lld 个匹配会话及其子代理的历史记录，项目中的文件保持不变。"
+          }
+        }
+      }
+    },
+    "The histories of all %lld chats and their subagents will be removed. Files in your projects stay as they are.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将移除全部 %lld 个会话及其子代理的历史记录，项目中的文件保持不变。"
+          }
+        }
+      }
+    },
+    "Its history and attached subagent histories will be removed. Files in your project stay as they are.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将移除此会话及其附属子代理的历史记录，项目中的文件保持不变。"
+          }
+        }
+      }
+    },
+    "Project source code and issues.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目源代码与问题反馈。"
+          }
+        }
+      }
+    },
+    "License": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可证"
+          }
+        }
+      }
+    },
+    "GNU AGPL v3.0 with attribution terms.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GNU AGPL v3.0 及附加署名条款。"
+          }
+        }
+      }
+    },
+    "Notices": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "声明"
+          }
+        }
+      }
+    },
+    "Third-party licenses and trademark policy.": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第三方许可证和商标政策。"
           }
         }
       }

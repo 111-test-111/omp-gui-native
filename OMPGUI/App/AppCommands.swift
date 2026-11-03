@@ -60,6 +60,13 @@ struct AppCommands: Commands {
                 Button("Toggle workspace sidebar") { WindowManager.shared.toggleFilePreview() }
                     .keyboardShortcut(shortcuts.keyboardShortcut(for: .toggleFilePreview))
                     .disabled(filePreviews?.context == nil)
+                Menu("Open a panel") {
+                    ForEach(WorkspacePanel.allCases, id: \.self) { panel in
+                        Button(Chrome.localized(panel.shortcut.title)) { filePreviews?.openPanel(panel) }
+                            .keyboardShortcut(shortcuts.keyboardShortcut(for: panel.shortcut))
+                    }
+                }
+                .disabled(filePreviews?.context == nil)
                 Button("Previous sidebar tab") { WindowManager.shared.selectPreviewTab(offset: -1) }
                     .keyboardShortcut(shortcuts.keyboardShortcut(for: .previousPreviewTab))
                     .disabled(filePreviews?.isVisible != true || filePreviews?.sidebarTabs.isEmpty != false)

@@ -358,6 +358,47 @@ struct OMPWorkflowChecks {
                "A new process restores the existing pathless handoff from native history without generating another")
         await resumedHandoff.stopAndWait(timeout: 5)
 
+        // A lease probe must never claim the journal. Unsupported/unknown probes
+        // still rely on the identity of OMP's final claim, including a racing owner.
+        let originalResumeBytes = try Data(contentsOf: resumedFile)
+        for lease in ["held", "free", "unknown", "malformed", "unsupported"] {
+            var leaseConfig = handoffConfig
+            leaseConfig.environment["OMP_FIXTURE_LEASE"] = lease
+            let leaseSession = OMPSession(configuration: leaseConfig)
+            var readyCount = 0
+            leaseSession.onEvent = { if case .sessionReady = $0 { readyCount += 1 } }
+            do {
+                let identity = try await leaseSession.start()
+                expect(lease != "held" && identity == resumedFile.path,
+                       "\(lease): an unclaimed resume keeps its exact original identity")
+            } catch {
+                expect(lease == "held" && readyCount == 0 && !leaseSession.isRunning,
+                       "A held lease refuses startup before publishing or claiming another session")
+            }
+            await leaseSession.stopAndWait(timeout: 5)
+            expect(try Data(contentsOf: resumedFile) == originalResumeBytes,
+                   "\(lease): a read-only lease probe and resume preserve the original journal")
+        }
+        for racedIdentity in ["id", "file"] {
+            var racedConfig = handoffConfig
+            racedConfig.environment["OMP_FIXTURE_RESUME_RACE"] = racedIdentity
+            let racedSession = OMPSession(configuration: racedConfig)
+            var readyCount = 0
+            racedSession.onEvent = { if case .sessionReady = $0 { readyCount += 1 } }
+            do { _ = try await racedSession.start(); fatalError("A racing claim must not adopt a fork") }
+            catch {
+                expect(readyCount == 0 && !racedSession.isRunning,
+                       "A changed native \(racedIdentity) after a free probe closes the connection without adoption")
+            }
+            expect(try Data(contentsOf: resumedFile) == originalResumeBytes,
+                   "The original resume source survives a racing native \(racedIdentity) change")
+        }
+        let resumeAlias = root.appendingPathComponent("resume-alias.jsonl")
+        try FileManager.default.createSymbolicLink(at: resumeAlias, withDestinationURL: resumedFile)
+        let resumeTarget = try OMPResumeTarget.read(resumeAlias.path)
+        try resumeTarget.validate(["sessionId": "restored-handoff", "sessionFile": .string(resumedFile.path)])
+        expect(resumeTarget.file == resumedFile, "Canonical native paths permit a harmless session-file alias")
+
         // A positive removal outcome must retire its Swift admission identity
         // before the next identical native message can be correlated.
         let identicalSession = OMPSession(configuration: config)

@@ -8,58 +8,21 @@ import SQLite3
 /// Reads only the explicitly selected Chrome profile. All SQLite/keychain work
 /// runs off the main actor; no source database, key or plaintext is written out.
 enum ChromeCookieSource {
-    static var defaultRoot: URL {
-        if let output = CaptureRun.outputDirectory { return output.appendingPathComponent("chrome", isDirectory: true) }
-        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Google/Chrome", isDirectory: true)
-    }
-    static let maximumSnapshotBytes = 128 * 1_024 * 1_024
+    static var defaultRoot: URL { ChromeSourceDatabase.defaultRoot }
+    static let maximumSnapshotBytes = ChromeSourceDatabase.maximumSnapshotBytes
 
     static func profiles(root: URL = defaultRoot) throws -> [ChromeCookieProfile] {
-        try Task.checkCancellation()
-        _ = try checkedFile(root, directory: true)
-        let state = root.appendingPathComponent("Local State")
-        var labels: [String: String] = [:]
-        if try exists(state) {
-            _ = try checkedFile(state, directory: false)
-            let file: FileHandle
-            do { file = try FileHandle(forReadingFrom: state) }
-            catch { throw fileAccessError(error) }
-            defer { try? file.close() }
-            let data: Data
-            do { data = try file.read(upToCount: 4 * 1_024 * 1_024 + 1) ?? Data() }
-            catch { throw fileAccessError(error) }
-            guard data.count <= 4 * 1_024 * 1_024 else { throw BrowserCookieImportError.tooLarge }
-            if let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let profile = value["profile"] as? [String: Any], let cache = profile["info_cache"] as? [String: [String: Any]] {
-                for (directory, info) in cache {
-                    if let name = info["name"] as? String, validName(name) { labels[directory] = name }
-                }
-            }
-        }
-        let entries: [URL]
-        do { entries = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil) }
-        catch { throw fileAccessError(error) }
-        guard entries.count <= 4_096 else { throw BrowserCookieImportError.tooLarge }
-        var result: [ChromeCookieProfile] = []
-        for entry in entries.sorted(by: { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }) {
-            try Task.checkCancellation()
-            let directory = entry.lastPathComponent
-            guard validDirectory(directory), directory == "Default" || directory.hasPrefix("Profile ") || labels[directory] != nil else { continue }
-            guard try database(root: root, directory: directory) != nil else { continue }
-            result.append(ChromeCookieProfile(root: root, directoryName: directory, name: labels[directory] ?? directory))
-        }
-        guard !result.isEmpty else { throw BrowserCookieImportError.noProfiles }
-        return result
+        try sourceOperation { try ChromeSourceDatabase.profiles(root: root, content: .cookies) }
     }
 
     static func read(_ profile: ChromeCookieProfile, now: Date = Date(),
                      keyProvider: () throws -> Data = readKeychainPassword) throws -> BrowserCookieImport {
         try Task.checkCancellation()
-        guard validName(profile.name), let source = try database(root: profile.root, directory: profile.directoryName) else {
+        guard ChromeSourceDatabase.validName(profile.name), let source = try database(root: profile.root, directory: profile.directoryName) else {
             throw BrowserCookieImportError.noProfiles
         }
         let db = try snapshot(source)
-        let budget = SQLiteBudget()
+        let budget = ChromeSQLiteBudget()
         budget.install(db)
         defer { withExtendedLifetime(budget) { sqlite3_close(db) } }
         guard try scalar(db, "SELECT count(*) FROM sqlite_schema WHERE type = 'table' AND name IN ('meta', 'cookies')") == 2 else {
@@ -152,65 +115,8 @@ enum ChromeCookieSource {
         return cookie
     }
 
-    /// SQLite's backup API includes committed WAL pages. A pinned read transaction
-    /// keeps all chunks at one point in time, even if Chrome writes concurrently.
-    /// Never use immutable=1 (which would ignore a live WAL), cp or VACUUM here.
     static func snapshot(_ url: URL) throws -> OpaquePointer {
-        try Task.checkCancellation()
-        let before = try checkedFile(url, directory: false)
-        guard before.st_size <= maximumSnapshotBytes else { throw BrowserCookieImportError.tooLarge }
-        for suffix in ["-wal", "-shm"] {
-            let sidecar = URL(fileURLWithPath: url.path + suffix)
-            if try exists(sidecar) {
-                let info = try checkedFile(sidecar, directory: false)
-                guard info.st_size <= maximumSnapshotBytes else { throw BrowserCookieImportError.tooLarge }
-            }
-        }
-        var source: OpaquePointer?, destination: OpaquePointer?
-        let descriptor = open(url.path, O_RDONLY | O_NOFOLLOW)
-        guard descriptor >= 0 else { throw accessError() }
-        close(descriptor)
-        let opened = sqlite3_open_v2(url.path, &source, SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nil)
-        guard opened == SQLITE_OK, let source else {
-            if let source { sqlite3_close(source) }
-            throw opened == SQLITE_PERM || opened == SQLITE_AUTH || errno == EACCES || errno == EPERM
-                ? BrowserCookieImportError.permissionDenied : BrowserCookieImportError.invalidDatabase
-        }
-        defer { sqlite3_exec(source, "ROLLBACK", nil, nil, nil); sqlite3_close(source) }
-        let budget = SQLiteBudget()
-        budget.install(source)
-        defer { withExtendedLifetime(budget) { sqlite3_progress_handler(source, 0, nil, nil) } }
-        sqlite3_busy_timeout(source, 250)
-        try execute(source, "PRAGMA query_only = ON; PRAGMA trusted_schema = OFF; BEGIN")
-        _ = try scalar(source, "SELECT count(*) FROM sqlite_schema") // Pin the read snapshot before backup_init.
-        let pages = try scalar(source, "PRAGMA page_count"), size = try scalar(source, "PRAGMA page_size")
-        guard size > 0, pages >= 0, pages <= maximumSnapshotBytes / size else { throw BrowserCookieImportError.tooLarge }
-        guard sqlite3_open_v2(":memory:", &destination, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nil) == SQLITE_OK,
-              let destination else {
-            if let destination { sqlite3_close(destination) }
-            throw BrowserCookieImportError.unavailable
-        }
-        do {
-            try execute(destination, "PRAGMA temp_store = MEMORY; PRAGMA trusted_schema = OFF")
-            guard let backup = sqlite3_backup_init(destination, "main", source, "main") else { throw BrowserCookieImportError.invalidDatabase }
-            var finished = false
-            defer { if !finished { sqlite3_backup_finish(backup) } }
-            let deadline = ContinuousClock.now + .seconds(5)
-            while true {
-                try Task.checkCancellation()
-                guard ContinuousClock.now < deadline else { throw BrowserCookieImportError.snapshotBusy }
-                let status = sqlite3_backup_step(backup, 128)
-                if status == SQLITE_DONE { break }
-                if status == SQLITE_BUSY || status == SQLITE_LOCKED { Thread.sleep(forTimeInterval: 0.025) }
-                else if status != SQLITE_OK { throw BrowserCookieImportError.invalidDatabase }
-            }
-            let result = sqlite3_backup_finish(backup); finished = true
-            guard result == SQLITE_OK else { throw BrowserCookieImportError.invalidDatabase }
-            let after = try checkedFile(url, directory: false)
-            guard before.st_dev == after.st_dev, before.st_ino == after.st_ino else { throw BrowserCookieImportError.snapshotBusy }
-            try execute(destination, "PRAGMA query_only = ON")
-            return destination
-        } catch { sqlite3_close(destination); throw error }
+        try sourceOperation { try ChromeSourceDatabase.snapshot(url) }
     }
 
     static func readKeychainPassword() throws -> Data {
@@ -277,52 +183,24 @@ enum ChromeCookieSource {
     }
 
     private static func database(root: URL, directory: String) throws -> URL? {
-        guard validDirectory(directory) else { throw BrowserCookieImportError.invalidDatabase }
-        _ = try checkedFile(root, directory: true)
-        let profile = root.appendingPathComponent(directory, isDirectory: true)
-        _ = try checkedFile(profile, directory: true)
-        let network = profile.appendingPathComponent("Network", isDirectory: true)
-        if try exists(network) {
-            _ = try checkedFile(network, directory: true)
-            let modern = network.appendingPathComponent("Cookies")
-            if try exists(modern) { _ = try checkedFile(modern, directory: false); return modern }
-        }
-        let legacy = profile.appendingPathComponent("Cookies")
-        if try exists(legacy) { _ = try checkedFile(legacy, directory: false); return legacy }
-        return nil
+        try sourceOperation { try ChromeSourceDatabase.database(root: root, directory: directory, content: .cookies) }
     }
 
-    private static func validDirectory(_ name: String) -> Bool {
-        !name.isEmpty && name != "." && name != ".." && name.utf8.count <= 255
-            && !name.contains(where: { "/\\".contains($0) }) && !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
+    private static func sourceOperation<T>(_ body: () throws -> T) throws -> T {
+        do { return try body() }
+        catch let error as ChromeSourceError {
+            switch error {
+            case .chromeNotFound: throw BrowserCookieImportError.chromeNotFound
+            case .noProfiles: throw BrowserCookieImportError.noProfiles
+            case .permissionDenied: throw BrowserCookieImportError.permissionDenied
+            case .invalidDatabase: throw BrowserCookieImportError.invalidDatabase
+            case .tooLarge: throw BrowserCookieImportError.tooLarge
+            case .snapshotBusy: throw BrowserCookieImportError.snapshotBusy
+            case .unavailable: throw BrowserCookieImportError.unavailable
+            }
+        }
     }
-    private static func validName(_ name: String) -> Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && name.count <= 120
-            && !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
-    }
-    private static func exists(_ url: URL) throws -> Bool {
-        var info = stat()
-        if lstat(url.path, &info) == 0 { return true }
-        if errno == ENOENT { return false }
-        throw accessError()
-    }
-    private static func checkedFile(_ url: URL, directory: Bool) throws -> stat {
-        guard url.isFileURL, url == url.standardizedFileURL else { throw BrowserCookieImportError.invalidDatabase }
-        var info = stat()
-        guard lstat(url.path, &info) == 0 else { throw accessError() }
-        guard info.st_mode & S_IFMT == (directory ? S_IFDIR : S_IFREG) else { throw BrowserCookieImportError.invalidDatabase }
-        return info
-    }
-    private static func accessError() -> BrowserCookieImportError {
-        errno == EPERM || errno == EACCES ? .permissionDenied : .chromeNotFound
-    }
-    private static func fileAccessError(_ error: Error) -> BrowserCookieImportError {
-        let failure = error as NSError
-        if failure.domain == NSPOSIXErrorDomain, [Int(EPERM), Int(EACCES)].contains(failure.code) { return .permissionDenied }
-        if failure.domain == NSCocoaErrorDomain, failure.code == NSFileReadNoPermissionError { return .permissionDenied }
-        if let underlying = failure.userInfo[NSUnderlyingErrorKey] as? Error { return fileAccessError(underlying) }
-        return .invalidDatabase
-    }
+
     private static func prepare(_ db: OpaquePointer, _ sql: String) throws -> OpaquePointer {
         var statement: OpaquePointer?
         let status = sqlite3_prepare_v2(db, sql, -1, &statement, nil)
@@ -386,18 +264,5 @@ enum ChromeCookieSource {
             throw BrowserCookieImportError.invalidDatabase
         }
         return value
-    }
-}
-
-private final class SQLiteBudget {
-    private let deadline = ContinuousClock.now + .seconds(10)
-
-    func install(_ db: OpaquePointer) {
-        sqlite3_limit(db, SQLITE_LIMIT_LENGTH, 1_048_576)
-        sqlite3_progress_handler(db, 1_000, { pointer in
-            guard let pointer else { return 1 }
-            let budget = Unmanaged<SQLiteBudget>.fromOpaque(pointer).takeUnretainedValue()
-            return Task.isCancelled || ContinuousClock.now >= budget.deadline ? 1 : 0
-        }, Unmanaged.passUnretained(self).toOpaque())
     }
 }

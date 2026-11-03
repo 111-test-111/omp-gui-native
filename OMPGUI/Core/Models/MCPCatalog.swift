@@ -38,7 +38,7 @@ enum MCPCatalog {
             id: "playwright",
             name: "Playwright",
             vendor: "Microsoft",
-            summary: "Drives a real browser: open pages, click, fill forms, screenshot",
+            summary: "Drives a real browser: click, fill forms, screenshot",
             category: .browser,
             asset: "mcp-playwright",
             colorValue: 0x2EAD33,

@@ -1,5 +1,5 @@
 {
-  "version": "18.13.3",
+  "version": "18.15.0",
   "files": [
     {
       "path": "src/tools/browser/frames.ts",
@@ -18,16 +18,16 @@
     },
     {
       "path": "src/tools/browser/tab-supervisor.ts",
-      "sourceSHA256": "71a40a50bc0f2c0504f6085645ed14512aa74c32f33015801a3d57e3294b8857",
-      "patchedSHA256": "0392861def10913066c5f6025e187022a9a06afe4a8129e703eec86f929c2a3f",
+      "sourceSHA256": "d01902045b61b9cb6e4e11c1e98834dbff0de10180379bc374231789c33fc831",
+      "patchedSHA256": "5c4de779779fbc3f693b41a2575044ca2bc62753f1d5db2908f7d82e6b7327f6",
       "changes": [
         {
           "before": "\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n\t\t\t} else if (opts.dialogs !== undefined && opts.dialogs !== existing.dialogPolicy) {\n\t\t\t\tholdBrowser(browser);\n\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n",
           "after": "\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n\t\t\t} else if (opts.dialogs !== undefined && opts.dialogs !== existing.dialogPolicy) {\n\t\t\t\tif (existing.backend === \"worker\") {\n\t\t\t\t\t// Settle the current dialog before closing the old worker: its\n\t\t\t\t\t// page-hook disposal would otherwise wait on the paused renderer.\n\t\t\t\t\tawait runInTabWithSnapshot(name, {\n\t\t\t\t\t\tcode: `await tab.setDialogs(${JSON.stringify(opts.dialogs)});`,\n\t\t\t\t\t\ttimeoutMs: opts.timeoutMs, signal: opts.signal,\n\t\t\t\t\t}, { cwd: getProjectDir() });\n\t\t\t\t}\n\t\t\t\tholdBrowser(browser);\n\t\t\t\ttempHold = true;\n\t\t\t\tawait releaseTab(name, { kill: false });\n"
         },
         {
-          "before": "import { gracefulKillTreeOnce, pickElectronTarget } from \"./attach\";",
-          "after": "import { gracefulKillTreeOnce, pickElectronTarget } from \"./attach\";\nimport { isGuiTarget, resolveGuiTarget, workerOpenOptions } from \"./omp-gui.js\";"
+          "before": "import { gracefulKillTreeOnce, isChromiumBrowserExecutable, pickElectronTarget } from \"./attach\";",
+          "after": "import { gracefulKillTreeOnce, isChromiumBrowserExecutable, pickElectronTarget } from \"./attach\";\nimport { isGuiTarget, resolveGuiTarget, workerOpenOptions } from \"./omp-gui.js\";"
         },
         {
           "before": "\townsPage: boolean;",
@@ -73,7 +73,7 @@
     },
     {
       "path": "src/tools/browser/tab-protocol.ts",
-      "sourceSHA256": "f4d30c89a00c3009acde23d1a085e143b466416213232a08f233cc21272fecd4",
+      "sourceSHA256": "8e15ef174ca79343d5ffc1d8c58be1b502793259441019cc0f8cb00c0126a0d9",
       "changes": [
         {
           "before": "\t\t\tpage: AttachPage;",
@@ -84,11 +84,11 @@
           "after": "\t\t\tpage: AttachPage;\n\t\t\tviewport?: { width: number; height: number; deviceScaleFactor?: number };\n"
         }
       ],
-      "patchedSHA256": "253eecfa89f57be0c0c2e4c032204ceb94ea145abdb0378be1d3220ee051480f"
+      "patchedSHA256": "a88a9c04f2294b3147b3f123f15bed85896c1b207a6564a935f3d8ad8bb34d9b"
     },
     {
       "path": "src/tools/browser/tab-worker.ts",
-      "sourceSHA256": "ec5015cc4ad6ccae6b3fb1e952f00a25958d6c34cdf26f01184e7706f880a7e9",
+      "sourceSHA256": "7be4f5c8d2b8fd5fc6c15d16e076d07be2992a26308df8abab123923baba1b1c",
       "changes": [
         {
           "before": "import * as fs from \"node:fs\";",
@@ -147,7 +147,7 @@
           "after": "\t\t\t\tawait this.#claimRelayTarget(page);\n\t\t\t\tif (payload.viewport) await applyViewport(page, payload.viewport);"
         }
       ],
-      "patchedSHA256": "c0a9f1c58b2cd574fb1808ec4eade1fe71b1416d31bf591605de2bb915cbe85c"
+      "patchedSHA256": "d9f2a9700476dd9b4bdb5e5ceab125054e18bac4a93534993e05419af0e27a70"
     },
     {
       "path": "src/tools/browser/storage-state.ts",
@@ -185,17 +185,6 @@
       "patchedSHA256": "c4742d57aad5027f2f9cc4f72e5491a1055d1797e60b350054a18aa31deecfc7"
     },
     {
-      "path": "src/tools/browser/tab-call.ts",
-      "sourceSHA256": "b13819e1b60e8e99eafe35ca3c965bbad01e019d64013ecc826fe06d0d9e2894",
-      "changes": [
-        {
-          "before": "${renderElementStep(handleStep)};",
-          "after": "${frameHandle ? renderCallChain([handleStep]) : renderElementStep(handleStep)};"
-        }
-      ],
-      "patchedSHA256": "b4aef3165bc60fca6ac2962c1daa94d91fa1ae86dd5e80391da3931d9427ff31"
-    },
-    {
       "path": "src/eval/js/worker-core.ts",
       "sourceSHA256": "bad72ec1d7c65d97ecdfc1f714bca7e74d9db97c35e9416ef1f0d55a4a0dec4f",
       "changes": [
@@ -205,29 +194,6 @@
         }
       ],
       "patchedSHA256": "992ab96f0e484c11b52074ea575715ba01230630f676ddddc70c729c16fdd9c4"
-    },
-    {
-      "path": "src/eval/js/context-manager.ts",
-      "sourceSHA256": "d1a7c52a8469668d114a9ce22995e2adb90cdd6f8175c471e6c70b249374320b",
-      "changes": [
-        {
-          "before": "const resettingSessions = new Map<string, Promise<void>>();",
-          "after": "const resettingSessions = new Map<string, Promise<void>>();\n// Weak ownership: a crash notice cannot retain a disposed conversation.\nconst unexpectedWorkerLoss = new WeakMap<ToolSession, Set<string>>();"
-        },
-        {
-          "before": "\tif (options.reset) {\n\t\t// Coalesce",
-          "after": "\tif (options.reset) {\n\t\tunexpectedWorkerLoss.get(options.session)?.delete(options.sessionKey);\n\t\t// Coalesce"
-        },
-        {
-          "before": "\tconst result = await runOnce(session, options);",
-          "after": "\tif (unexpectedWorkerLoss.get(options.session)?.delete(options.sessionKey)) {\n\t\toptions.runState.onText?.((process.env.OMP_GUI_EVAL_RESTART_NOTICE ?? \"JavaScript kernel restarted after an unexpected worker exit; previous variables are no longer available.\") + \"\\n\");\n\t}\n\tconst result = await runOnce(session, options);"
-        },
-        {
-          "before": "\t\tvoid killSessionFor(session, error, { force: true });\n\t});\n\ttry {",
-          "after": "\t\tif (session.state === \"alive\") {\n\t\t\tfor (const owner of session.stateSessions) {\n\t\t\t\tconst lost = unexpectedWorkerLoss.get(owner) ?? new Set<string>();\n\t\t\t\tlost.add(session.sessionKey);\n\t\t\t\tunexpectedWorkerLoss.set(owner, lost);\n\t\t\t}\n\t\t}\n\t\tvoid killSessionFor(session, error, { force: true });\n\t});\n\ttry {"
-        }
-      ],
-      "patchedSHA256": "a4a8146c5a481c000fa33d00cd63f594d2fae3cd1a67e2d7489edb721b66d243"
     },
     {
       "path": "src/tools/browser/downloads.ts",
@@ -254,14 +220,14 @@
     },
     {
       "path": "src/tools/browser.ts",
-      "sourceSHA256": "12c658b5e81e905d6b48e29003148b48f209483f8e2b4fccfa222836e827098b",
+      "sourceSHA256": "36159033894b113736acb7e2ecdaff8d4461b824af4705147c8c6f7085d0907e",
       "changes": [
         {
           "before": "\t\t\t\t\tparams.ignore_https_errors === true)",
           "after": "\t\t\t\t\tparams.ignore_https_errors !== undefined)"
         }
       ],
-      "patchedSHA256": "06b6028f3c52e3e96edf16cb00e832c5d39897679952aeea93d3dafd9959642f"
+      "patchedSHA256": "94d04a52887a3c919cc64795a4154173838ba8fa54d69017cebd67dfe2e70c72"
     }
   ],
   "additions": [

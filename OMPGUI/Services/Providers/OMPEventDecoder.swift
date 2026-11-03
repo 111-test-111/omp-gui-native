@@ -1,31 +1,27 @@
 import Foundation
 
 /// Converts OMP's agent events into the existing timeline vocabulary. Each native
-/// subagent gets its own decoder; its message IDs, file snapshots and usage never
+/// subagent gets its own decoder; its message IDs, tool results and usage never
 /// enter the lead's stream.
 @MainActor
 final class OMPEventDecoder {
     let prefix: String
     var directory: String
-    let capturesSnapshots: Bool
     var contextWindow: Int?
     var onEvent: ((ProviderEvent) -> Void)?
     private var currentMessage = ""
     private var tools: [String: (name: String, args: JSONValue, path: String?, isTodo: Bool)] = [:]
-    private var snapshots = EditSnapshots()
 
-    init(prefix: String, directory: String, capturesSnapshots: Bool = true) {
+    init(prefix: String, directory: String) {
         self.prefix = prefix
         self.directory = directory
-        self.capturesSnapshots = capturesSnapshots
     }
 
     /// A native branch changes the conversation behind this process. Cached tool
-    /// arguments and file baselines must never leak into the replacement path.
+    /// arguments must never leak into the replacement path.
     func resetForSession() {
         currentMessage = ""
         tools.removeAll()
-        snapshots = EditSnapshots()
     }
 
     func handle(_ frame: JSONValue) {
@@ -143,21 +139,15 @@ final class OMPEventDecoder {
             let content, let parsed = JSONValue.parse(content), parsed.object != nil { parsed } else { nil }
         let callArgs = innerArgs ?? args
         let subjectPath = callArgs["path"]?.string ?? callArgs["file_path"]?.string
-        // The outer xd:// path is a transport address. File snapshots belong
+        // The outer xd:// path is a transport address. File targets belong
         // to the wrapped edit's file, never to the transport or another tool.
         let filePath = device == nil ? rawPath : innerArgs?["path"]?.string ?? innerArgs?["file_path"]?.string
-        let path = filePath.flatMap { value -> String? in
-            guard !value.contains("://") else { return nil }
-            return value.hasPrefix("/") ? value : URL(fileURLWithPath: directory).appendingPathComponent(value).path
-        }
+        let path = filePath.flatMap(localPath)
         let isTodo = effectiveName == "todo" && !isDeviceHelp
         tools[id] = (effectiveName, args, path, isTodo)
         // OMP returns the canonical list on completion. Wait for it rather than
         // displaying a second generic tool row or projecting uncommitted args.
         if isTodo { return }
-        if capturesSnapshots, !isDeviceHelp, ["write", "edit", "ast_edit"].contains(effectiveName), let path {
-            snapshots.capture(id, path: path)
-        }
         let kind = isDeviceHelp ? .read : nativeTool?.kind ?? (effectiveName.hasPrefix("mcp__") ? .mcp : .other)
         let title: String
         if effectiveName == "bash", !isDeviceHelp { title = ToolTitles.unwrapShell(callArgs["command"]?.string ?? effectiveName) }
@@ -193,22 +183,29 @@ final class OMPEventDecoder {
                         toolName: frame["toolName"]?.string ?? (device == nil ? "todo" : "write"), toolDevice: device)))
         }
         var edits: [FileEdit]?
-        if let tool, ["edit", "write", "ast_edit", "resolve"].contains(tool.name) {
-            let rows = details["perFileResults"]?.array ?? [details]
+        let name = tool?.name ?? rawDetails["xdev"]?["tool"]?.string ?? frame["toolName"]?.string
+        if let name, ["edit", "write", "ast_edit", "resolve"].contains(name) {
+            let perFileResults = details["perFileResults"]?.array
+            let rows = perFileResults ?? [details]
             let native = rows.compactMap { row -> FileEdit? in
-                let path = row["path"]?.string ?? row["resolvedPath"]?.string ?? tool.path
-                guard let path, !path.contains("://") else { return nil }
+                guard let rawPath = row["resolvedPath"]?.string ?? row["path"]?.string ?? tool?.path,
+                      let path = localPath(rawPath) else { return nil }
                 let relative = ToolTitles.relativePath(path, to: directory)
-                if let old = row["oldText"]?.string, let new = row["newText"]?.string {
+                // OMP omits the nonexistent side for native create/delete.
+                let old = row["oldText"]?.string ?? (row["op"]?.string == "create" ? "" : nil)
+                let new = row["newText"]?.string ?? (row["op"]?.string == "delete" ? "" : nil)
+                if let old, let new {
                     return FileEdit(path: relative, old: old, new: new)
                 }
                 if let diff = row["diff"]?.string, !diff.isEmpty {
                     let stats = ToolTitles.diffStats(diff)
                     return FileEdit(path: relative, diff: diff, additions: stats.additions, deletions: stats.deletions)
                 }
-                return nil
+                // Pruning one file's native patch must not drop that file from a
+                // multi-file result that still has patches for its other files.
+                return perFileResults == nil ? nil : FileEdit(path: relative)
             }
-            if !native.isEmpty { edits = native; snapshots.discard(id) }
+            if !native.isEmpty { edits = native }
             else if let snapshot = details["ompGUI"]?["fileSnapshot"], snapshot["version"]?.int == 1,
                     let path = snapshot["path"]?.string, path.hasPrefix("/"), !path.contains("://"), !failed {
                 // Captured by OMP's awaited hooks, so even a queued start/end pair
@@ -219,12 +216,11 @@ final class OMPEventDecoder {
                 } else {
                     edits = [FileEdit(path: relative)]
                 }
-                snapshots.discard(id)
-            } else if capturesSnapshots, let path = tool.path {
-                edits = snapshots.finish(id, path: path, relativeTo: directory)
-            } else if let path = details["resolvedPath"]?.string ?? tool.path, !path.contains("://") {
-                // Isolated worktrees can disappear before the host reads this frame.
-                // A path without a native diff is safer than comparing the lead's file.
+            } else if let rawPath = details["resolvedPath"]?.string ?? details["path"]?.string ?? tool?.path,
+                      let path = localPath(rawPath) {
+                // RPC notifications are not a before/after barrier. Only native
+                // results or awaited hook snapshots can establish this call's diff;
+                // reading disk here could attribute a later write to this call.
                 edits = [FileEdit(path: ToolTitles.relativePath(path, to: directory))]
             }
         }
@@ -232,6 +228,10 @@ final class OMPEventDecoder {
                     status: failed ? .failed : .completed, exitCode: details["exitCode"]?.int, edits: edits,
                     fileReferences: tool.flatMap { OMPFileReference.fromResult(toolName: $0.name, details: details) },
                     nativeBackgroundJobID: details["async"]?["state"]?.string == "running" ? details["async"]?["jobId"]?.string : nil)))
+    }
+
+    private func localPath(_ raw: String) -> String? {
+        OMPFileReference.decode(toolName: "read", args: ["path": .string(raw)], directory: directory)?.path
     }
 
     private func evalDetail(_ tool: (name: String, args: JSONValue, path: String?, isTodo: Bool)?, result: JSONValue) -> String? {

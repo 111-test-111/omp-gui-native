@@ -37,7 +37,7 @@ Features depend on the installed OMP version, model provider, account capabiliti
 
 - Apple Silicon and **macOS 26 or later**.
 - Full Xcode with a compatible macOS SDK and Swift toolchain, Git and Python 3.
-- OMP installed and authenticated separately. The reviewed integration baseline is **OMP 18.13.3**; SDK-backed configuration and browser integration also require **Bun 1.4.4 or later**. Follow OMP's own installation and authentication instructions.
+- OMP installed and authenticated separately. The reviewed integration baseline is **OMP 18.15.0**; SDK-backed configuration and browser integration also require **Bun 1.4.4 or later**. Follow OMP's own installation and authentication instructions.
 - Network access for the first Swift package and pinned Chromium Embedded Framework downloads.
 
 The external OMP runtime owns model providers, OAuth/API keys, model roles, MCP, skills, extensions, worker isolation and task execution. The GUI discovers `omp` from the login shell or an executable path in Settings.

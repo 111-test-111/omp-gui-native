@@ -356,7 +356,7 @@ struct SidebarView: View {
 
     @ViewBuilder
     private func itemView(_ item: SidebarItem) -> some View {
-        let connector = ThreadRowMetrics.connector(
+        let titleLeading = ThreadRowMetrics.titleLeading(
             showsProjectIcon: model.settings.sidebarActivityView && model.settings.activityThreadStyle == .icon
         )
         switch item.kind {
@@ -393,7 +393,7 @@ struct SidebarView: View {
             .buttonStyle(.plain)
             .help(Text("Show up to 5 more conversations"))
             .accessibilityLabel(Text("Show up to 5 more conversations"))
-            .padding(.leading, connector.lineX)
+            .padding(.leading, titleLeading)
             .padding(.vertical, 5)
             .frame(maxWidth: .infinity, alignment: .leading)
         case .header(let title, let isFirst):
@@ -410,13 +410,11 @@ struct SidebarView: View {
                 }
                 // A row that has left the list (scrolled out, settled, deleted) is not there to grab.
                 .onDisappear { rowFrames.forget(thread.id) }
-        case .helper(let thread, let isLast):
+        case .helper(let thread):
             archivePopover(for: thread, on: deletePopover(for: thread, on: SidebarHelperRow(
                 snapshot: thread,
-                isLast: isLast,
-                connector: connector,
+                leadingInset: titleLeading,
                 menuRequests: menuRequests,
-                onFold: { fold(thread.parentThreadID) },
                 onRename: {
                     // The live record: the item's snapshot does not follow a title change.
                     let live = model.thread(thread.id) ?? thread
@@ -438,14 +436,13 @@ struct SidebarView: View {
                 parentSnapshot: parent,
                 headSnapshots: heads,
                 rowWidth: model.sidebar.width - 2 * Chrome.listInset,
-                connector: connector,
-                menuRequests: menuRequests,
-                onFold: { fold(parent.id) }
+                leadingInset: titleLeading,
+                menuRequests: menuRequests
             )
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { rowHeights.note(item.id, $0) }
             .modifier(RidesWithDraggedParent(parentID: parent.id, drag: drag))
         case .helperStub(let parent, let helpers):
-            HelperStubRow(parentSnapshot: parent, helperSnapshots: helpers, connector: connector) { fold(parent.id) }
+            HelperStubRow(parentSnapshot: parent, helperSnapshots: helpers, leadingInset: titleLeading) { fold(parent.id) }
                 .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { rowHeights.note(item.id, $0) }
                 .modifier(RidesWithDraggedParent(parentID: parent.id, drag: drag))
         }
@@ -562,7 +559,7 @@ struct SidebarView: View {
         let heads = Self.orderedHeads(helpers.filter(\.isHydraHead))
         let showsHeads = !heads.isEmpty && !(model.settings.hydraAutoHidesIdleHeads && !hasRunningHead(heads))
         var items = plain.map { helper in
-            SidebarItem(id: helper.id.uuidString, kind: .helper(helper, isLast: helper.id == plain.last?.id && !showsHeads), isNested: isNested)
+            SidebarItem(id: helper.id.uuidString, kind: .helper(helper), isNested: isNested)
         }
         if showsHeads {
             items.append(SidebarItem(id: "heads-\(thread.id)", kind: .headCards(parent: thread, heads: heads), isNested: isNested))
@@ -1126,9 +1123,9 @@ private struct SidebarItem: Identifiable {
         /// A thread, with its project's name in the activity layout, the threads it can be
         /// reordered among, and whether it has helpers to fold away.
         case thread(ChatThread, projectName: String?, projectIcon: ProjectIcon?, peers: [UUID]?, hasHelpers: Bool)
-        /// A helper under its parent thread; the last one ends the connector.
-        case helper(ChatThread, isLast: Bool)
-        /// The parent's Hydra heads as glyph cards, ending the connector.
+        /// A helper under its parent thread.
+        case helper(ChatThread)
+        /// The parent's Hydra heads as glyph cards.
         case headCards(parent: ChatThread, heads: [ChatThread])
         /// A parent's folded helpers, as one line that unfolds them.
         case helperStub(parent: ChatThread, helpers: [ChatThread])
@@ -1429,20 +1426,15 @@ private enum ThreadRowMetrics {
     /// Where the fold button sits on a thread with helpers: past the ellipsis and the check
     /// (or the archive button) at the trailing end.
     static let foldInset: CGFloat = 46
-    /// Share the title's leading geometry with its child connector. The spine starts
-    /// directly below the first title character, then leaves room for a rounded elbow.
+    /// Share the title's leading geometry with helper rows and the Show more action.
+    /// Helpers keep only their content padding beyond this edge.
     static let titleGap: CGFloat = 8
     static let inlineProjectIconSize: CGFloat = 12
     static let titleItemGap: CGFloat = 6
 
-    struct Connector: Equatable {
-        let lineX: CGFloat
-        var width: CGFloat { lineX + 16 }
-    }
-
-    static func connector(showsProjectIcon: Bool) -> Connector {
+    static func titleLeading(showsProjectIcon: Bool) -> CGFloat {
         let projectIconInset = showsProjectIcon ? inlineProjectIconSize + titleItemGap : 0
-        return Connector(lineX: Chrome.rowHorizontalPadding + Chrome.iconSize + titleGap + projectIconInset)
+        return Chrome.rowHorizontalPadding + Chrome.iconSize + titleGap + projectIconInset
     }
     /// A head's mark is the size of the project icon that leads a thread title, so one
     /// mark size reads down the whole sidebar.
@@ -1467,9 +1459,8 @@ private enum ThreadRowMetrics {
     }
 }
 
-/// A helper under the thread it was spawned from: one small line, joined to its parent by a
-/// connector that runs down the rows and ends at the last. The connector folds the
-/// helpers away; the folded line (HelperStubRow) unfolds them.
+/// A helper under the thread it was spawned from, with a small inset past its title.
+/// The parent row folds the helpers away; HelperStubRow unfolds them.
 private struct SidebarHelperRow: View, Equatable {
     @Environment(AppModel.self) private var model
     /// The helper as the list last built it; `thread` below is the live record.
@@ -1478,14 +1469,11 @@ private struct SidebarHelperRow: View, Equatable {
     /// re-renders this row alone and a change to any other thread does not reach it. The
     /// snapshot is the fallback for a thread that has just been deleted.
     private var thread: ChatThread { model.thread(snapshot.id) ?? snapshot }
-    /// The last helper under its parent: the connector ends at this row.
-    let isLast: Bool
-    let connector: ThreadRowMetrics.Connector
+    let leadingInset: CGFloat
     /// Carries rename/delete intents out of the AppKit menu without retaining row state.
     /// Held strongly: the box is the list's, not the row's, so holding it pins no row
     /// state, and a weak one could go nil under a menu still on screen.
     let menuRequests: SidebarMenuRequests
-    let onFold: () -> Void
     let onRename: () -> Void
     let onDelete: () -> Void
 
@@ -1502,67 +1490,64 @@ private struct SidebarHelperRow: View, Equatable {
         // lingers under the rows closing up.
         let isHidden = RowGlideAnimator.shared.isHiding(thread.parentThreadID ?? thread.id)
         let shape = RoundedRectangle(cornerRadius: Chrome.rowCornerRadius, style: .continuous)
-        HStack(spacing: 0) {
-            HelperConnector(geometry: connector, endsHere: isLast, action: onFold)
-                .frame(width: connector.width, height: ThreadRowMetrics.helperHeight)
-            Button {
-                model.selectedThreadID = thread.id
-            } label: {
-                HStack(spacing: 6) {
-                    // A head keeps its glyph, so the team reads at a glance under its lead,
-                    // at the same size the card draws it.
-                    if let head = thread.hydra {
-                        HydraGlyph(persona: head.persona, size: ThreadRowMetrics.headGlyphSize, status: head.status)
-                    }
-                    ThreadBadge(thread: thread)
-                    Text(verbatim: thread.title)
-                        .font(.ui(.callout, weight: isSelected || thread.hasUnread ? .medium : .regular))
-                        .foregroundStyle(Chrome.primaryText.opacity(isSelected ? 0.96 : 0.8))
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 4)
-                    if let waitingStatus { ThreadWaitingBadge(status: waitingStatus) }
+        Button {
+            model.selectedThreadID = thread.id
+        } label: {
+            HStack(spacing: 6) {
+                // A head keeps its glyph, so the team reads at a glance under its lead,
+                // at the same size the card draws it.
+                if let head = thread.hydra {
+                    HydraGlyph(persona: head.persona, size: ThreadRowMetrics.headGlyphSize, status: head.status)
                 }
-                .padding(.leading, 6)
-                .padding(.trailing, Chrome.rowHorizontalPadding + (showsActions ? 26 : waitingStatus == nil ? 18 : 0))
-                .frame(height: ThreadRowMetrics.helperHeight)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background {
-                    shape
-                        .fill(isSelected ? Chrome.overlay(0.12) : (isHovering ? Chrome.overlay(0.06) : Color.clear))
-                        .animation(Chrome.hover, value: isSelected)
-                }
-                .contentShape(shape)
+                ThreadBadge(thread: thread)
+                Text(verbatim: thread.title)
+                    .font(.ui(.callout, weight: isSelected || thread.hasUnread ? .medium : .regular))
+                    .foregroundStyle(Chrome.primaryText.opacity(isSelected ? 0.96 : 0.8))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 4)
+                if let waitingStatus { ThreadWaitingBadge(status: waitingStatus) }
             }
-            .buttonStyle(.plain)
-            .overlay(alignment: .trailing) {
-                Group {
-                    if showsActions {
-                        RowActionsButton(actions: makeActions(), isPresented: $isMenuPresented)
-                    }
-                }
-                .padding(.trailing, 6)
+            .padding(.leading, 6)
+            .padding(.trailing, Chrome.rowHorizontalPadding + (showsActions ? 26 : waitingStatus == nil ? 18 : 0))
+            .frame(height: ThreadRowMetrics.helperHeight)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                shape
+                    .fill(isSelected ? Chrome.overlay(0.12) : (isHovering ? Chrome.overlay(0.06) : Color.clear))
+                    .animation(Chrome.hover, value: isSelected)
             }
-            .onHover { hovering in
-                withAnimation(Chrome.hover) { isHovering = hovering }
-                if hovering { model.warmDocuments([thread.id]) }
-            }
-            // Snapshots only: the menu builder must not capture the row, so the AppKit menu
-            // it builds cannot pin the row's state storage (and its responder with it).
-            .contextMenu { [thread, model, menuRequests] in
-                let threadSnapshot = thread
-                let modelSnapshot = model
-                let requestsSnapshot = menuRequests
-                let settleFirstSnapshot = !threadSnapshot.isHelper && modelSnapshot.settings.threadFinishAction == .settle
-                RowActionMenuButtons(actions: ThreadActions.makeContextMenu(
-                    model: modelSnapshot,
-                    thread: threadSnapshot,
-                    settleFirst: settleFirstSnapshot,
-                    requests: requestsSnapshot
-                ))
-            }
-            .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+            .contentShape(shape)
         }
+        .buttonStyle(.plain)
+        .overlay(alignment: .trailing) {
+            Group {
+                if showsActions {
+                    RowActionsButton(actions: makeActions(), isPresented: $isMenuPresented)
+                }
+            }
+            .padding(.trailing, 6)
+        }
+        .onHover { hovering in
+            withAnimation(Chrome.hover) { isHovering = hovering }
+            if hovering { model.warmDocuments([thread.id]) }
+        }
+        // Snapshots only: the menu builder must not capture the row, so the AppKit menu
+        // it builds cannot pin the row's state storage (and its responder with it).
+        .contextMenu { [thread, model, menuRequests] in
+            let threadSnapshot = thread
+            let modelSnapshot = model
+            let requestsSnapshot = menuRequests
+            let settleFirstSnapshot = !threadSnapshot.isHelper && modelSnapshot.settings.threadFinishAction == .settle
+            RowActionMenuButtons(actions: ThreadActions.makeContextMenu(
+                model: modelSnapshot,
+                thread: threadSnapshot,
+                settleFirst: settleFirstSnapshot,
+                requests: requestsSnapshot
+            ))
+        }
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+        .padding(.leading, leadingInset)
         .opacity(isHidden ? 0 : 1)
     }
 
@@ -1572,8 +1557,7 @@ private struct SidebarHelperRow: View, Equatable {
             && lhs.snapshot.updatedAt == rhs.snapshot.updatedAt
             && lhs.snapshot.isPinned == rhs.snapshot.isPinned
             && lhs.snapshot.isSettled == rhs.snapshot.isSettled
-            && lhs.isLast == rhs.isLast
-            && lhs.connector == rhs.connector
+            && lhs.leadingInset == rhs.leadingInset
     }
 
     private func makeActions() -> [RowAction] {
@@ -1586,9 +1570,8 @@ private struct HeadCardsRow: View {
     let parentSnapshot: ChatThread
     let headSnapshots: [ChatThread]
     let rowWidth: CGFloat
-    let connector: ThreadRowMetrics.Connector
+    let leadingInset: CGFloat
     let menuRequests: SidebarMenuRequests
-    let onFold: () -> Void
 
     @State private var hoveredID: UUID?
     /// The card shows the first twelve faces and keeps the rest behind the chevron: a
@@ -1599,11 +1582,11 @@ private struct HeadCardsRow: View {
         let heads = SidebarView.orderedHeads(headSnapshots.map { model.thread($0.id) ?? $0 })
         let capped = heads.count > 12
         let visible = showsAllHeads ? heads : Array(heads.prefix(12))
-        // The glyphs' room: the row's width less the connector's column, the equal
+        // The glyphs' room: the row's width less the leading inset, the equal
         // padding on both sides, and the last mark's outcome badge. A last glyph
         // needs its own size, not a whole pitch. Both sidebar hosts use the model's
         // fixed width, so the first layout already has the right row count.
-        let cardInner = rowWidth - connector.width - 2 * ThreadRowMetrics.headCardPadding
+        let cardInner = rowWidth - leadingInset - 2 * ThreadRowMetrics.headCardPadding
         let usable = cardInner - ThreadRowMetrics.headBadgeOverhang
         let perRow = max(1, Int((usable + ThreadRowMetrics.headGlyphPitch - ThreadRowMetrics.headGlyphSize) / ThreadRowMetrics.headGlyphPitch))
         // The marks share the card's inner width: a row stretches its gaps past the
@@ -1616,76 +1599,70 @@ private struct HeadCardsRow: View {
             : tightGap
         let rows = Self.chunk(visible, by: perRow)
         let cardRows = rows.count + (capped ? 1 : 0)
-        HStack(spacing: 0) {
-            HelperConnector(geometry: connector, endsHere: true, action: onFold)
-                .frame(
-                    width: connector.width,
-                    height: ThreadRowMetrics.headCardHeight(rows: cardRows)
-                )
-            VStack(alignment: .leading, spacing: ThreadRowMetrics.headRowGap) {
-                ForEach(rows, id: \.first?.id) { row in
-                    HStack(spacing: rowGap) {
-                        ForEach(row, id: \.id) { head in
-                            if let info = head.hydra {
-                                Button {
-                                    model.selectedThreadID = head.id
-                                } label: {
-                                    HydraGlyph(persona: info.persona, size: ThreadRowMetrics.headGlyphSize, isRunning: info.status == .running, status: info.status)
-                                        .background {
-                                            if model.isSelected(head.id) {
-                                                Circle().fill(Chrome.overlay(0.14)).padding(-3)
-                                            }
+        VStack(alignment: .leading, spacing: ThreadRowMetrics.headRowGap) {
+            ForEach(rows, id: \.first?.id) { row in
+                HStack(spacing: rowGap) {
+                    ForEach(row, id: \.id) { head in
+                        if let info = head.hydra {
+                            Button {
+                                model.selectedThreadID = head.id
+                            } label: {
+                                HydraGlyph(persona: info.persona, size: ThreadRowMetrics.headGlyphSize, isRunning: info.status == .running, status: info.status)
+                                    .background {
+                                        if model.isSelected(head.id) {
+                                            Circle().fill(Chrome.overlay(0.14)).padding(-3)
                                         }
-                                }
-                                .buttonStyle(.plain)
-                                .scaleEffect(hoveredID == head.id ? 1.18 : 1)
-                                .animation(Chrome.hover, value: hoveredID == head.id)
-                                .onHover { hovering in
-                                    withAnimation(Chrome.hover) { hoveredID = hovering ? head.id : (hoveredID == head.id ? nil : hoveredID) }
-                                    if hovering { model.warmDocuments([head.id]) }
-                                }
-                                .help(Text(verbatim: "\(info.persona.name) · \(info.task)"))
-                                // Snapshots only: the menu builder must not capture the row, so the AppKit menu
-                                // it builds cannot pin the row's state storage (and its responder with it).
-                                .contextMenu { [head, model, menuRequests] in
-                                    let threadSnapshot = head
-                                    let modelSnapshot = model
-                                    let requestsSnapshot = menuRequests
-                                    RowActionMenuButtons(actions: ThreadActions.makeContextMenu(
-                                        model: modelSnapshot,
-                                        thread: threadSnapshot,
-                                        settleFirst: false,
-                                        requests: requestsSnapshot
-                                    ))
-                                }
-                                .accessibilityLabel(Text("\(info.persona.name), \(info.task)"))
-                                .accessibilityAddTraits(.isButton)
+                                    }
                             }
+                            .buttonStyle(.plain)
+                            .scaleEffect(hoveredID == head.id ? 1.18 : 1)
+                            .animation(Chrome.hover, value: hoveredID == head.id)
+                            .onHover { hovering in
+                                withAnimation(Chrome.hover) { hoveredID = hovering ? head.id : (hoveredID == head.id ? nil : hoveredID) }
+                                if hovering { model.warmDocuments([head.id]) }
+                            }
+                            .help(Text(verbatim: "\(info.persona.name) · \(info.task)"))
+                            // Snapshots only: the menu builder must not capture the row, so the AppKit menu
+                            // it builds cannot pin the row's state storage (and its responder with it).
+                            .contextMenu { [head, model, menuRequests] in
+                                let threadSnapshot = head
+                                let modelSnapshot = model
+                                let requestsSnapshot = menuRequests
+                                RowActionMenuButtons(actions: ThreadActions.makeContextMenu(
+                                    model: modelSnapshot,
+                                    thread: threadSnapshot,
+                                    settleFirst: false,
+                                    requests: requestsSnapshot
+                                ))
+                            }
+                            .accessibilityLabel(Text("\(info.persona.name), \(info.task)"))
+                            .accessibilityAddTraits(.isButton)
                         }
                     }
-                    // The last mark's badge rides past its frame: the row trails it so the
-                    // card's padding stays whole on that side.
-                    .padding(.trailing, ThreadRowMetrics.headBadgeOverhang)
                 }
-                if capped {
-                    Button {
-                        withAnimation(.snappy(duration: 0.18)) { showsAllHeads.toggle() }
-                    } label: {
-                        Image(systemName: showsAllHeads ? "chevron.up" : "chevron.down").font(.symbol(.caption2, weight: .semibold))
-                            .foregroundStyle(Chrome.secondaryText)
-                            .frame(width: ThreadRowMetrics.headGlyphSize, height: ThreadRowMetrics.headGlyphSize)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .help(Text(verbatim: showsAllHeads ? Chrome.localized("Show fewer heads") : String(format: Chrome.localized("Show all %d heads"), heads.count)))
-                }
+                // The last mark's badge rides past its frame: the row trails it so the
+                // card's padding stays whole on that side.
+                .padding(.trailing, ThreadRowMetrics.headBadgeOverhang)
             }
-            .padding(.horizontal, ThreadRowMetrics.headCardPadding)
-            .padding(.vertical, ThreadRowMetrics.headCardVerticalPadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: ThreadRowMetrics.headCardHeight(rows: cardRows), alignment: .top)
-            .animation(.snappy(duration: 0.18), value: cardRows)
+            if capped {
+                Button {
+                    withAnimation(.snappy(duration: 0.18)) { showsAllHeads.toggle() }
+                } label: {
+                    Image(systemName: showsAllHeads ? "chevron.up" : "chevron.down").font(.symbol(.caption2, weight: .semibold))
+                        .foregroundStyle(Chrome.secondaryText)
+                        .frame(width: ThreadRowMetrics.headGlyphSize, height: ThreadRowMetrics.headGlyphSize)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(Text(verbatim: showsAllHeads ? Chrome.localized("Show fewer heads") : String(format: Chrome.localized("Show all %d heads"), heads.count)))
+            }
         }
+        .padding(.horizontal, ThreadRowMetrics.headCardPadding)
+        .padding(.vertical, ThreadRowMetrics.headCardVerticalPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: ThreadRowMetrics.headCardHeight(rows: cardRows), alignment: .top)
+        .animation(.snappy(duration: 0.18), value: cardRows)
+        .padding(.leading, leadingInset)
         // A helper goes out of sight the moment its parent's ghost takes off, so it never
         // lingers under the rows closing up.
         .opacity(RowGlideAnimator.shared.isHiding(parentSnapshot.id) ? 0 : 1)
@@ -1698,8 +1675,8 @@ private struct HeadCardsRow: View {
     }
 }
 
-/// A parent's folded helpers as one small line: the connector's stub, a chevron and their
-/// count, with a pulse when any of them is still working. Clicking it unfolds them.
+/// A parent's folded helpers as one small line: a chevron and their count, with a pulse
+/// when any of them is still working. Clicking it unfolds them.
 private struct HelperStubRow: View {
     @Environment(AppModel.self) private var model
     /// The parent as the list last built it; `parent` below is the live record.
@@ -1707,7 +1684,7 @@ private struct HelperStubRow: View {
     /// Handed in by the list, which groups every helper once per pass; the body reads each
     /// one's live record through the model's per-thread cell.
     let helperSnapshots: [ChatThread]
-    let connector: ThreadRowMetrics.Connector
+    let leadingInset: CGFloat
     let action: () -> Void
 
     @State private var isHovering = false
@@ -1731,30 +1708,26 @@ private struct HelperStubRow: View {
         // lingers under the rows closing up.
         let isHidden = RowGlideAnimator.shared.isHiding(parentSnapshot.id)
         Button(action: action) {
-            HStack(spacing: 0) {
-                HelperConnectorShape(lineX: connector.lineX, endsHere: true)
-                    .stroke(HelperConnector.color(hovering: isHovering), style: HelperConnector.style)
-                    .frame(width: connector.width, height: ThreadRowMetrics.helperHeight)
-                HStack(spacing: 5) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 8, weight: .bold))
-                    Text(verbatim: count == 1 ? Chrome.localized(isHeads ? "1 head" : "1 helper") : String(format: Chrome.localized(isHeads ? "%d heads" : "%d helpers"), count))
-                        .font(.ui(.subheadline))
-                    Spacer(minLength: 4)
-                    if working {
-                        MiniSpinner(cellSize: 2.4)
-                            .padding(.trailing, 4)
-                    }
+            HStack(spacing: 5) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 8, weight: .bold))
+                Text(verbatim: count == 1 ? Chrome.localized(isHeads ? "1 head" : "1 helper") : String(format: Chrome.localized(isHeads ? "%d heads" : "%d helpers"), count))
+                    .font(.ui(.subheadline))
+                Spacer(minLength: 4)
+                if working {
+                    MiniSpinner(cellSize: 2.4)
+                        .padding(.trailing, 4)
                 }
-                .foregroundStyle(isHovering ? Chrome.primaryText : Chrome.secondaryText.opacity(0.85))
-                .padding(.leading, 6)
-                .padding(.trailing, Chrome.rowHorizontalPadding)
-                .frame(height: ThreadRowMetrics.helperHeight)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(.rect)
             }
+            .foregroundStyle(isHovering ? Chrome.primaryText : Chrome.secondaryText.opacity(0.85))
+            .padding(.leading, 6)
+            .padding(.trailing, Chrome.rowHorizontalPadding)
+            .frame(height: ThreadRowMetrics.helperHeight)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(.rect)
         }
         .buttonStyle(.plain)
+        .padding(.leading, leadingInset)
         .onHover { hovering in
             withAnimation(Chrome.hover) { isHovering = hovering }
         }
@@ -1775,64 +1748,6 @@ private struct RidesWithDraggedParent: ViewModifier {
         content
             .offset(y: rides ? drag.visualOffset : 0)
             .zIndex(rides ? 1 : 0)
-    }
-}
-
-/// A quiet tree branch under the parent's title. The rounded elbow meets the first
-/// helper's centre; a card with several rows keeps that same junction. The whole column
-/// folds the helpers away.
-private struct HelperConnector: View {
-    let geometry: ThreadRowMetrics.Connector
-    let endsHere: Bool
-    let action: () -> Void
-
-    @State private var isHovering = false
-
-    static let style = StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round)
-
-    static func color(hovering: Bool) -> Color {
-        Chrome.secondaryText.opacity(hovering ? 0.75 : 0.35)
-    }
-
-    var body: some View {
-        Button(action: action) {
-            HelperConnectorShape(lineX: geometry.lineX, endsHere: endsHere)
-                .stroke(Self.color(hovering: isHovering), style: Self.style)
-                .animation(Chrome.hover, value: isHovering)
-                .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
-        .help("Hide helpers")
-        .accessibilityLabel(Text("Hide helpers"))
-    }
-}
-
-private struct HelperConnectorShape: Shape {
-    let lineX: CGFloat
-    let endsHere: Bool
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let x = rect.minX + lineX
-        let junctionY = rect.minY + ThreadRowMetrics.helperHeight / 2
-        let endX = rect.maxX - 2
-        let radius: CGFloat = 4
-        // Cover the list's 1 pt inter-row gap so successive helper branches share one
-        // continuous spine. Only the final row turns the spine into its elbow.
-        path.move(to: CGPoint(x: x, y: rect.minY - 1))
-        if !endsHere {
-            path.addLine(to: CGPoint(x: x, y: rect.maxY + 1))
-            path.move(to: CGPoint(x: x, y: junctionY - radius))
-        } else {
-            path.addLine(to: CGPoint(x: x, y: junctionY - radius))
-        }
-        path.addQuadCurve(
-            to: CGPoint(x: x + radius, y: junctionY),
-            control: CGPoint(x: x, y: junctionY)
-        )
-        path.addLine(to: CGPoint(x: endX, y: junctionY))
-        return path
     }
 }
 
@@ -1958,8 +1873,8 @@ private struct SidebarThreadRow: View, Equatable {
             }
             .padding(.trailing, 6)
         }
-        // The helpers under the thread fold away and come back from here, as they do from the
-        // connector beside them. The button sits before the check (or the archive) and the ellipsis.
+        // The helpers under the thread fold away and come back from here. The button
+        // sits before the check (or the archive) and the ellipsis.
         .overlay(alignment: .trailing) {
             if showsFold, let onToggleFold {
                 let folded = thread.foldsHelpers

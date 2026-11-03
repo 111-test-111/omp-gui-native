@@ -165,7 +165,8 @@ enum OMPCLI {
         // Never retain unrelated settings or credential fields from the CLI response.
         let keys = Set(["modelRoles", "defaultThinkingLevel", "task.maxConcurrency", "task.isolation.enabled", "task.isolation.apply",
                     "task.isolation.merge", "task.eager", "task.agentModelOverrides", "task.disabledAgents",
-                    "task.maxRecursionDepth", "tools.approvalMode", "generate_image.enabled"] + OMPToolCatalogue.configurationKeys)
+                    "task.maxRecursionDepth", "task.perCallModel", "task.maxEffort",
+                    "tools.approvalMode", "generate_image.enabled"] + OMPToolCatalogue.configurationKeys)
         return Dictionary(uniqueKeysWithValues: keys.compactMap { key in value[key]?["value"].map { (key, $0) } })
     }
 

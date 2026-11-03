@@ -82,8 +82,10 @@ import SwiftUI
         let state = registry.workspace(for: id)
         try expect(state.pages.count == (restart ? 1 : 0), "restart restores saved tab metadata only")
         let firstWindow = window(state)
-        try await wait("first page reports readiness") { state.selectedPage?.targetID != nil || state.selectedPage?.error != nil }
+        try await wait("native new-tab page opens") { state.selectedPage != nil }
         let first = state.selectedPage!
+        try expect(first.host == nil && EmbeddedBrowserRuntime.shared.endpoint == nil, "opening a blank panel does not start Chromium")
+        _ = try await first.attachment()
         try expect(first.error == nil && first.targetID != nil, "first persistent profile creates an attached page")
         try expect(firstWindow.isVisible, "opening the browser leaves the application window visible")
         try expect(first.url == "about:blank", "internal discovery URL is not persisted")
@@ -98,7 +100,7 @@ import SwiftUI
             let next = try state.open()
             var titles = Set<String>(), loadingWasVisible = false
             let settle = ContinuousClock.now + .seconds(1)
-            while ContinuousClock.now < settle || next.targetID == nil {
+            while ContinuousClock.now < settle {
                 titles.insert(next.title)
                 loadingWasVisible = loadingWasVisible || next.isLoading
                 guard ContinuousClock.now < settle + .seconds(14) else { throw WorkspaceBrowserError.connection }
@@ -106,6 +108,8 @@ import SwiftUI
             }
             try expect(titles == [Chrome.localized("New browser tab")], "new-tab title stays stable throughout native startup")
             try expect(!loadingWasVisible, "new blank tab never exposes bootstrap loading controls")
+            try expect(next.host == nil, "additional blank tabs do not allocate native browsers")
+            _ = try await next.attachment()
             try expect(next.model.url.map(BrowserAddress.isBootstrapURL) == true && !next.model.canGoBack,
                        "new blank tab reuses its initial document without a second navigation")
             try Data().write(to: output.appendingPathComponent("presentation-ready"))
@@ -137,6 +141,7 @@ import SwiftUI
             try expect(state.selectedPage === second && second.targetID != nil, "closing one tab preserves its sibling")
             let transientState = registry.workspace(for: UUID())
             let transient = try transientState.open()
+            try transient.materialize()
             let pending = transient.model.browser!
             try expect(pending.isCreationPending, "browser creation is asynchronous")
             transientState.closeAll()

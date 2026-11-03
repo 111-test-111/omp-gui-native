@@ -935,6 +935,8 @@ private struct SendDraftState: View {
             ? !(runtime.isOMPAgentStopPending || runtime.isOMPAgentSteeringPending)
                 && (stops ? runtime.canStopNativeOMPAgent : (!draftEmpty && runtime.canSteerNativeOMPAgent))
             : isRunning || !draftEmpty
+        let canPerformAction = isEnabled && !(runtime.isDictating && !stops)
+            && !runtime.isReverting && !runtime.ompSideQuestion.draining && !runtime.ompFastModeWorking
         HStack(spacing: 2) {
         if omp && !native && isRunning && !draftEmpty && !runtime.isDictating {
             Menu {
@@ -956,14 +958,22 @@ private struct SendDraftState: View {
         } label: {
             Image(systemName: stops ? "stop.fill" : "arrow.up")
                 .font(Chrome.iconFont)
-                .foregroundStyle(.white)
+                .foregroundStyle(canPerformAction ? Color.white : Chrome.secondaryText)
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: 28, height: 28)
-                .background(isEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(.quaternary), in: .circle)
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .chromeGlassCircle(tint: canPerformAction ? Chrome.accent : nil)
+        .overlay {
+            if !canPerformAction {
+                Circle()
+                    .strokeBorder(Chrome.primaryText.opacity(0.2), lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+        }
         .focusable(false)
-        .disabled(!isEnabled || (runtime.isDictating && !stops) || runtime.isReverting || runtime.ompSideQuestion.draining || runtime.ompFastModeWorking)
+        .disabled(!canPerformAction)
         .padding(.leading, 4)
         .help(Text(verbatim: runtime.ompSideQuestion.draining
             ? Chrome.localized("OMP is saving the side question and closing this connection. Wait for it to finish.")

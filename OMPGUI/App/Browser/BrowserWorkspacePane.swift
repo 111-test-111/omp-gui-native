@@ -27,7 +27,7 @@ struct BrowserWorkspacePane: View {
                 .padding(Chrome.workspaceToolbarInsets)
             }
             if let page = state.selectedPage {
-                BrowserPageToolbar(page: page).id(page.id)
+                BrowserPageToolbar(page: page, searchEngine: searchEngine).id(page.id)
                 if let error = page.error ?? state.error {
                     browserMessage(error, symbol: "exclamationmark.triangle") {
                         state.error = nil; page.reload()
@@ -86,35 +86,49 @@ struct BrowserNewTabPage: View {
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            BrowserMarkImage()
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(Chrome.inlineIconFont)
-                    .foregroundStyle(Chrome.secondaryText)
-                    .accessibilityHidden(true)
-                TextField(text: $page.searchText, prompt: Text(verbatim: searchPrompt)) {
-                    Text("Search the web")
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 24) {
+                    BrowserMarkImage()
+                    searchField
+                    if let history = page.owner?.history, !history.recent.isEmpty || history.errorKey != nil {
+                        BrowserRecentPages(history: history) { page.navigate($0) }
+                    }
                 }
-                .textFieldStyle(.plain)
-                .focusEffectDisabled()
-                .font(.ui(.callout))
-                .accessibilityLabel(Text("Search the web"))
-                .onSubmit { page.search(page.searchText, using: searchEngine) }
-                ChromeIconButton(symbol: "arrow.right", isEnabled: !page.searchText.trimmed.isEmpty, help: "Search the web") {
-                    page.search(page.searchText, using: searchEngine)
-                }
+                .frame(maxWidth: 400)
+                .padding(.horizontal, 24).padding(.vertical, 32)
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: geometry.size.height)
             }
-            .padding(.leading, Chrome.capsuleHorizontalPadding)
-            .padding(.trailing, 4)
-            .frame(height: Chrome.capsuleHeight + 8)
-            .chromeGlassFieldCapsule()
-            .frame(maxWidth: 400)
-            .background { NoWindowDragArea() }
+            .scrollIndicators(.hidden)
         }
-        .padding(32)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(nsColor: .textBackgroundColor))
+        .task { await page.owner?.history.loadRecent() }
+    }
+
+    private var searchField: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(Chrome.inlineIconFont)
+                .foregroundStyle(Chrome.secondaryText)
+                .accessibilityHidden(true)
+            TextField(text: $page.searchText, prompt: Text(verbatim: searchPrompt)) {
+                Text("Search the web")
+            }
+            .textFieldStyle(.plain)
+            .focusEffectDisabled()
+            .font(.ui(.callout))
+            .accessibilityLabel(Text("Search the web"))
+            .onSubmit { page.search(page.searchText, using: searchEngine) }
+            ChromeIconButton(symbol: "arrow.right", isEnabled: !page.searchText.trimmed.isEmpty, help: "Search the web") {
+                page.search(page.searchText, using: searchEngine)
+            }
+        }
+        .padding(.leading, Chrome.capsuleHorizontalPadding)
+        .padding(.trailing, 4)
+        .frame(height: Chrome.capsuleHeight + 8)
+        .chromeGlassFieldCapsule()
+        .background { NoWindowDragArea() }
     }
 }
 
@@ -144,11 +158,25 @@ private struct BrowserPageTab: View {
     let page: BrowserPage
     let state: BrowserWorkspaceStore
     @State private var isHovering = false
+    @Environment(\.colorScheme) private var colorScheme
     private var isSelected: Bool { state.selectedID == page.id }
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: page.dialog == nil ? "globe" : "bubble.left").font(.symbol(.caption))
+            Group {
+                if page.dialog != nil {
+                    Image(systemName: "bubble.left").font(.symbol(.caption))
+                } else if let image = page.favicon.image {
+                    Image(nsImage: image)
+                        .renderingMode(image.isTemplate ? .template : .original)
+                        .resizable()
+                        .scaledToFit()
+                } else {
+                    Image(systemName: "globe").font(.symbol(.caption))
+                }
+            }
+            .frame(width: 14, height: 14)
+            .accessibilityHidden(true)
             Text(verbatim: page.title).lineLimit(1).frame(maxWidth: 160, alignment: .leading)
             Button { page.requestClose() } label: {
                 Image(systemName: "xmark").font(.symbol(.caption2, weight: .bold))
@@ -169,6 +197,7 @@ private struct BrowserPageTab: View {
         .contentShape(.capsule)
         .onTapGesture { state.selectedID = page.id }
         .onHover { isHovering = $0 }
+        .onChange(of: colorScheme, initial: true) { _, scheme in page.favicon.setDarkAppearance(scheme == .dark) }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: page.title))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
@@ -187,9 +216,10 @@ private struct BrowserPageTab: View {
 
 private struct BrowserPageToolbar: View {
     @Bindable var page: BrowserPage
+    let searchEngine: BrowserSearchEngine
     @State private var address = ""
     @State private var showsDownloads = false
-    @FocusState private var addressFocused: Bool
+    @State private var addressFocused = false
 
     var body: some View {
         VStack(spacing: 6) {
@@ -202,13 +232,21 @@ private struct BrowserPageToolbar: View {
                         if page.isLoading { page.model.stopLoading() } else { page.reload() }
                     }
                 }
-                TextField("Web address", text: $address)
-                    .font(.ui(.callout)).textFieldStyle(.chromeGlass(height: Chrome.capsuleHeight))
-                    .focused($addressFocused)
-                    .onSubmit { page.navigate(address); addressFocused = false }
+                BrowserAddressField(text: $address, isFocused: $addressFocused, focusRequest: page.addressFocus) {
+                    guard page.submitAddress(address, using: searchEngine) else { return false }
+                    address = page.url
+                    return true
+                }
+                    .font(.ui(.callout))
+                    .padding(.horizontal, Chrome.capsuleHorizontalPadding)
+                    .padding(.vertical, 5)
+                    .frame(height: Chrome.capsuleHeight)
+                    .chromeGlassFieldCapsule()
                     .onChange(of: page.url, initial: true) { _, url in if !addressFocused { address = url == "about:blank" ? "" : url } }
-                    .onChange(of: page.addressFocus, initial: true) { _, request in if request > 0 { addressFocused = true } }
-                    .accessibilityLabel(Text("Web address"))
+                    .onChange(of: page.addressFocus, initial: true) { _, request in
+                        if request > 0 { addressFocused = true }
+                    }
+                    .accessibilityLabel(Text("Search or enter web address"))
                 ChromeCircleMenuButton(symbol: "ellipsis", help: "Browser actions") {
                     PopoverItem("Find in page", symbol: "magnifyingglass") { page.showsFind.toggle() }
                     PopoverItem("Browser downloads", symbol: "arrow.down.circle") { showsDownloads = true }
@@ -255,6 +293,7 @@ private struct BrowserPageToolbar: View {
     }
 
     private func find(forward: Bool) { page.model.browser?.find(page.findText, forward: forward, matchCase: false) }
+
 }
 
 private struct BrowserDialogBar: View {
@@ -318,12 +357,10 @@ private struct BrowserPageSurface: NSViewRepresentable {
     let page: BrowserPage
     func makeNSView(context: Context) -> BrowserSurfaceView { BrowserSurfaceView() }
     func updateNSView(_ view: BrowserSurfaceView, context: Context) {
-        if view.page !== page { view.page?.isPresented = false }
+        if view.page !== page { view.stopPreparing(); view.page?.isPresented = false }
         for host in view.subviews where host !== page.host { EmbeddedBrowserRuntime.shared.park(host) }
-        do { try page.materialize() }
-        catch { Task { @MainActor in page.error = error.localizedDescription }; return }
         view.page = page
-        view.presentPage()
+        view.preparePage()
     }
     static func dismantleNSView(_ view: BrowserSurfaceView, coordinator: ()) {
         if view.page?.host?.superview === view { view.page?.isPresented = false }
@@ -335,6 +372,24 @@ private struct BrowserPageSurface: NSViewRepresentable {
 private final class BrowserSurfaceView: NSView {
     weak var page: BrowserPage?
     private var focusObserver: NSObjectProtocol?
+    private var preparationTask: Task<Void, Never>?
+
+    func preparePage() {
+        presentPage()
+        guard preparationTask == nil, let page, page.host == nil,
+              page.owner?.isShuttingDown != true,
+              !BrowserAddress.isBlankPage(page.url) else { return }
+        // CEF initialization belongs on the main thread, but never inside a
+        // SwiftUI/AppKit layout update. The native new-tab page needs no CEF.
+        preparationTask = Task { @MainActor [weak self, weak page] in
+            await Task.yield()
+            guard let self, let page, !Task.isCancelled, self.page === page,
+                  page.owner?.isShuttingDown != true else { return }
+            defer { preparationTask = nil }
+            do { try page.prepareForDisplay(); presentPage() }
+            catch { page.error = error.localizedDescription }
+        }
+    }
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         stopObserving()
@@ -343,7 +398,7 @@ private final class BrowserSurfaceView: NSView {
                                                                object: window, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.presentPage() }
         }
-        presentPage()
+        preparePage()
     }
     func presentPage() {
         guard let window, let page, let host = page.host else { return }
@@ -362,9 +417,11 @@ private final class BrowserSurfaceView: NSView {
         page.isPresented = true
     }
     func stopObserving() {
+        stopPreparing()
         if let focusObserver { NotificationCenter.default.removeObserver(focusObserver) }
         focusObserver = nil
     }
+    func stopPreparing() { preparationTask?.cancel(); preparationTask = nil }
     isolated deinit { stopObserving() }
     override func layout() { super.layout(); for view in subviews { view.frame = bounds } }
 }

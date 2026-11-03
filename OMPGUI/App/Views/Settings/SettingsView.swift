@@ -334,7 +334,7 @@ private struct SettingsDetail: View {
 
     var body: some View {
         Group {
-            if page == .archive, model.archivedThreads.isEmpty {
+            if page == .archive, model.archivedConversations.isEmpty {
                 // An empty archive is one symbol in the middle of the pane: no sentence, no chrome,
                 // no button with nothing to delete.
                 Image(systemName: "archivebox")
@@ -888,8 +888,8 @@ private struct ArchiveDeleteAllButton: View {
             PopoverMenu {
                 PopoverSectionHeader(pendingIsFiltered ? "Delete matching archived chats?" : "Delete all archived threads?")
                 PopoverNote(String(format: Chrome.localized(pendingIsFiltered
-                    ? "The histories of the %lld matching chats will be removed. Files in your projects stay as they are."
-                    : "The histories of all %lld threads will be removed. Files in your projects stay as they are."), pendingIDs.count))
+                    ? "The histories of the %lld matching chats and their subagents will be removed. Files in your projects stay as they are."
+                    : "The histories of all %lld chats and their subagents will be removed. Files in your projects stay as they are."), pendingIDs.count))
                 PopoverDivider()
                 PopoverItem(String(format: Chrome.localized("Delete %lld threads"), pendingIDs.count), symbol: "trash", isDestructive: true) {
                     model.deleteArchivedThreads(ids: pendingIDs)
@@ -908,7 +908,7 @@ private struct ArchiveChromeControls: View {
     @Binding var filter: ArchiveFilter
 
     var body: some View {
-        let archived = model.archivedThreads
+        let archived = model.archivedConversations
         let known = Set(ArchiveFilter.projects(in: archived, from: model.projects).map(\.id))
         ChromeSearchField(query: $filter.query, prompt: "Search archived chats")
         ArchiveDeleteAllButton(threadIDs: Set(filter.apply(to: archived, known: known).map(\.id)), isFiltered: filter.isActive)
@@ -923,6 +923,7 @@ private struct ArchiveSettingsPage: View {
     private struct ArchiveRow: Identifiable {
         let thread: ChatThread
         let title: String
+        let helpers: [ChatThread]
         var id: UUID { thread.id }
     }
 
@@ -933,19 +934,13 @@ private struct ArchiveSettingsPage: View {
     }
 
     var body: some View {
-        let archived = model.archivedThreads
+        let archived = model.archivedConversations
         let projects = ArchiveFilter.projects(in: archived, from: model.projects)
         let known = Set(projects.map(\.id))
         let options: [(value: ArchiveFilter.ProjectScope, title: String)] = [(.all, "All projects")]
             + projects.map { (.project($0.id), $0.name) } + [(.none, "No project")]
-        let rows = filter.apply(to: archived, known: known).map { thread in
-            let title: String
-            if let info = thread.hydra, !info.task.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                title = "\(info.persona.name) · \(info.task)"
-            } else {
-                title = thread.title
-            }
-            return ArchiveRow(thread: thread, title: title)
+        let rows = filter.apply(to: archived, known: known).map { conversation in
+            ArchiveRow(thread: conversation.thread, title: conversation.thread.title, helpers: conversation.helpers)
         }
         let grouped = Dictionary(grouping: rows) { ArchiveFilter.scope(of: $0.thread, known: known) }
         let groups = options.filter { $0.value != .all }.compactMap { option -> ArchiveGroup? in
@@ -953,12 +948,8 @@ private struct ArchiveSettingsPage: View {
             return ArchiveGroup(id: option.value, title: option.title, rows: rows)
         }
         VStack(alignment: .leading, spacing: Chrome.sectionSpacing) {
-            HStack(spacing: 8) {
-                GlassPickerButton(options: ArchiveFilter.ChatType.allCases.map { ($0, $0.title) }, selection: $filter.chatType)
-                    .accessibilityLabel(Text("Chat type"))
-                GlassPickerButton(options: options, selection: $filter.project, symbol: { _ in "folder" })
-                    .accessibilityLabel(Text("Project"))
-            }
+            GlassPickerButton(options: options, selection: $filter.project, symbol: { _ in "folder" })
+                .accessibilityLabel(Text("Project"))
             if groups.isEmpty {
                 Text("No matching chats")
                     .font(.ui(.body))
@@ -976,7 +967,7 @@ private struct ArchiveSettingsPage: View {
                     ChromeCard(lazy: true) {
                         ForEach(group.rows) { row in
                             if row.id != group.rows.first?.id { ChromeRowDivider() }
-                            ChromeRow(title: row.title) {
+                            ChromeRow(title: row.title, titleAccessory: row.helpers.isEmpty ? nil : AnyView(ArchiveHelperMarks(helpers: row.helpers))) {
                                 HStack(spacing: 8) {
                                     Button("Restore") { model.unarchive(row.id) }
                                         .buttonStyle(.glass)
@@ -991,6 +982,7 @@ private struct ArchiveSettingsPage: View {
                                 }
                                 .controlSize(.small)
                             }
+                            .lineLimit(1)
                         }
                     }
                 }
@@ -1009,12 +1001,52 @@ private struct ArchiveSettingsPage: View {
                 pendingDeletion = nil
             }
         } message: { _ in
-            Text("Its history will be removed. Files in your project stay as they are.")
+            Text("Its history and attached subagent histories will be removed. Files in your project stay as they are.")
         }
     }
 }
 
+/// Archived helpers identify their owning conversation without exposing task prompts
+/// as row titles. A long roster stays bounded and never starts a working animation.
+private struct ArchiveHelperMarks: View {
+    let helpers: [ChatThread]
+    private let limit = 6
+
+    private func name(of helper: ChatThread) -> String {
+        helper.hydra?.persona.name ?? Chrome.localized("Subagent")
+    }
+
+    var body: some View {
+        HStack(spacing: 5) {
+            ForEach(helpers.prefix(limit)) { helper in
+                Group {
+                    if let info = helper.hydra {
+                        HydraGlyph(persona: info.persona, size: 18)
+                    } else {
+                        Image(systemName: "person.crop.circle")
+                            .font(Chrome.iconFont)
+                            .foregroundStyle(Chrome.secondaryText)
+                            .frame(width: 18, height: 18)
+                    }
+                }
+                .help(Text(verbatim: name(of: helper)))
+                .accessibilityLabel(Text(verbatim: name(of: helper)))
+            }
+            if helpers.count > limit {
+                Text(verbatim: "+\(helpers.count - limit)")
+                    .font(.ui(.caption))
+                    .foregroundStyle(Chrome.secondaryText)
+                    .help(Text(verbatim: helpers.dropFirst(limit).prefix(24).map { name(of: $0) }.joined(separator: ", ")))
+                    .accessibilityLabel(Text(verbatim: String(format: Chrome.localized("%lld more subagents"), helpers.count - limit)))
+            }
+        }
+        .fixedSize()
+    }
+}
+
 private struct AboutSettingsPage: View {
+    private static let projectURL = URL(string: "https://github.com/111-test-111/omp-gui-native")!
+    private static let licenseURL = projectURL.appendingPathComponent("blob/main/LICENSE")
     private static let upstreamURL = URL(string: "https://getdroppycode.app")!
 
     var body: some View {
@@ -1033,7 +1065,11 @@ private struct AboutSettingsPage: View {
                         CreditLink(title: "SwiftTerm", url: URL(string: "https://github.com/migueldeicaza/SwiftTerm")!)
                     }
                     ChromeRowDivider()
-                    LicensesRow()
+                    ChromeRow(title: "License", detail: "GNU AGPL v3.0 with attribution terms.") {
+                        CreditLink(title: "LICENSE", url: Self.licenseURL)
+                    }
+                    ChromeRowDivider()
+                    NoticesRow()
                 }
             }
         }
@@ -1056,35 +1092,31 @@ private struct AboutSettingsPage: View {
             }
             .padding(16)
             ChromeRowDivider()
-            Text("A native OMP interface, forked from Tivano. Based on Droppy Code by Jordy Spruit (Droppy).")
+            Text("A native OMP interface, forked from Tivano and based on Droppy Code by Jordy Spruit (Droppy). Licensed under GNU AGPL v3.0 with attribution terms; SwiftTerm is MIT licensed.")
                 .font(.ui(.body))
-                .padding(.leading, 16)
-                .padding(.trailing, Chrome.rowControlTrailingPadding)
-                .padding(.vertical, 11)
-            ChromeRowDivider()
-            Text("OMP GUI is licensed under the GNU AGPL v3.0 with attribution terms; SwiftTerm is MIT licensed.")
-                .font(.ui(.callout))
                 .foregroundStyle(Chrome.secondaryText)
                 .padding(.leading, 16)
                 .padding(.trailing, Chrome.rowControlTrailingPadding)
                 .padding(.vertical, 11)
+            ChromeRowDivider()
+            ChromeRow(title: "GitHub", detail: "Project source code and issues.") {
+                CreditLink(title: "omp-gui-native", url: Self.projectURL)
+            }
         }
     }
 }
 
-/// The license, the third-party notices and the trademark policy, as shipped in the bundle,
-/// read in a popover: every copy of the app carries the notices for what it builds on.
-private struct LicensesRow: View {
+/// The bundled third-party notices and trademark policy remain available offline.
+private struct NoticesRow: View {
     @State private var isPresented = false
 
     private static let files: [(title: String, resource: String)] = [
-        ("OMP GUI", "LICENSE"),
         ("Third-party notices", "THIRD_PARTY_NOTICES"),
         ("Trademarks", "TRADEMARK"),
     ]
 
     var body: some View {
-        ChromeRow(title: "Licenses", detail: "AGPL-3.0 with attribution terms, and the notices for what the app builds on.") {
+        ChromeRow(title: "Notices", detail: "Third-party licenses and trademark policy.") {
             Button("Show") { isPresented = true }
                 .buttonStyle(.glass)
                 .controlSize(.small)
@@ -1111,10 +1143,9 @@ private struct LicensesRow: View {
         }
     }
 
-    /// Read from the bundle once: the popover's body runs on every hover and scroll, and
-    /// the markdown it now renders is parsed from this text each time as it is.
+    /// Cache the bundled Markdown originals once.
     private static let texts: [String: String] = Dictionary(uniqueKeysWithValues: files.map { file in
-        let url = Bundle.main.url(forResource: file.resource, withExtension: file.resource == "LICENSE" ? nil : "md")
+        let url = Bundle.main.url(forResource: file.resource, withExtension: "md")
         let text = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? String(format: Chrome.localized("The %@ file is missing from this copy of the app."), file.resource)
         return (file.resource, text)
     })

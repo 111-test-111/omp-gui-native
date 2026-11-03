@@ -1,0 +1,190 @@
+{
+  "client_date": "2026-11-03",
+  "branch": "codex/omp-18-15-0",
+  "base_revision": "cf331b7be",
+  "runtime": {
+    "version": "18.15.0",
+    "bun": "1.4.4",
+    "candidate": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/omp-runtime/bin/omp",
+    "installation_manifest_sha256": "e9e4890d47a173951a98bd125cce7e1a57e816c3b986f3173b1f53e9dea493fb"
+  },
+  "app": {
+    "version": "0.1.365",
+    "build": 366,
+    "evidence": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/development/verification-inputs.json",
+    "source_evidence": {
+      "schema": 1,
+      "source_sha256": "bb5321998b4d04f461c84f2185eea5b298f3be8a1ff23de687abf1407ca040bf",
+      "binary_sha256": "2a35f2af4c4e3ecf6e4cdf97e8b0faec3a7a7c4b6bf784bfbbda7aca416f4955"
+    }
+  },
+  "checks": {
+    "native:browser-sdk": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-6e2daf10/report.json",
+      "seconds": 1.097,
+      "inputs_sha256": "4ecdcde649eddb908b7ec2977e0a885b90c6b036b9acb33369a81fcd3ba96981",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "native:rpc": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-6e2daf10/report.json",
+      "seconds": 13.772,
+      "inputs_sha256": "f812b35f511dbfa082a97a934adb6670a2ca31b78f0b69419edda5e4b9118297",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "native:workers": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-6e2daf10/report.json",
+      "seconds": 1.679,
+      "inputs_sha256": "e435b9e83ea95a2d64ad4356affc00d06e5f3014c898b174f1b7f34810965909",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "functional:browser-bridge": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-9cd7b2ac/report.json",
+      "seconds": 0.282,
+      "inputs_sha256": "edaf75b24fbc912a8a91dee0408330d4adb9744dd15d71851a040382c7a1a8f4",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "functional:queue": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-9cd7b2ac/report.json",
+      "seconds": 0.036,
+      "inputs_sha256": "bdeb508d90dbd109da79c97c96203caf8cbcb72c97240aecb078a18b778f9e15",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "functional:workflows": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-9cd7b2ac/report.json",
+      "seconds": 25.91,
+      "inputs_sha256": "9ee4793ae697b9baab084734610189860a9179ecadcbae83576fa11e683c36be",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "functional:provider-authentication": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-9cd7b2ac/report.json",
+      "seconds": 0.034,
+      "inputs_sha256": "f7c24a801507346a61d4d527e8c0d92104640977ed6d9104a7418f9e2b664e4c",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "functional:config": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-9cd7b2ac/report.json",
+      "seconds": 4.846,
+      "inputs_sha256": "b08e36ee69ebf42943db94d7e5572e546beb97a29b03f6108c3e52135346e3d2",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "ab7d3cfd9d0187c1a06203e4b777719e90e3545ec526bac119696111bbdc80a2",
+        "binary_sha256": "5893726102b660c09ef2db71ffeb1810dca10ffb2dd15c50c0f952f50bdac1f4"
+      }
+    },
+    "native:config": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180605Z-860c5d4c/report.json",
+      "seconds": 13.276,
+      "inputs_sha256": "49c3696d67f9a6bbb63f2cf59033fe7c4a9a400d48e6bba30e2fbacbd5b4e626",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "bb5321998b4d04f461c84f2185eea5b298f3be8a1ff23de687abf1407ca040bf",
+        "binary_sha256": "2a35f2af4c4e3ecf6e4cdf97e8b0faec3a7a7c4b6bf784bfbbda7aca416f4955"
+      }
+    },
+    "native:model-configuration": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180605Z-860c5d4c/report.json",
+      "seconds": 0.767,
+      "inputs_sha256": "b1ed875ca5231201ad5c80104acbc5198e09b0f4f58d6c7a534c92b67cc58962",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "bb5321998b4d04f461c84f2185eea5b298f3be8a1ff23de687abf1407ca040bf",
+        "binary_sha256": "2a35f2af4c4e3ecf6e4cdf97e8b0faec3a7a7c4b6bf784bfbbda7aca416f4955"
+      }
+    },
+    "native:request-capture": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180605Z-860c5d4c/report.json",
+      "seconds": 6.13,
+      "inputs_sha256": "20184717a7a08c962037e067b1dc771b2ba8fcfde83be204145dc7e8cfd8a0a3",
+      "app_build": {
+        "schema": 1,
+        "source_sha256": "bb5321998b4d04f461c84f2185eea5b298f3be8a1ff23de687abf1407ca040bf",
+        "binary_sha256": "2a35f2af4c4e3ecf6e4cdf97e8b0faec3a7a7c4b6bf784bfbbda7aca416f4955"
+      }
+    },
+    "static:documentation": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180929Z-ee4f8e95/report.json",
+      "seconds": 0.218,
+      "inputs_sha256": "d4d27eea67f22435ecc305ff681a34417e138c6dc25aecec0040e55e05eb61e5",
+      "app_build": null
+    },
+    "static:harness": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180929Z-ee4f8e95/report.json",
+      "seconds": 1.108,
+      "inputs_sha256": "17a1e2ace084ce319d0697533c1a72948b379fe53c79891d66c7508bd2891143",
+      "app_build": null
+    },
+    "static:syntax": {
+      "status": "passed",
+      "report": "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180929Z-ee4f8e95/report.json",
+      "seconds": 4.229,
+      "inputs_sha256": "84f0e4321542f387c16a80577f64af9fd1648224f3529f5d4431bbf7be1aca1c",
+      "app_build": null
+    }
+  },
+  "reports": [
+    "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-6e2daf10/report.json",
+    "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180219Z-9cd7b2ac/report.json",
+    "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180605Z-860c5d4c/report.json",
+    "/Users/developer/.codex/worktrees/omp-18-15-0/omp-gui-native/build.noindex/verification/runs/20261102T180929Z-ee4f8e95/report.json"
+  ],
+  "resolved_failures": [
+    "Hydra picker closure type inference: explicitly typed Binding and Task.",
+    "Configuration reader omitted the two new policy keys: added them to the whitelist; reran native config and the previously unrun modules."
+  ],
+  "reuse_boundary": "Earlier passing browser, queue, workflow, authentication, worker and RPC evidence is retained. The later production change only adds two keys to config discovery; native config reran against the final build.",
+  "installation": {
+    "scope": "isolated candidate used for validation",
+    "status": "verified",
+    "daily_runtime_before_upgrade": "18.13.3"
+  },
+  "not_run": [
+    "Visible GUI acceptance",
+    "Real CEF browser acceptance on 18.15.0",
+    "External OAuth or model services",
+    "Voice",
+    "Packages/installing or relaunching the GUI",
+    "Benchmarks"
+  ],
+  "status": "selected-checks-passed"
+}

@@ -58,6 +58,7 @@ final class MathParagraphHost: NSScrollView {
         paragraph.autoresizingMask = []
         documentView = paragraph
         probeContainer.lineFragmentPadding = 0
+        probeLayout.delegate = MarkdownParagraphLayout.layoutDelegate
         probeStorage.addLayoutManager(probeLayout)
         probeLayout.addTextContainer(probeContainer)
     }

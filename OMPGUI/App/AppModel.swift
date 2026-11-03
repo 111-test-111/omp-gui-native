@@ -540,8 +540,8 @@ final class AppModel {
         return true
     }
 
-    var archivedThreads: [ChatThread] {
-        threads.filter(\.isArchived).sorted { $0.updatedAt > $1.updatedAt }
+    var archivedConversations: [ArchiveFilter.Conversation] {
+        ArchiveFilter.conversations(in: threads)
     }
 
     /// The order among settled threads: the one settled last comes first.
@@ -1074,27 +1074,28 @@ final class AppModel {
     }
 
     func archive(_ id: UUID) {
-        // The helpers under a thread go with it, and come back with it.
-        for helper in helpers(of: id) { archive(helper.id) }
-        if selectedThreadID == id { selectNeighbor(of: id) }
-        existingRuntime(for: id)?.stopSession()
-        releaseHydraCopy(of: id)
-        updateThread(id) {
-            $0.isArchived = true
-            $0.isPinned = false
+        let family = descendantsIncluding([id])
+        let ids = Set(family.map(\.id))
+        if let selectedThreadID, ids.contains(selectedThreadID) {
+            selectNeighbor(of: selectedThreadID, excluding: ids)
+        }
+        for member in family.reversed() {
+            existingRuntime(for: member.id)?.stopSession()
+            releaseHydraCopy(of: member.id)
+        }
+        updateThreads(family.map(\.id)) { _, thread in
+            thread.isArchived = true
+            thread.isPinned = false
             // Restored, it is a thread again, not a settled one.
-            $0.isSettled = false
-            $0.settledAt = nil
+            thread.isSettled = false
+            thread.settledAt = nil
         }
         // An archived thread is out of the list, so its unread mark leaves the dock with it.
         updateDockBadge()
     }
 
     func unarchive(_ id: UUID) {
-        updateThread(id) { $0.isArchived = false }
-        for helper in threads where helper.parentThreadID == id && helper.isArchived {
-            updateThread(helper.id) { $0.isArchived = false }
-        }
+        updateThreads(descendantsIncluding([id]).map(\.id)) { _, thread in thread.isArchived = false }
         // Back in the list, an unread thread counts again.
         updateDockBadge()
     }
@@ -1257,20 +1258,25 @@ final class AppModel {
     }
 
     /// Deletes archived chats and their helpers after their removal is safely on disk.
-    /// A filtered bulk delete acts only on the captured archived selection.
+    /// A filtered bulk delete acts on the captured roots that are still archived,
+    /// together with their attached descendants.
     func deleteArchivedThreads(ids: Set<UUID>) {
-        deleteThreads(threads.filter { $0.isArchived && ids.contains($0.id) })
+        let roots = archivedConversations.filter { ids.contains($0.id) }.map(\.id)
+        deleteThreads(descendantsIncluding(roots))
     }
 
     func deleteArchivedThreads() {
-        deleteThreads(descendantsIncluding(threads.filter(\.isArchived).map(\.id)))
+        deleteThreads(descendantsIncluding(archivedConversations.map(\.id)))
     }
 
     private func descendantsIncluding(_ roots: [UUID]) -> [ChatThread] {
+        // Persistence operations include panel helpers and retained native aliases;
+        // the sidebar's children(of:) deliberately excludes those aliases.
+        let children = Dictionary(grouping: threads.filter { $0.parentThreadID != nil }) { $0.parentThreadID! }
         var ids = Set(roots)
         var pending = roots
         while let id = pending.popLast() {
-            for child in children(of: id) where ids.insert(child.id).inserted { pending.append(child.id) }
+            for child in children[id] ?? [] where ids.insert(child.id).inserted { pending.append(child.id) }
         }
         return threads.filter { ids.contains($0.id) }
     }
@@ -1367,13 +1373,14 @@ final class AppModel {
         if deletingDocument { Storage.deleteDocument(thread.id) }
     }
 
-    private func selectNeighbor(of id: UUID) {
+    private func selectNeighbor(of id: UUID, excluding: Set<UUID> = []) {
         let order = sidebarThreads
         guard let index = order.firstIndex(where: { $0.id == id }) else {
             selectedThreadID = nil
             return
         }
-        let neighbor = order.indices.contains(index + 1) ? order[index + 1] : (index > 0 ? order[index - 1] : nil)
+        let neighbor = order.dropFirst(index + 1).first { !excluding.contains($0.id) }
+            ?? order.prefix(index).last { !excluding.contains($0.id) }
         selectedThreadID = neighbor?.id
     }
 

@@ -24,7 +24,7 @@ const imp = subpath => import(pathToFileURL(join(repaired, "src", subpath)));
 const supervisor = await import(pathToFileURL(paths["tools/browser/tab-supervisor"]));
 assert.equal(typeof supervisor.acquireTab, "function");
 await import(pathToFileURL(paths["tools/browser/tab-worker"]));
-const { renderTabCall } = await imp("tools/browser/tab-call.ts");
+const { renderTabCall, tabCallBudgetSeconds } = await imp("tools/browser/tab-call.ts");
 const support = await imp("tools/browser/omp-gui.js");
 const execute = code => new Function("tab", `return (async () => { ${code} })()`);
 const frameCode = renderTabCall([{ method: "frame", args: ["#child"] }, { method: "evaluate", args: ["document.title"] }]);
@@ -37,6 +37,14 @@ const elementCode = renderTabCall([{ method: "id", args: [1] }, { method: "evalu
 assert.equal(await execute(elementCode)({ id: async () => ({ evaluate: fn => fn({ value: "element" }) }) }), "element");
 const screenshotCode = renderTabCall([{ method: "frame", args: ["#child"] }, { method: "screenshot", args: ["#subject"] }]);
 assert.equal(await execute(screenshotCode)({ frame: async () => ({ screenshot: selector => selector }) }), "#subject");
+const waitChain = [{ method: "frame", args: ["#child"] },
+    { method: "waitForSelector", args: ["#ready", { timeout: 120000 }] }];
+assert.ok(tabCallBudgetSeconds(waitChain) >= 120, "Native long waits retain their requested tool budget");
+waitChain[1].args[1].timeout = Infinity;
+assert.equal(tabCallBudgetSeconds(waitChain), 300, "Unbounded page waits retain OMP's bounded browser budget");
+assert.equal(await execute(renderTabCall(waitChain))({ frame: async () => ({ waitForSelector: (_selector, options) => {
+    assert.equal(options.timeout, 0, "Infinite waits survive JSON rendering using the native sentinel"); return true;
+} }) }), true);
 
 const storage = await imp("tools/browser/storage-state.ts");
 let jar = [], writes = [], current = "https://fixture.invalid";

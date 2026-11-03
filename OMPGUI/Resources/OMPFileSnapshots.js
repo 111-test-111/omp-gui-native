@@ -9,10 +9,33 @@ export function installFileSnapshots(omp) {
     const pendingByteLimit = 8 * byteLimit;
     const pending = new Map();
 
-    function filePath(raw, cwd) {
-        if (typeof raw !== "string" || !raw || raw.includes("\0") || /^[a-z][a-z0-9+.-]*:/i.test(raw)) return;
-        const expanded = raw === "~" ? homedir() : raw.startsWith("~/") ? join(homedir(), raw.slice(2)) : raw;
-        return resolve(cwd, expanded);
+    async function filePath(raw, ctx) {
+        if (typeof raw !== "string" || !raw || raw.includes("\0")) return;
+        try {
+            // OMP hosts these public imports for extensions, including standalone
+            // installs. Never derive local:// from cwd or another agent's journal.
+            if (raw.startsWith("[")) {
+                const { unwrapHashlineHeaderPath } = await import("@oh-my-pi/pi-coding-agent/tools/plan-mode-guard");
+                raw = unwrapHashlineHeaderPath(raw);
+            }
+            if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) {
+                const { InternalUrlRouter } = await import("@oh-my-pi/pi-coding-agent/internal-urls");
+                const router = InternalUrlRouter.instance();
+                const normalized = router.normalize(raw);
+                const scheme = normalized.match(/^([a-z][a-z0-9+.-]*):/i)?.[1]?.toLowerCase();
+                const spec = router.spec(scheme);
+                if (spec?.backing !== "file" || spec.immutable || spec.write?.via !== "file") return;
+                return await router.locate(normalized, {
+                    cwd: ctx.cwd,
+                    localProtocolOptions: ctx.localProtocolOptions ?? {
+                        getArtifactsDir: () => ctx.sessionManager.getArtifactsDir(),
+                        getSessionId: () => ctx.sessionManager.getSessionId(),
+                    },
+                }, { create: true, localOnly: true }) ?? undefined;
+            }
+            const expanded = raw === "~" ? homedir() : raw.startsWith("~/") ? join(homedir(), raw.slice(2)) : raw;
+            return resolve(ctx.cwd, expanded);
+        } catch { /* An unavailable observation must not change tool execution. */ }
     }
 
     function canonical(path) {
@@ -50,9 +73,20 @@ export function installFileSnapshots(omp) {
         }
     }
 
-    omp.on("tool_call", (event, ctx) => {
+    function advance(key, after) {
+        let retained = [...pending.values()].reduce((sum, value) => sum +
+            (value.key === key || value.before === undefined ? 0 : Buffer.byteLength(value.before)), 0);
+        const bytes = after === undefined ? 0 : Buffer.byteLength(after);
+        for (const next of pending.values()) {
+            if (next.key !== key) continue;
+            next.before = after !== undefined && retained + bytes <= pendingByteLimit ? after : undefined;
+            if (next.before !== undefined) retained += bytes;
+        }
+    }
+
+    omp.on("tool_call", async (event, ctx) => {
         if (event.toolName !== "write") return;
-        const path = filePath(event.input.path, ctx.cwd);
+        const path = await filePath(event.input.path, ctx);
         if (!path) return;
         // One factory is bound per native session, including isolated workers.
         let before = text(path, true);
@@ -61,21 +95,34 @@ export function installFileSnapshots(omp) {
         pending.set(event.toolCallId, { path, key: canonical(path), before });
     });
 
-    omp.on("tool_result", (event) => {
+    omp.on("tool_result", async (event, ctx) => {
         const before = pending.get(event.toolCallId);
         pending.delete(event.toolCallId);
-        if (!before || event.toolName !== "write") return;
         const details = event.details;
-        if (event.isError || (details != null && (typeof details !== "object" || Array.isArray(details)))) return;
+        if (details != null && (typeof details !== "object" || Array.isArray(details))) return;
+        if (event.toolName === "edit") {
+            // Prepared writes can straddle a native edit in the same batch. The
+            // edit already owns its diff; only advance the waiting write baselines.
+            for (const row of details?.perFileResults ?? [details]) {
+                if (!pending.size) break;
+                // A rename also removes its source, and deletion establishes a
+                // known empty baseline for a later write that recreates the file.
+                for (const raw of [row?.resolvedPath ?? row?.path, row?.sourcePath]) {
+                    const path = await filePath(raw, ctx);
+                    if (path) advance(canonical(path), text(path, true));
+                }
+            }
+            return;
+        }
+        if (!before || event.toolName !== "write") return;
         const path = details?.resolvedPath ?? before.path;
-        if (typeof path !== "string" || canonical(path) !== before.key) return;
+        if (typeof path !== "string" || !path.startsWith("/") || canonical(path) !== before.key) return;
         const after = text(path);
 
         // OMP may prepare an entire batch's tool_call hooks before scheduling its
         // exclusive writes. Advance later writes' baselines when this one ends.
-        for (const next of pending.values()) {
-            if (next.key === before.key) next.before = after;
-        }
+        advance(before.key, after);
+        if (event.isError) return;
         const snapshot = { version: 1, path };
         if (before.before !== undefined && after !== undefined) {
             snapshot.oldText = before.before;

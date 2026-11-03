@@ -90,12 +90,7 @@ struct BrowserCookieImport: Sendable {
     var siteCount: Int { Set(cookies.map(\.domain)).count }
 }
 
-struct ChromeCookieProfile: Identifiable, Equatable, Sendable {
-    let root: URL
-    let directoryName: String
-    let name: String
-    var id: String { directoryName }
-}
+typealias ChromeCookieProfile = ChromeSourceProfile
 
 struct BrowserCookieImportResult: Sendable {
     let profile: BrowserProfileRecord

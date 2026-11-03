@@ -119,7 +119,7 @@ extension OMPSession {
             agentDetails[id] = details
         }
         if agents[id] == nil {
-            let child = OMPEventDecoder(prefix: "\(observation)-\(id)", directory: configuration.workingDirectory.path, capturesSnapshots: false)
+            let child = OMPEventDecoder(prefix: "\(observation)-\(id)", directory: configuration.workingDirectory.path)
             child.onEvent = { [weak self] event in
                 guard let self, agentMetadata[id]?.observationID == observation else { return }
                 if case .todos = event { return }

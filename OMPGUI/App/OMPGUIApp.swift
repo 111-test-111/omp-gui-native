@@ -6,7 +6,8 @@ enum OMPGUIMain {
     @MainActor static func main() {
         DCInstallNotificationGuard()
         // Install the CEF-compatible application before SwiftUI touches NSApp;
-        // loading Chromium itself remains lazy until a browser tab is opened.
+        // Loading Chromium remains lazy until navigation or OMP attachment;
+        // opening the native blank-tab panel does not need the runtime.
         CEFApplication.install()
         OMPGUIApp.main()
     }

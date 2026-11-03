@@ -5754,7 +5754,7 @@ final class ThreadRuntime {
         }
         if nativeJournalDecoder == nil {
             let directory = thread.flatMap { head in app?.executionProject(for: head).map { head.executionDirectory(projectPath: $0.path) } } ?? ""
-            let child = OMPEventDecoder(prefix: prefix, directory: directory, capturesSnapshots: false)
+            let child = OMPEventDecoder(prefix: prefix, directory: directory)
             child.onEvent = { [weak self] event in self?.receiveOMPEvent(event) }
             nativeJournalDecoder = child
         }

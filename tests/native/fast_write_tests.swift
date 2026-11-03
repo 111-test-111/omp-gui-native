@@ -31,12 +31,24 @@ struct FastWriteDiffChecks {
             }
             for fixture in fixtures {
                 let id = fixture["id"]!.string!
-                decoder.handle(["type": "tool_execution_start", "toolName": "write", "toolCallId": .string(id), "args": fixture["args"]!])
-                decoder.handle(["type": "tool_execution_end", "toolName": "write", "toolCallId": .string(id), "result": fixture["result"]!,
+                let name = fixture["toolName"]?.string ?? "write"
+                decoder.handle(["type": "tool_execution_start", "toolName": .string(name), "toolCallId": .string(id), "args": fixture["args"]!])
+                decoder.handle(["type": "tool_execution_end", "toolName": .string(name), "toolCallId": .string(id), "result": fixture["result"]!,
                                 "isError": .bool(fixture["failed"]?.bool == true)])
                 let update = updates.last!
                 if fixture["failed"]?.bool == true {
                     expect(update.status == .failed, "Failed writes keep the native failure")
+                    continue
+                }
+                if let expected = fixture["expectedEdits"]?.array {
+                    expect(update.edits?.count == expected.count, "Multi-file native edits retain every result: \(id)")
+                    for row in expected {
+                        let edit = update.edits?.first { $0.path == row["path"]?.string }
+                        expect(edit != nil, "Native edits retain each resolved target: \(row)")
+                        for token in row["tokens"]?.array ?? [] {
+                            expect(edit?.diff?.contains(token.string!) == true, "Multi-file native patches remain readable after later writes")
+                        }
+                    }
                     continue
                 }
                 expect(update.edits?.count == 1, "Each completed write identifies its file: \(id)")
@@ -66,7 +78,7 @@ struct FastWriteDiffChecks {
             expect(updates.last?.edits?.first?.diff == patch, "Preserve native patches ahead of supplemental snapshots")
 
             // Workers must use the native result even if their workspace is gone.
-            let child = OMPEventDecoder(prefix: "worker", directory: root, capturesSnapshots: false)
+            let child = OMPEventDecoder(prefix: "worker", directory: root)
             var childEdit: FileEdit?
             child.onEvent = { event in
                 if case .toolUpdated(_, let update) = event { childEdit = update.edits?.first }

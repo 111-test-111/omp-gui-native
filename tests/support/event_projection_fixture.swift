@@ -85,7 +85,7 @@ enum EventProjectionFixture {
 
     @MainActor
     static func decode(_ frames: [Data], directory: String) -> [JSONValue] {
-        let decoder = OMPEventDecoder(prefix: "projection", directory: directory, capturesSnapshots: false)
+        let decoder = OMPEventDecoder(prefix: "projection", directory: directory)
         var events: [JSONValue] = []
         decoder.onEvent = { events.append(observed($0)) }
         for data in frames {

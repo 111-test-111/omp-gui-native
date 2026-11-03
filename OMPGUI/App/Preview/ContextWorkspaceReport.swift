@@ -10,10 +10,8 @@ enum ContextReportFormat: CaseIterable, Hashable {
 /// prompt bodies or native file paths, so a save dialog can outlive navigation.
 struct ContextWorkspaceReport: Sendable {
     static let measurementNotes = [
-        "Context and composition are estimates; usage is reported by the provider.",
-        "Input includes cache reads and writes. Reasoning is part of output.",
-        "Totals include retained branches and reported task usage.",
-        "Auto-refresh runs every 5 seconds during active work; — means unknown."
+        "Context and composition are estimates; usage is reported by the provider. Input includes cache reads and writes, and reasoning counts as output.",
+        "Totals include retained branches, native auxiliary calls and reported task usage; in-flight usage may not be saved yet. Auto-refresh runs every 5 seconds during active work, and — means unknown."
     ]
 
     let capturedAt: Date

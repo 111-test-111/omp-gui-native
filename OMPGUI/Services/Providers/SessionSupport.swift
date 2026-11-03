@@ -1,45 +1,5 @@
 import Foundation
 
-/// Each edited file's text from before the tool ran, for the finished edit's diff.
-struct EditSnapshots {
-    private var contents: [String: String] = [:]
-
-    /// Captures the file's text as the call starts; a missing or huge file reads
-    /// as empty, so a write shows as a whole-file addition.
-    mutating func capture(_ id: String, path: String) {
-        contents[id] = Self.read(path) ?? ""
-    }
-
-    mutating func discard(_ id: String) {
-        contents.removeValue(forKey: id)
-    }
-
-    mutating func removeAll() {
-        contents.removeAll()
-    }
-
-    func text(_ id: String) -> String {
-        contents[id] ?? ""
-    }
-
-    /// The finished edit as the file before against after; nil for an id nothing
-    /// was captured for, so the row's edits stay as queued.
-    mutating func finish(_ id: String, path: String, relativeTo root: String) -> [FileEdit]? {
-        guard let before = contents.removeValue(forKey: id) else { return nil }
-        let relative = ToolTitles.relativePath(path, to: root)
-        let after = Self.read(path) ?? ""
-        guard before != after else { return [FileEdit(path: relative)] }
-        return [FileEdit(path: relative, old: before, new: after)]
-    }
-
-    /// Text files up to 1 MB; anything else (binary, huge, missing) reads as nil.
-    private static func read(_ path: String) -> String? {
-        let url = URL(fileURLWithPath: path)
-        guard let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize, size <= 1_000_000 else { return nil }
-        return try? String(contentsOf: url, encoding: .utf8)
-    }
-}
-
 /// Message and thinking ids for one streamed turn, starting a new id when a delta
 /// arrives without one.
 struct StreamedTextTracker {

@@ -72,7 +72,7 @@ try {
         // Native .env/config modules must load only after selecting the profile.
         dirs.setProfile(extracted.profile ?? dirs.resolveProfileEnv(process.env.OMP_PROFILE, process.env.PI_PROFILE));
         const [{ parseArgs }, { runRootCommand }, { createAgentSession }, { expandPromptTemplate }, { isHiddenUserCompanion },
-            { installGlobalProxyFetch }, { setProcessName }, { registerStdioDisconnectHandling },
+            { installGlobalProxyFetch }, { setProcessName }, { registerStdioDisconnectHandling, installProcessHandlers },
             { registerDaemonProjectPresence }, queue, ask] = await Promise.all([
             nativeImport("cli/args"), nativeImport("main"), nativeImport("sdk"),
             nativeImport("config/prompt-templates"), nativeImport("session/queued-messages"),
@@ -85,7 +85,7 @@ try {
             queue.installNativeQueueControls, ask.installNativeAskDialog].every(value => typeof value === "function")) throw new Error("Unsupported native SDK");
         bootstrap = { args: extracted.argv, appName: dirs.APP_NAME, parseArgs, runRootCommand, createAgentSession,
             expandPromptTemplate, isHiddenUserCompanion, installGlobalProxyFetch, setProcessName,
-            registerStdioDisconnectHandling, registerDaemonProjectPresence, queue, ask };
+            registerStdioDisconnectHandling, installProcessHandlers, registerDaemonProjectPresence, queue, ask };
     }
 } catch {
     // No session has begun. Fallback never retries admission or agent work.
@@ -100,12 +100,20 @@ if (!bootstrap) {
     await originalCLI();
 } else if (bootstrap.worker) {
     // Native cli.ts dispatches worker-thread reentry itself.
-    if (Bun.isMainThread) await bootstrap.worker.runCli(args);
+    if (Bun.isMainThread) {
+        const lifecycle = await nativeDependencyImport("@oh-my-pi/pi-utils/postmortem");
+        lifecycle.installProcessHandlers?.();
+        lifecycle.registerStdioDisconnectHandling();
+        await bootstrap.worker.runCli(args);
+    }
 } else {
     // These are the same public bootstrap helpers called by native runCli.
     // There is intentionally no fallback after native startup begins.
     bootstrap.installGlobalProxyFetch();
     bootstrap.setProcessName(bootstrap.appName);
+    // Since 18.15, SDK imports leave process lifecycle ownership to the host.
+    // This process is an OMP CLI host; use the same native handlers as runCli.
+    bootstrap.installProcessHandlers?.();
     bootstrap.registerStdioDisconnectHandling();
     const parsed = bootstrap.parseArgs(bootstrap.args);
     await bootstrap.runRootCommand(parsed, bootstrap.args, {

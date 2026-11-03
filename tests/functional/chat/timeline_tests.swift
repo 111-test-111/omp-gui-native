@@ -54,7 +54,7 @@ struct TimelineAnswerChecks {
         let runtime = app.runtime(for: thread.id)
         await runtime.ensureLoaded()
         runtime.rehearseTurn("Exercise native failures without starting a provider")
-        let decoder = OMPEventDecoder(prefix: "diagnostics", directory: "/", capturesSnapshots: false)
+        let decoder = OMPEventDecoder(prefix: "diagnostics", directory: "/")
         decoder.onEvent = { runtime.receiveOMPEvent($0) }
         let capacity = "Codex error event: Codex is at capacity, please try again later (code=turn_rate_limit_exceeded)"
         let socket = "The socket connection was closed unexpectedly."
@@ -173,7 +173,7 @@ struct TimelineAnswerChecks {
 
     @MainActor private static func checkNativeAsyncNotices() throws {
         let prefix = UUID().uuidString
-        let decoder = OMPEventDecoder(prefix: prefix, directory: "/", capturesSnapshots: false)
+        let decoder = OMPEventDecoder(prefix: prefix, directory: "/")
         var turn = TurnRecord(index: 0)
         turn.status = .completed
         turn.completedAt = .now
@@ -277,6 +277,76 @@ struct TimelineAnswerChecks {
             "Loading older archived turns uses the same background-notice classification")
         expect(Storage.readTurns(archivedID, references: [reference])?.document.items.count == 2,
             "Older archived turns exclude runtime setup rows too")
+    }
+
+    @MainActor private static func checkFileToolResults(_ output: URL) async throws {
+        let root = output.appendingPathComponent("file-tools", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let app = AppModel()
+        app.settings.chimeWhenFinished = false
+        app.settings.notifyWhenFinished = false
+        let thread = ChatThread(projectID: UUID(), provider: .omp, model: nil, effort: nil, runtimeMode: .supervised)
+        app.insertThread(thread)
+        let runtime = app.runtime(for: thread.id)
+        await runtime.ensureLoaded()
+        runtime.rehearseTurn("Inspect file results during an active turn")
+        let decoder = OMPEventDecoder(prefix: "file-tools", directory: root.path)
+        decoder.onEvent = { runtime.receiveOMPEvent($0) }
+        func start(_ id: String, name: String = "write", args: JSONValue) {
+            decoder.handle(["type": "tool_execution_start", "toolCallId": .string(id), "toolName": .string(name), "args": args])
+        }
+        func finish(_ id: String, name: String = "write", details: JSONValue, failed: Bool = false) -> ToolCall {
+            decoder.handle(["type": "tool_execution_end", "toolCallId": .string(id), "toolName": .string(name),
+                "isError": .bool(failed), "result": ["details": details, "content": [["type": "text", "text": "Native result"]]]])
+            guard let entry = runtime.entries.last, case .tool(let call) = entry.item.content else { fatalError("Missing live tool row") }
+            return call
+        }
+
+        let path = root.appendingPathComponent("scratch.md")
+        try "unrelated latest contents\n".write(to: path, atomically: true, encoding: .utf8)
+        start("local", args: ["path": "local://scratch.md", "content": "requested"])
+        let call = finish("local", details: ["resolvedPath": .string(path.path), "ompGUI": ["fileSnapshot": [
+            "version": 1, "path": .string(path.path), "oldText": "before\n", "newText": "after\n"]]])
+        expect(call.edits.first?.diff?.contains("-before") == true && call.edits.first?.diff?.contains("+after") == true,
+            "A local:// write publishes its own patch before the turn finishes")
+        expect(call.edits.first?.diff?.contains("unrelated latest") != true && call.fileReference?.path == path.path,
+            "Inline changes and file preview use the native result without reading current bytes")
+
+        start("no-hook", args: ["path": .string(path.path)])
+        try "a later writer\n".write(to: path, atomically: true, encoding: .utf8)
+        let unknown = finish("no-hook", details: ["resolvedPath": .string(path.path)])
+        expect(unknown.edits.count == 1 && unknown.edits[0].diff == nil && unknown.edits[0].additions == 0,
+            "Missing awaited evidence never attributes a subsequent disk write to this call")
+
+        start("failed", args: ["path": "missing.txt"])
+        try "someone else created this\n".write(to: root.appendingPathComponent("missing.txt"), atomically: true, encoding: .utf8)
+        let failed = finish("failed", details: [:], failed: true)
+        expect(failed.status == .failed && failed.edits.first?.diff == nil && failed.edits.first?.additions == 0,
+            "Failed tools retain their error without manufacturing additions from a late disk read")
+
+        start("multi", name: "edit", args: [:])
+        let patch = "@@ -1 +1 @@\n-old\n+new\n"
+        let multi = finish("multi", name: "edit", details: ["perFileResults": [
+            ["path": "renamed.txt", "sourcePath": "original.txt", "diff": .string(patch)],
+            ["path": "pruned.txt", "snapshotsPruned": true],
+            ["path": "deleted.txt", "op": "delete", "oldText": "deleted"],
+            ["path": "local://new.txt", "resolvedPath": .string(root.appendingPathComponent("created.txt").path), "op": "create", "newText": "created"],
+        ]])
+        expect(multi.edits.map(\.path) == ["renamed.txt", "pruned.txt", "deleted.txt", "created.txt"],
+            "Multi-file native edits retain renamed, pruned, deleted and resolved file targets")
+        expect(multi.edits[0].diff == patch && multi.edits[1].diff == nil
+            && multi.edits[2].deletions == 1 && multi.edits[3].additions == 1,
+            "Each file retains its own native diff or an explicit unavailable patch")
+
+        start("device", args: ["path": "xd://edit", "content": "{\"path\":\"scratch.md\"}"])
+        let device = finish("device", details: ["xdev": ["tool": "edit", "inner": ["path": "scratch.md", "diff": .string(patch)]]])
+        expect(device.toolDevice == "edit" && device.edits.first?.diff == patch,
+            "Mounted edit results retain the inner native patch")
+        let recovered = finish("result-only", name: "edit", details: ["path": "recovered.txt", "diff": .string(patch)])
+        expect(recovered.edits.first?.path == "recovered.txt" && recovered.edits.first?.diff == patch,
+            "A result observed without its start still retains native edit evidence")
+        expect(runtime.turns.last?.completedAt == nil, "File details require no turn-completion event")
+        runtime.cancelPersistence()
     }
 
     @MainActor private static func checkChronologicalProcess() {
@@ -616,6 +686,7 @@ struct TimelineAnswerChecks {
         }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         try checkNativeAsyncNotices()
+        try await checkFileToolResults(CaptureRun.storageRoot!.deletingLastPathComponent())
         checkChronologicalProcess()
         checkFinishedHeadGroups()
         checkPersistentCompletions()

@@ -46,7 +46,7 @@ The main app sets `LSFileQuarantineEnabled = false`: local terminal, package-man
 
 The build authority is the checked-in [OMPGUI.xcodeproj](../OMPGUI.xcodeproj/project.pbxproj), with shared scheme/target/module `OMPGUI`. It pins SwiftTerm 1.20.0; [Package.resolved](../OMPGUI.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved) also records transitive Swift Argument Parser.
 
-The reviewed native integration uses npm OMP **18.13.3** with **Bun 1.4.4 or later**. OMP remains external and is discovered through the configured executable or login PATH; it is not bundled with the GUI. The browser SDK repair requires this exact reviewed OMP version and matching source hashes. See the [upgrade evidence](archive/omp-18-13-3-compatibility-2026-10-29.md) before changing that baseline.
+The reviewed native integration uses npm OMP **18.15.0** with **Bun 1.4.4 or later**. OMP remains external and is discovered through the configured executable or login PATH; it is not bundled with the GUI. The browser SDK repair requires this exact reviewed OMP version and matching source hashes. See the [upgrade evidence](archive/omp-18-15-0-compatibility-2026-11-03.md) before changing that baseline.
 
 The [embedded browser](browser.md) uses a pinned, patched CefSwift local package under `build.noindex/browser`. `make build` prepares its source, verified CEF distribution and helper before invoking Xcode. For direct Xcode use, first run `python3 scripts/browser_runtime.py prepare`. The Xcode embed phase copies CEF into the app and signs nested code only for signed builds. No browser or GUI is launched by preparation/building.
 

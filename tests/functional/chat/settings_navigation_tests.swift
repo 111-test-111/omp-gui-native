@@ -23,6 +23,74 @@ struct SettingsNavigationChecks {
         }
     }
 
+    @MainActor private static func checkPanelShortcuts(_ output: URL) throws {
+        guard let defaults = CaptureRun.defaults else { fatalError("Shortcut edits require isolated preferences") }
+        let originalPerformanceMode = defaults.object(forKey: "performanceMode")
+        let shortcuts = ShortcutStore.shared
+        shortcuts.reset(.workspacePanels)
+        defer {
+            shortcuts.reset(.workspacePanels)
+            defaults.set(originalPerformanceMode, forKey: "performanceMode")
+        }
+        let commands = WorkspacePanel.allCases.map(\.shortcut)
+        expect(Set(commands) == Set(AppShortcut.Section.workspacePanels.shortcuts),
+               "Every picker card has its own editable command in workspace panel settings")
+        let chords = commands.compactMap { shortcuts.chord(for: $0) }
+        expect(chords.count == commands.count && Set(chords).count == commands.count,
+               "Every panel ships with a distinct shortcut")
+        expect(commands.allSatisfy { command in
+            !AppShortcut.allCases.contains { $0 != command && $0.defaultChord == command.defaultChord }
+        }, "Panel defaults must not take another application command's shortcut")
+        let remapped = KeyChord(keyCode: 97, modifiers: [.control, .option])
+        shortcuts.set(remapped, for: .openGitPanel)
+        expect(ShortcutStore.label(for: .openGitPanel) == remapped.description
+            && shortcuts.keyboardShortcut(for: .openGitPanel)?.key == remapped.keyboardShortcut?.key
+            && shortcuts.keyboardShortcut(for: .openGitPanel)?.modifiers == remapped.keyboardShortcut?.modifiers,
+               "Remapping a panel updates its displayed hint and menu binding together")
+        expect(shortcuts.refusal(for: remapped, replacing: .openFilesPanel) != nil,
+               "Another panel cannot take a recorded panel shortcut")
+        shortcuts.set(nil, for: .openGitPanel)
+        expect(ShortcutStore.label(for: .openGitPanel) == nil && shortcuts.keyboardShortcut(for: .openGitPanel) == nil,
+               "Clearing a panel shortcut removes both its hint and menu binding")
+        shortcuts.reset(.openGitPanel)
+        expect(shortcuts.chord(for: .openGitPanel) == AppShortcut.openGitPanel.defaultChord,
+               "Reset restores the panel's default shortcut")
+
+        let store = FilePreviewStore(persistenceURL: output.appendingPathComponent("panel-previews.json"))
+        for language in ["en", "zh-Hans"] {
+            let bundle = BrowserLocalization.localizedBundle(for: language)
+            if language == "zh-Hans" {
+                for key in commands.flatMap({ [$0.title, $0.detail] }) + [AppShortcut.Section.workspacePanels.title] {
+                    expect(Chrome.localized(key, bundle: bundle) != key, "Panel descriptions and shortcut settings need Chinese translations")
+                }
+            }
+            for (mode, performance, scheme) in [("glass", false, ColorScheme.light), ("performance", true, .dark)] {
+                defaults.set(performance, forKey: "performanceMode")
+                for width: CGFloat in [400, 760] {
+                    let picker = WorkspacePanelPicker(store: store)
+                        .environment(\.chromeLocalizationBundle, bundle)
+                        .preferredColorScheme(scheme)
+                        .frame(width: width, height: 960)
+                        .background(Color(nsColor: .windowBackgroundColor))
+                    let host = NSHostingView(rootView: picker)
+                    let size = host.fittingSize
+                    expect(size.width == width && size.height == 960, "Panel cards stay inside narrow and wide viewports in \(mode) mode")
+                    let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
+                                          styleMask: .borderless, backing: .buffered, defer: false)
+                    window.isReleasedWhenClosed = false
+                    window.contentView = host
+                    defer { window.contentView = nil; window.close() }
+                    host.frame = NSRect(origin: .zero, size: size)
+                    host.layoutSubtreeIfNeeded()
+                    guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { fatalError("Missing panel picker image") }
+                    host.cacheDisplay(in: host.bounds, to: bitmap)
+                    try bitmap.representation(using: .png, properties: [:])!.write(
+                        to: output.appendingPathComponent("panel-picker-\(language)-\(Int(width))-\(mode).png"))
+                }
+            }
+        }
+    }
+
     @MainActor private static func checkChromeCookieMessages(_ output: URL) throws {
         let failureKey = "macOS blocked access to Chrome data. Allow OMP GUI in System Settings → Privacy & Security → Full Disk Access, then try again."
         for language in ["en", "zh-Hans"] {
@@ -135,7 +203,7 @@ struct SettingsNavigationChecks {
         defer { window.contentView = nil; window.close() }
         let count = NSApp.windows.filter { $0 is DCDisplayCycleGuardedWindow }.count
         let root = window.contentView!
-        for page in [SettingsPage.general, .usage, .appearance, .browser, .usage, .general] {
+        for page in [SettingsPage.general, .usage, .appearance, .browser, .shortcuts, .usage, .general] {
             navigation.present(page: page)
             try await Task.sleep(for: .milliseconds(90))
             root.layoutSubtreeIfNeeded()
@@ -159,6 +227,7 @@ struct SettingsNavigationChecks {
                "Closing settings preserves the underlying task")
         try await checkWarmSkills(CaptureRun.storageRoot!.deletingLastPathComponent())
         try checkChromeCookieMessages(CaptureRun.storageRoot!.deletingLastPathComponent())
+        try checkPanelShortcuts(CaptureRun.storageRoot!.deletingLastPathComponent())
         print("Settings navigation checks passed: \(checks)")
     }
 }

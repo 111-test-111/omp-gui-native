@@ -4,7 +4,13 @@ import CefKit
 import Darwin
 import Foundation
 
-/// Process-wide CEF, initialized only when the first web page is requested.
+private let embeddedBrowserTerminateHandler: CEFApplicationTerminateHandler = { () -> ObjCBool in
+    MainActor.assumeIsolated {
+        ObjCBool(EmbeddedBrowserRuntime.shared.prepareApplicationTermination())
+    }
+}
+
+/// Process-wide CEF, initialized only for navigation, attachment or Cookie import.
 /// It has no OMP executor: native OMP Browser remains the sole automation tool.
 @MainActor
 final class EmbeddedBrowserRuntime {
@@ -13,6 +19,15 @@ final class EmbeddedBrowserRuntime {
     private var parkingWindow: NSWindow?
     private var profile: CefProfile?
     private var hasShutDown = false
+    private var terminationTimer: Timer?
+    private let isPerformingMessageLoopWork: @MainActor () -> Bool
+    private let terminateApplication: @MainActor () -> Void
+
+    init(isPerformingMessageLoopWork: @escaping @MainActor () -> Bool = { CefRuntime.shared.isPerformingMessageLoopWork },
+         terminateApplication: @escaping @MainActor () -> Void = { NSApp.terminate(nil) }) {
+        self.isPerformingMessageLoopWork = isPerformingMessageLoopWork
+        self.terminateApplication = terminateApplication
+    }
 
     func start() throws {
         guard !hasShutDown else { throw WorkspaceBrowserError.unavailable }
@@ -36,8 +51,29 @@ final class EmbeddedBrowserRuntime {
         try CefRuntime.shared.initialize(configuration: config)
         // AppDelegate saves/drains OMP first, then closes pages on a later
         // run-loop turn. CEF must not bypass that application's quit contract.
-        CEFApplication.setTerminateHandler(nil)
+        CEFApplication.setTerminateHandler(embeddedBrowserTerminateHandler)
         endpoint = URL(string: "http://127.0.0.1:\(port)")
+    }
+
+    func prepareApplicationTermination() -> Bool {
+        guard isPerformingMessageLoopWork() else { return true }
+        // CEF can dispatch the Quit menu from inside cef_do_message_loop_work,
+        // including from a main-dispatch callback. AppKit's terminateLater loop
+        // would then strand both Swift concurrency and CEF's reentrancy guard.
+        // A run-loop timer lets that stack unwind before AppDelegate saves and
+        // drains pages. DispatchQueue.main.async alone cannot service that loop.
+        if terminationTimer == nil {
+            let timer = Timer(timeInterval: 0, repeats: false) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self.terminationTimer = nil
+                    self.terminateApplication()
+                }
+            }
+            terminationTimer = timer
+            RunLoop.main.add(timer, forMode: .common)
+        }
+        return false
     }
 
     func browsingProfile() -> CefProfile {
@@ -86,6 +122,7 @@ final class EmbeddedBrowserRuntime {
 
     func shutdown() {
         guard endpoint != nil else { return }
+        terminationTimer?.invalidate(); terminationTimer = nil
         // Call only after on_before_close completed and all request contexts
         // have been released. CEF cannot be reinitialized in this process.
         parkingWindow?.close(); parkingWindow = nil

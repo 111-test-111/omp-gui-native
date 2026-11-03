@@ -102,6 +102,7 @@ func checks() async throws {
     let root = CaptureRun.outputDirectory!
     let fixture = CommandLine.arguments.firstIndex(of: "--fixture")!
     ChatMathRenderer.shared.resourceRoot = URL(fileURLWithPath: CommandLine.arguments[fixture + 1], isDirectory: true)
+    try await scrollingChecks(root: root)
     // A first capture must contain the same ink as a repeat after its font has
     // loaded. A nonempty image alone misses operators, braces and indicator 1s.
     for latex in [#"\sum_{i=1}^n x_i^2"#, #"\bm{\alpha+x}"#, #"\mathbbm{1}_A"#, #"\mathds{1}_A"#, #"\begin{dcases}x&x>0\\0&x\le0\end{dcases}"#] {
@@ -204,6 +205,63 @@ func checks() async throws {
     try await widthChecks(root: root)
     print("Math checks passed: native TextKit + shared offline MathJax, parsing/copy, alpha, centre alignment, tint/selection, size/scale, cache and idle release.")
 }
+@MainActor private func scrollingChecks(root: URL) async throws {
+    let source = (0..<60).map { index in
+        "Paragraph \(index). The function $f$ is continuous on $\\mathbb{R}^2$ for every $a+b>2$. More native prose follows the inline formulas."
+    }.joined(separator: "\n\n")
+    let host = NSHostingView(rootView: ScrollView {
+        MarkdownView(text: source)
+            .environment(\.markdownPointSize, 15)
+            .padding(16)
+    }.background(.white))
+    host.sizingOptions = []
+    let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 600, height: 240), styleMask: .borderless, backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false
+    window.contentView = host
+    window.appearance = NSAppearance(named: .aqua)
+    defer { window.close() }
+    func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
+    host.layoutSubtreeIfNeeded()
+    try await Task.sleep(for: .milliseconds(20))
+    try await waitForMath()
+    try await Task.sleep(for: .milliseconds(20))
+    host.layoutSubtreeIfNeeded()
+    let paragraph = descendants(host).compactMap { $0 as? MathParagraphHost }.first!
+    let scroll = descendants(host).compactMap { $0 as? NSScrollView }.first { !($0 is MathParagraphHost) }!
+    let view = paragraph.paragraph, manager = view.layoutManager!, container = view.textContainer!
+    let text = view.textStorage!
+    var ranges: [NSRange] = []
+    text.enumerateAttribute(.mathSource, in: NSRange(location: 0, length: text.length)) { value, range, _ in
+        if value != nil { ranges.append(range) }
+    }
+    for range in ranges { text.addAttribute(.foregroundColor, value: NSColor.red.withAlphaComponent(0.5), range: range) }
+    for index in [0, 61, 122, 179, 61] {
+        let range = ranges[index]
+        let glyphs = manager.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
+        let rect = manager.boundingRect(forGlyphRange: glyphs, in: container)
+            .offsetBy(dx: view.textContainerOrigin.x, dy: view.textContainerOrigin.y)
+        let inDocument = view.convert(rect, to: scroll.documentView!)
+        scroll.contentView.scroll(to: NSPoint(x: 0, y: max(0, inDocument.midY - 120)))
+        scroll.reflectScrolledClipView(scroll.contentView)
+        host.layoutSubtreeIfNeeded()
+        try expect(view.visibleRect.intersects(rect), "The scrolling fixture did not expose inline formula \(index): \(view.visibleRect) / \(rect)")
+        // Include a partial redraw as well as leaving and reentering the viewport.
+        let captureRect = index == 122 ? rect.insetBy(dx: 0, dy: rect.height / 4) : rect
+        let bitmap = view.bitmapImageRepForCachingDisplay(in: captureRect)!
+        view.cacheDisplay(in: captureRect, to: bitmap)
+        try bitmap.representation(using: .png, properties: [:])!.write(to: root.appendingPathComponent("math-scroll-\(index).png"))
+        var ink = 0
+        for y in 0..<bitmap.pixelsHigh {
+            for x in 0..<bitmap.pixelsWide {
+                if let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB),
+                   color.redComponent > 0.5, color.redComponent > color.greenComponent * 2 {
+                    if color.alphaComponent > 0.2 { ink += 1 }
+                }
+            }
+        }
+        try expect(ink > 5, "Scrolling exposed a blank inline formula \(index), rect=\(rect), visible=\(view.visibleRect)")
+    }
+}
 @MainActor private func imageChecks(root: URL) async throws {
     func formula(_ latex: String) -> MarkdownFormula { MarkdownFormula(source: "$\(latex)$", latex: latex, mode: .inline, complete: true) }
     func image(_ latex: String, size: CGFloat = 15, scale: CGFloat = 2) async throws -> ChatMathRenderer.Image {
@@ -215,19 +273,67 @@ func checks() async throws {
         }
         return image
     }
-    func pixels(_ image: ChatMathRenderer.Image, color: NSColor, selected: Bool) throws -> [UInt8] {
+    func pixels(_ image: ChatMathRenderer.Image, color: NSColor, selected: Bool, contextAlpha: CGFloat = 1) throws -> [UInt8] {
         let width = image.mask.width, height = image.mask.height
         let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
             space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
         context.scaleBy(x: image.scale, y: image.scale)
+        context.setAlpha(contextAlpha)
         image.draw(at: .zero, context: context, flipped: false, color: color, selected: selected)
         let bytes = Array(UnsafeBufferPointer(start: context.data!.bindMemory(to: UInt8.self, capacity: width * height * 4), count: width * height * 4))
         try expect(bytes[3] == 0 && bytes[(width * height - 1) * 4 + 3] == 0, "Formula image has an opaque background")
-        try expect(stride(from: 3, to: bytes.count, by: 4).contains { bytes[$0] > 200 }, "Formula mask inverted or contains no ink")
+        try expect(stride(from: 3, to: bytes.count, by: 4).contains { CGFloat(bytes[$0]) > 200 * contextAlpha * color.alphaComponent }, "Formula mask inverted or contains no ink")
         return bytes
     }
     let latex = #"\frac{a+b}{\sqrt{1+x^2}}"#
     let raster = try await image(latex)
+    // Exercise CGLayer composition in addition to direct bitmap drawing.
+    // The visible AppKit compositor still requires separate GUI acceptance.
+    let layerSample = try await image("0", size: 14)
+    let canvas = CGSize(width: 760, height: 95)
+    func drawingContext() -> CGContext {
+        CGContext(data: nil, width: 1520, height: 190, bitsPerComponent: 8, bytesPerRow: 1520 * 4,
+                  space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+    }
+    let referenceContext = drawingContext(), layerContext = drawingContext()
+    referenceContext.scaleBy(x: 2, y: 2); layerContext.scaleBy(x: 2, y: 2)
+    let recording = CGLayer(layerContext, size: canvas, auxiliaryInfo: nil)!
+    let origins = [CGPoint(x: 131.2431640625, y: 2.5749176623774517), CGPoint(x: 200.388671875, y: 25.574917662377452)]
+    for origin in origins {
+        layerSample.draw(at: origin, context: referenceContext, flipped: true, color: .black, selected: false)
+        layerSample.draw(at: origin, context: recording.context!, flipped: true, color: .black, selected: false)
+    }
+    layerContext.draw(recording, at: .zero)
+    let count = 1520 * 190 * 4
+    let referencePixels = referenceContext.data!.bindMemory(to: UInt8.self, capacity: count)
+    let layerPixels = layerContext.data!.bindMemory(to: UInt8.self, capacity: count)
+    let directInk = stride(from: 3, to: count, by: 4).filter { referencePixels[$0] > 64 }.count
+    let layerInk = stride(from: 3, to: count, by: 4).filter { layerPixels[$0] > 64 }.count
+    try expect(layerInk > directInk * 9 / 10, "Recorded layer lost formula ink: \(layerInk) / \(directInk)")
+    print("Recorded math layer ink: \(layerInk) / \(directInk)")
+    let blockLatex = #"S\setminus A=S\cap A^{c}"#
+    let blockFormula = MarkdownFormula(source: "$$\(blockLatex)$$", latex: blockLatex, mode: .display, complete: true)
+    let blockText = MathRendering.attributed(blockFormula, pointSize: 14, color: .red)
+    try await waitForMath()
+    guard case .ready(let blockImage) = MathRendering.result(for: blockFormula, pointSize: 14) else {
+        throw CheckFailure(description: "Display formula did not render")
+    }
+    let blockLayout = Layout(blockText)
+    _ = blockLayout.measure(760)
+    let blockBitmap = blockLayout.view.bitmapImageRepForCachingDisplay(in: blockLayout.view.bounds)!
+    blockLayout.view.cacheDisplay(in: blockLayout.view.bounds, to: blockBitmap)
+    try blockBitmap.representation(using: .png, properties: [:])!.write(to: root.appendingPathComponent("math-block-ink.png"))
+    let blockPixels = try pixels(blockImage, color: .red, selected: false)
+    let expectedAlpha = stride(from: 3, to: blockPixels.count, by: 4).reduce(0.0) { $0 + Double(blockPixels[$1]) / 255 }
+        / Double(blockImage.scale * blockImage.scale)
+    var nativeAlpha: Double = 0
+    for y in 0..<blockBitmap.pixelsHigh {
+        for x in 0..<blockBitmap.pixelsWide { nativeAlpha += Double(blockBitmap.colorAt(x: x, y: y)!.alphaComponent) }
+    }
+    let blockScale = Double(blockBitmap.pixelsWide) / blockLayout.view.bounds.width
+    nativeAlpha /= blockScale * blockScale
+    try expect(nativeAlpha >= expectedAlpha * 0.95,
+               "Native display formula clipped its ink: \(nativeAlpha) / \(expectedAlpha), bounds=\(blockLayout.view.bounds)")
     var notation: [ChatMathRenderer.Image] = []
     for sample in MathCompatibility.samples {
         notation.append(try await image(sample.latex))
@@ -310,6 +416,11 @@ func checks() async throws {
     try expect(ChatMathRenderer.shared.batchCount - priorBatches < 15, "Mixed atlas fallback discarded batching for every sibling")
     let red = try pixels(raster, color: .red, selected: false)
     try expect(stride(from: 0, to: red.count, by: 4).allSatisfy { red[$0 + 1] == 0 && red[$0 + 2] == 0 }, "Native foreground tint was not applied")
+    let faded = try pixels(raster, color: NSColor.red.withAlphaComponent(0.5), selected: false, contextAlpha: 0.5)
+    try expect(stride(from: 3, to: red.count, by: 4).allSatisfy { abs(Double(faded[$0]) - Double(red[$0]) * 0.25) <= 2 },
+               "Foreground opacity did not compose with the caller's alpha")
+    let unfaded = try pixels(raster, color: .red, selected: false)
+    try expect(unfaded == red, "A faded draw contaminated the opaque formula cache")
     let white = try pixels(raster, color: .white, selected: false)
     try expect(stride(from: 0, to: white.count, by: 4).allSatisfy { white[$0] == white[$0 + 3] }, "Dark appearance lost alpha or glyph edges")
     let colored = try await image(#"x+\color{blue}{y}"#)
@@ -467,7 +578,7 @@ func checks() async throws {
                 try expect(paragraph.paragraph.textContainer?.containerSize.width == width, "Overflow widened surrounding prose's text container")
             }
             let expectedHeight = paragraph.paragraph.height(forWidth: paragraph.paragraph.wrappingWidth ?? width) + (paragraph.hasHorizontalScroller ? 14 : 0)
-            try expect(abs(paragraph.frame.height - expectedHeight) <= 1, "Async math height was not propagated to the page layout")
+            try expect(abs(paragraph.frame.height - expectedHeight) <= 1, "Async math height was not propagated to the page layout: width=\(width), paragraph=\(paragraph.frame), expected=\(expectedHeight), wrap=\(paragraph.paragraph.wrappingWidth ?? 0), viewport=\(viewport)")
         }
         if let before = readyTypesets { try expect(MathRendering.typesetCount == before, "Width changes rerasterized existing formulas") }
         else { readyTypesets = MathRendering.typesetCount }

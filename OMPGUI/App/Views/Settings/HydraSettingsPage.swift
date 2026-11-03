@@ -88,6 +88,26 @@ struct HydraSettingsPage: View {
                     }
                     .disabled(native.isLoading || native.isSaving)
                     ChromeRowDivider()
+                    if let mode = native.values["task.perCallModel"]?.string {
+                        ChromeRow(title: "Per-task model", detail: "Let each call choose an exact model already allowed by your OMP configuration.") {
+                            GlassPickerButton(options: [("off", "Off"), ("eval", "Eval only"), ("on", "On")], selection: Binding<String>(
+                                get: { mode },
+                                set: { value in Task<Void, Never> { await native.set("task.perCallModel", .string(value), expected: .string(mode), refreshCatalog: false) } }
+                            ))
+                        }
+                        .disabled(native.isLoading || native.isSaving)
+                        ChromeRowDivider()
+                    }
+                    if let effort = native.values["task.maxEffort"]?.string {
+                        ChromeRow(title: "Maximum task effort", detail: "Limit per-task effort hints and per-call model choices. OMP enforces the model's supported levels.") {
+                            GlassPickerButton(options: OMPCLI.thinkingLevels.filter { $0 != "auto" && $0 != "off" }.map { ($0, ModelOption.effortTitle($0)) }, selection: Binding<String>(
+                                get: { effort },
+                                set: { value in Task<Void, Never> { await native.set("task.maxEffort", .string(value), expected: .string(effort), refreshCatalog: false) } }
+                            ))
+                        }
+                        .disabled(native.isLoading || native.isSaving)
+                        ChromeRowDivider()
+                    }
                     toggleRow("Clear finished heads", detail: "A finished head moves from the panel to the sidebar.", isOn: $settings.hydraAutoClearFinished)
                     ChromeRowDivider()
                     toggleRow("Auto-hide heads in the sidebar", detail: "A chat's heads show in the sidebar while one of them runs; the whole card leaves once every head of that chat has finished, and comes back on its own when one starts again.", isOn: $settings.hydraAutoHidesIdleHeads)

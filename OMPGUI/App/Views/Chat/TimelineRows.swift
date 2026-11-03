@@ -2333,6 +2333,7 @@ private struct ToolDetailView: View {
         // Completed file-edit tools show their rendered patch; failed edits and
         // commands keep their output too, so errors and command results stay readable.
         let showsOutput = call.kind != .edit || edits.isEmpty || call.status != .completed
+            || edits.contains { $0.diff?.isEmpty != false }
         PopoverScroll(maxHeight: Self.maximumHeight, minHeight: 1) {
             VStack(alignment: .leading, spacing: TimelineMetrics.rowSpacing) {
                 if showsOutput, let imagePath = PreviewImages.resolveToolImagePath(for: call, workingDirectory: workingDirectory) {

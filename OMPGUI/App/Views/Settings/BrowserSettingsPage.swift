@@ -13,6 +13,7 @@ struct BrowserSettingsPage: View {
 
     var body: some View {
         @Bindable var settings = model.settings
+        browserPreferences
         ChromeSection(title: "Browser profiles") {
             ChromeCard {
                 ChromeRow(title: "Browser profile", detail: "All conversations share this profile. Restart OMP GUI to apply changes.") {
@@ -85,10 +86,7 @@ struct BrowserSettingsPage: View {
                         .padding(.horizontal, 16).padding(.bottom, 11)
                         .accessibilityIdentifier("browserProfileDeletionStatus")
                 }
-            }
-        }
-        ChromeSection(title: "Import from Chrome") {
-            ChromeCard {
+                ChromeRowDivider()
                 ChromeRow(title: "Chrome cookies", detail: "Import saved cookies to a new profile; restart to use it.") {
                     if BrowserCookieImporter.shared.isImporting {
                         ProgressView().controlSize(.small)
@@ -120,7 +118,12 @@ struct BrowserSettingsPage: View {
                 }
             }
         }
-        ChromeSection(title: "Web links") {
+        BrowserHistorySection()
+    }
+
+    @ViewBuilder private var browserPreferences: some View {
+        @Bindable var settings = model.settings
+        ChromeSection(title: "Browsing preferences") {
             ChromeCard {
                 ChromeRow(title: "Open web links", detail: "Applies to conversations, file previews, and other app content.") {
                     Picker("Open web links", selection: $settings.webLinkDestination) {
@@ -132,10 +135,7 @@ struct BrowserSettingsPage: View {
                     .accessibilityLabel(Text("Open web links"))
                     .accessibilityIdentifier("webLinkDestination")
                 }
-            }
-        }
-        ChromeSection(title: "Language") {
-            ChromeCard {
+                ChromeRowDivider()
                 ChromeRow(title: "Browser interface language", detail: "Restart OMP GUI to apply. English and Simplified Chinese are included; no download is needed.") {
                     Picker("Browser interface language", selection: $settings.browserInterfaceLanguage) {
                         ForEach(BrowserInterfaceLanguage.allCases) { language in
@@ -146,10 +146,7 @@ struct BrowserSettingsPage: View {
                     .accessibilityLabel(Text("Browser interface language"))
                     .accessibilityIdentifier("browserInterfaceLanguage")
                 }
-            }
-        }
-        ChromeSection(title: "Search") {
-            ChromeCard {
+                ChromeRowDivider()
                 ChromeRow(title: "Search engine", detail: "Used for searches from new browser tabs.") {
                     Picker("Search engine", selection: $settings.browserSearchEngine) {
                         ForEach(BrowserSearchEngine.allCases) { engine in
@@ -291,6 +288,6 @@ struct ChromeCookieImportForm: View {
     }
 }
 
-@MainActor private func openChromeImportPrivacySettings() {
+@MainActor func openChromeImportPrivacySettings() {
     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
 }

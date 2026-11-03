@@ -21,7 +21,7 @@ const grandchild = sdk.createSubagentSettings(child);
 const restored = settings.restoreOverlay(child.overlayLayers());
 let checks = 0;
 function expect(value, message) { assert.ok(value, message); checks += 1; }
-expect(cfgProvidersOpenaiLiveSteering.get(sdk.Settings.isolated()) === true, "Installed native default enables live steering");
+expect(cfgProvidersOpenaiLiveSteering.get(sdk.Settings.isolated()) === false, "Reviewed native default disables unsupported live steering");
 for (const [name, current] of [["parent", settings], ["child", child], ["grandchild", grandchild], ["revived child", restored]]) {
     expect(cfgProvidersOpenaiLiveSteering.get(current) === false, `${name} inherits the production GUI overlay`);
 }

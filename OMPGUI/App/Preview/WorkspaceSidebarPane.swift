@@ -135,52 +135,6 @@ private struct WorkspaceSidebarContent: View {
     }
 }
 
-private struct WorkspacePanelPicker: View {
-    let store: FilePreviewStore
-
-    var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 3) {
-                    ForEach(WorkspacePanel.allCases, id: \.self) { panel in
-                        WorkspacePanelPickerRow(panel: panel) { store.openPanel(panel) }
-                    }
-                }
-                .padding(16)
-                .frame(maxWidth: 420)
-                .frame(maxWidth: .infinity, minHeight: geometry.size.height)
-            }
-        }
-    }
-}
-
-private struct WorkspacePanelPickerRow: View {
-    let panel: WorkspacePanel
-    let action: () -> Void
-    @State private var isHovering = false
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: panel.symbol)
-                    .font(.symbol(.body)).frame(width: 22)
-                    .foregroundStyle(Chrome.secondaryText)
-                Text(verbatim: Chrome.localized(panel.title))
-                    .font(.ui(.body)).lineLimit(1)
-                Spacer(minLength: 8)
-                if !panel.isImplemented {
-                    Text("Coming soon").font(.ui(.caption)).foregroundStyle(Chrome.secondaryText)
-                }
-            }
-            .padding(.horizontal, 12).padding(.vertical, 10)
-            .contentShape(.rect)
-            .background(Chrome.overlay(isHovering ? 0.06 : 0), in: .rect(cornerRadius: 8))
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
-    }
-}
-
 private struct WorkspaceSidebarTabBar: View {
     let store: FilePreviewStore
 

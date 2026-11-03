@@ -73,6 +73,19 @@ struct OMPP5NativeChecks {
             let history = try await session.nativeHistory()
             let texts = history.activeUserEntries.map(\.text)
             try expect(texts == ["P5_FIRST", "P5_HOLD", "P5_STEER", "P5_FOLLOW"], "Actual native queue preserves input order without duplicate execution")
+            var duplicateConfig = config
+            duplicateConfig.resumeID = identity
+            let originalBytes = try Data(contentsOf: URL(fileURLWithPath: identity))
+            let duplicate = OMPSession(configuration: duplicateConfig)
+            var duplicateReady = false
+            duplicate.onEvent = { if case .sessionReady = $0 { duplicateReady = true } }
+            var duplicateRefused = false
+            do { _ = try await duplicate.start() } catch { duplicateRefused = true }
+            if duplicate.isRunning { await duplicate.stopAndWait(timeout: 5) }
+            try expect(duplicateRefused && !duplicateReady && session.isRunning,
+                       "Public native lease inspection blocks a second GUI owner without replacing the first")
+            try expect(try Data(contentsOf: URL(fileURLWithPath: identity)) == originalBytes,
+                       "Held-session rejection leaves the actual native journal unchanged")
             await session.stopAndWait(timeout: 5)
             try expect(!session.isRunning, "Explicit stop exits the task-owned native process")
             config.resumeID = identity

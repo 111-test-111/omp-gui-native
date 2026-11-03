@@ -90,7 +90,22 @@ diff --git a/Sources/CefKit/BrowserClient.swift b/Sources/CefKit/BrowserClient.s
                  client.browser?.handleBeforeClose()
              }
          }
-@@ -506,7 +555,11 @@
+@@ -150,6 +199,14 @@
+         lifeSpanPointer = lifeSpan
+ 
+         let load = cefAllocate(cef_load_handler_t.self, owner: self)
++        load.pointee.on_load_start = { handlerSelf, browser, frame, _ in
++            cefRelease(browser.map(UnsafeMutableRawPointer.init))
++            defer { cefRelease(frame.map(UnsafeMutableRawPointer.init)) }
++            guard let frame, frame.pointee.is_main?(frame) != 0 else { return }
++            BrowserClientCallbacks.run(handlerSelf, default: ()) { _, browser in
++                browser.delegate?.browserDidStartMainFrameLoad(browser)
++            }
++        }
+         load.pointee.on_loading_state_change = { handlerSelf, browser, isLoading, canGoBack, canGoForward in
+             cefRelease(browser.map(UnsafeMutableRawPointer.init))
+             guard let client = BrowserClient.owner(handlerSelf.map(UnsafeMutableRawPointer.init)) else { return }
+@@ -506,7 +563,11 @@
                  origin: CefStringUtil.string(from: originURL)
              )
              let wrapper = CefJSDialogCallback(raw: callback)  // owns the +1
@@ -103,7 +118,7 @@ diff --git a/Sources/CefKit/BrowserClient.swift b/Sources/CefKit/BrowserClient.s
                  if cefBrowser.delegate?.browser(cefBrowser, runJSDialog: dialog, callback: wrapper) == true {
                      return 1  // app presents + resolves the callback itself
                  }
-@@ -520,7 +573,11 @@
+@@ -520,7 +581,11 @@
              let message = CefStringUtil.string(from: messageText)
              let reload = isReload != 0
              let wrapper = CefJSDialogCallback(raw: callback)
@@ -116,7 +131,7 @@ diff --git a/Sources/CefKit/BrowserClient.swift b/Sources/CefKit/BrowserClient.s
                  if cefBrowser.delegate?.browser(cefBrowser, runBeforeUnloadDialog: message, isReload: reload, callback: wrapper) == true {
                      return 1
                  }
-@@ -528,11 +585,13 @@
+@@ -528,11 +593,13 @@
                  return 1
              }
          }
@@ -147,7 +162,28 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
      let client: BrowserClient?
  
      init(raw: UnsafeMutablePointer<cef_browser_t>?, client: BrowserClient?, delegate: CefBrowserDelegate?) {
-@@ -171,6 +173,8 @@
+@@ -110,6 +112,20 @@
+     }
+ 
+     // MARK: Host controls
++
++    /// Decode a favicon through the owning renderer and request context. CEF
++    /// applies its favicon cookie policy and HTTP cache, including ICO/SVG/data
++    /// images. Return a bounded 2x bitmap rather than retaining source artwork.
++    public func downloadFavicon(_ url: URL, bypassCache: Bool = false,
++                                completion: @escaping @MainActor (NSImage?) -> Void) {
++        guard let raw, let host = raw.pointee.get_host?(raw) else { completion(nil); return }
++        defer { cefRelease(UnsafeMutableRawPointer(host)) }
++        guard let download = host.pointee.download_image else { completion(nil); return }
++        let callback = CefFaviconDownload(completion: completion).makeCallback()
++        CefStringUtil.withCefString(url.absoluteString) { value in
++            download(host, value, 1, 32, bypassCache ? 1 : 0, callback)
++        }
++    }
+ 
+     /// Page zoom level (0 = default; each unit is a ~20% zoom step).
+     public var zoomLevel: Double {
+@@ -171,6 +187,8 @@
      /// `onbeforeunload` handlers may cancel the close; ``CefBrowserDelegate/browserDidClose(_:)``
      /// fires when the close completes.
      public func close(force: Bool = false) {
@@ -156,7 +192,7 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
          withHost { $0.pointee.close_browser?($0, force ? 1 : 0) }
      }
  
-@@ -197,9 +201,16 @@
+@@ -197,9 +215,16 @@
              return
          }
          raw = newRaw
@@ -174,7 +210,48 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
  
      /// Whether a live raw cef_browser_t is attached.
      var hasRawBrowser: Bool { raw != nil }
-@@ -273,7 +284,9 @@
+@@ -261,6 +286,40 @@
+         }
+         raw = nil
+         CefRuntime.shared.unregisterBrowser(id: id)
++    }
++}
++
++@MainActor
++private final class CefFaviconDownload {
++    private let completion: @MainActor (NSImage?) -> Void
++
++    init(completion: @escaping @MainActor (NSImage?) -> Void) { self.completion = completion }
++
++    func makeCallback() -> UnsafeMutablePointer<cef_download_image_callback_t> {
++        let callback = cefAllocate(cef_download_image_callback_t.self, owner: self)
++        callback.pointee.on_download_image_finished = { callbackSelf, _, status, image in
++            defer { cefRelease(image.map(UnsafeMutableRawPointer.init)) }
++            guard let owner = cefOwner(CefFaviconDownload.self, callbackSelf.map(UnsafeMutableRawPointer.init)) else { return }
++            MainActor.assumeIsolated {
++                guard status == 0 || (200...299).contains(status), let image,
++                      image.pointee.is_empty?(image) == 0 else { owner.completion(nil); return }
++                var width: Int32 = 0, height: Int32 = 0
++                guard let binary = image.pointee.get_as_png?(image, 2, 1, &width, &height) else {
++                    owner.completion(nil); return
++                }
++                defer { cefRelease(UnsafeMutableRawPointer(binary)) }
++                let size = binary.pointee.get_size?(binary) ?? 0
++                guard width > 0, height > 0, width <= 64, height <= 64,
++                      size > 0, size <= 131_072 else { owner.completion(nil); return }
++                var data = Data(count: size)
++                let copied = data.withUnsafeMutableBytes { binary.pointee.get_data?(binary, $0.baseAddress, size, 0) ?? 0 }
++                guard copied == size, let bitmap = NSBitmapImageRep(data: data) else { owner.completion(nil); return }
++                let result = NSImage(size: NSSize(width: CGFloat(width), height: CGFloat(height)))
++                result.addRepresentation(bitmap)
++                owner.completion(result)
++            }
++        }
++        return callback
+     }
+ }
+ 
+@@ -273,7 +332,9 @@
      /// Requires an initialized runtime (``CefRuntime/initialize(configuration:)``)
      /// and a `parentView` that is part of a window. Creation is synchronous;
      /// the returned browser is live (its ``CefBrowser/nativeView`` exists)
@@ -185,7 +262,7 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
      ///
      /// - Note: CEF always uses Alloy runtime style for browsers embedded via
      ///   a parent view, regardless of ``CefBrowserOptions/runtimeStyle``.
-@@ -282,7 +295,8 @@
+@@ -282,7 +343,8 @@
          bounds: CGRect,
          url: URL,
          options: CefBrowserOptions = .init(),
@@ -195,7 +272,7 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
      ) -> CefBrowser {
          precondition(
              CefRuntime.shared.isInitialized,
-@@ -290,6 +304,7 @@
+@@ -290,6 +352,7 @@
          )
  
          let client = BrowserClient()
@@ -203,7 +280,7 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
          let clientPointer = client.makeClient()
  
          var windowInfo = cef_window_info_t()
-@@ -318,6 +333,24 @@
+@@ -318,6 +381,24 @@
          }
  
          let requestContext = options.profile?.makeRequestContext()
@@ -231,16 +308,32 @@ diff --git a/Sources/CefKit/CefBrowser.swift b/Sources/CefKit/CefBrowser.swift
 diff --git a/Sources/CefKit/CefBrowserDelegate.swift b/Sources/CefKit/CefBrowserDelegate.swift
 --- a/Sources/CefKit/CefBrowserDelegate.swift
 +++ b/Sources/CefKit/CefBrowserDelegate.swift
-@@ -86,6 +86,8 @@
-     /// `callback` (`success: true` = leave). Return `true` to present your own
+@@ -33,6 +33,7 @@
+     func browser(_ b: CefBrowser, didFailLoad code: Int, errorText: String, failedURL: String)
+     /// The page's favicon URL(s) changed.
+     func browser(_ b: CefBrowser, didChangeFavicon urls: [URL])
++    func browserDidStartMainFrameLoad(_ b: CefBrowser)
+     /// The page entered or exited HTML fullscreen.
+     func browser(_ b: CefBrowser, didChangeFullscreen isFullscreen: Bool)
+     /// The page wants to open a popup window. Defaults to ``CefPopupDecision/allow``.
+@@ -87,6 +88,8 @@
      /// dialog; `false` for the native one.
      func browser(_ b: CefBrowser, runBeforeUnloadDialog message: String, isReload: Bool, callback: CefJSDialogCallback) -> Bool
-+
-+    func browserJavaScriptDialogDidClose(_ b: CefBrowser)
  
++    func browserJavaScriptDialogDidClose(_ b: CefBrowser)
++
      // MARK: Context menu
  
-@@ -194,6 +196,7 @@
+     /// A context menu is about to appear. Mutate `menu` (clear, add custom
+@@ -173,6 +176,7 @@
+     public func browser(_ b: CefBrowser, didChangeProgress progress: Double) {}
+     public func browser(_ b: CefBrowser, didFailLoad code: Int, errorText: String, failedURL: String) {}
+     public func browser(_ b: CefBrowser, didChangeFavicon urls: [URL]) {}
++    public func browserDidStartMainFrameLoad(_ b: CefBrowser) {}
+     public func browser(_ b: CefBrowser, didChangeFullscreen isFullscreen: Bool) {}
+     public func browser(_ b: CefBrowser, requestsPopupFor url: URL?) -> CefPopupDecision { .allow }
+     public func browser(_ b: CefBrowser, decideWindowOpenFor request: CefWindowOpenRequest) -> CefWindowOpenAction {
+@@ -194,6 +198,7 @@
  
      public func browser(_ b: CefBrowser, configureContextMenu menu: CefMenuModel, params: CefContextMenuParams) {}
      public func browser(_ b: CefBrowser, contextMenuCommand commandID: Int, params: CefContextMenuParams) -> Bool { false }
@@ -305,6 +398,17 @@ diff --git a/Sources/CefKit/CefProfile.swift b/Sources/CefKit/CefProfile.swift
 diff --git a/Sources/CefKit/CefRuntime.swift b/Sources/CefKit/CefRuntime.swift
 --- a/Sources/CefKit/CefRuntime.swift
 +++ b/Sources/CefKit/CefRuntime.swift
+@@ -108,6 +108,10 @@
+     public let bridge = CefBridge()
+ 
+     var messagePump: CefMessagePump?
++    /// Host applications must defer AppKit termination until CEF's current
++    /// work slice returns, so their asynchronous quit flow can keep pumping.
++    public var isPerformingMessageLoopWork: Bool { messagePump?.isPerformingWork == true }
++
+     private var appContext: CefAppContext?
+     private var settings: MappedCefSettings?
+     private var browsers: [Int32: CefBrowser] = [:]
 @@ -402,7 +402,7 @@
          browsers[id] = nil
          if isTerminationRequested && browsers.isEmpty {
@@ -314,6 +418,18 @@ diff --git a/Sources/CefKit/CefRuntime.swift b/Sources/CefKit/CefRuntime.swift
          }
      }
  
+diff --git a/Sources/CefKit/CefMessagePump.swift b/Sources/CefKit/CefMessagePump.swift
+--- a/Sources/CefKit/CefMessagePump.swift
++++ b/Sources/CefKit/CefMessagePump.swift
+@@ -20,7 +20,7 @@
+ 
+     private var fallbackTimer: Timer?
+     private var scheduledTimer: Timer?
+-    private var isPerformingWork = false
++    private(set) var isPerformingWork = false
+     private var isRunning = false
+ 
+     func start() {
 diff --git a/Sources/CefSwiftUI/CefWebView.swift b/Sources/CefSwiftUI/CefWebView.swift
 --- a/Sources/CefSwiftUI/CefWebView.swift
 +++ b/Sources/CefSwiftUI/CefWebView.swift
@@ -395,7 +511,7 @@ diff --git a/Sources/CefSwiftUI/CefWebView.swift b/Sources/CefSwiftUI/CefWebView
 diff --git a/Sources/CefSwiftUI/CefWebViewModel.swift b/Sources/CefSwiftUI/CefWebViewModel.swift
 --- a/Sources/CefSwiftUI/CefWebViewModel.swift
 +++ b/Sources/CefSwiftUI/CefWebViewModel.swift
-@@ -64,6 +64,20 @@
+@@ -64,6 +64,23 @@
      /// Options used when the browser is created. Changes after creation have no effect.
      public var options: CefBrowserOptions
  
@@ -412,11 +528,14 @@ diff --git a/Sources/CefSwiftUI/CefWebViewModel.swift b/Sources/CefSwiftUI/CefWe
 +    public var onURLChanged: ((URL?) -> Void)?
 +    public var onTitleChanged: ((String) -> Void)?
 +    public var onFocusRequested: (() -> Bool)?
++    public var onFaviconChanged: (([URL]) -> Void)?
++    public var onMainFrameLoadStarted: (() -> Void)?
++    public var onLoadingChanged: ((Bool) -> Void)?
 +
      // MARK: Pluggable hooks (all optional)
  
      /// Called for every JavaScript console message emitted by the page.
-@@ -125,6 +139,7 @@
+@@ -125,6 +142,7 @@
      func attach(_ browser: CefBrowser) {
          self.browser = browser
          browser.delegate = self
@@ -424,7 +543,7 @@ diff --git a/Sources/CefSwiftUI/CefWebViewModel.swift b/Sources/CefSwiftUI/CefWe
          // Seed mirrored state from the browser's current values.
          title = browser.title
          isLoading = browser.isLoading
-@@ -177,12 +192,14 @@
+@@ -177,12 +195,14 @@
  
      public func browser(_ b: CefBrowser, didChangeTitle title: String) {
          self.title = title
@@ -439,7 +558,38 @@ diff --git a/Sources/CefSwiftUI/CefWebViewModel.swift b/Sources/CefSwiftUI/CefWe
      }
  
      public func browser(
-@@ -223,7 +240,34 @@
+@@ -191,12 +211,14 @@
+         canGoBack: Bool,
+         canGoForward: Bool
+     ) {
++        guard browser === b else { return }
+         self.isLoading = isLoading
+         self.canGoBack = canGoBack
+         self.canGoForward = canGoForward
+         if !isLoading {
+             estimatedProgress = 1
+         }
++        onLoadingChanged?(isLoading)
+     }
+ 
+     public func browser(_ b: CefBrowser, didChangeProgress progress: Double) {
+@@ -204,7 +226,15 @@
+     }
+ 
+     public func browser(_ b: CefBrowser, didChangeFavicon urls: [URL]) {
++        guard browser === b else { return }
+         faviconURL = urls.first
++        onFaviconChanged?(urls)
++    }
++
++    public func browserDidStartMainFrameLoad(_ b: CefBrowser) {
++        guard browser === b else { return }
++        faviconURL = nil
++        onMainFrameLoadStarted?()
+     }
+ 
+     public func browser(_ b: CefBrowser, requestsPopupFor url: URL?) -> CefPopupDecision {
+@@ -223,7 +253,34 @@
          return CefWindowOpenPolicy.defaultAction(for: request)
      }
  

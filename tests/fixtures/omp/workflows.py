@@ -9,6 +9,22 @@ if "--version" in sys.argv:
     print("workflow-fixture")
     sys.exit(0)
 
+if sys.argv[1:3] == ["session", "lease"]:
+    assert sys.argv[3:5] == ["--json", "--"] and len(sys.argv) == 6
+    session_id = sys.argv[5]
+    mode = os.environ.get("OMP_FIXTURE_LEASE", "free")
+    with open(os.environ["OMP_FIXTURE_LOG"], "a", encoding="utf-8") as log:
+        log.write(json.dumps(dict(type="fixture_lease", sessionId=session_id)) + "\n")
+    if mode == "unsupported":
+        print("Unknown session action: lease", file=sys.stderr)
+        sys.exit(2)
+    if mode == "malformed":
+        print(json.dumps(dict(held=True)))
+    else:
+        print(json.dumps(dict(held=[session_id] if mode == "held" else [],
+                              unknown=[session_id] if mode == "unknown" else [])))
+    sys.exit(0)
+
 session_file = os.environ["OMP_FIXTURE_SESSION_FILE"]
 log_file = os.environ["OMP_FIXTURE_LOG"]
 if "--resume" in sys.argv:
@@ -60,7 +76,9 @@ def reply(command, data=None, error=None):
               success=error is None, **({"error": error} if error else {"data": data or {}})))
 
 def reply_state(command):
-    reply(command, dict(sessionFile=session_file, sessionId=Path(session_file).stem,
+    raced = os.environ.get("OMP_FIXTURE_RESUME_RACE")
+    reply(command, dict(sessionFile=session_file + ".fork" if raced == "file" else session_file,
+                        sessionId=Path(session_file).stem + ("-fork" if raced == "id" else ""),
                         isStreaming=streaming, isCompacting=False, autoCompactionEnabled=auto_compaction,
                         contextUsage=dict(tokens=15 * len(entries), contextWindow=128000),
                         queuedMessageCount=len(queue), hasPendingAsyncWork=streaming or bool(queue),

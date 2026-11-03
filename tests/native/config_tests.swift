@@ -29,7 +29,7 @@ struct OMPP3NativeCLIChecks {
         try FileManager.default.createDirectory(at: root.appendingPathComponent("agent"), withIntermediateDirectories: true)
         let file = root.appendingPathComponent("agent/config.yml")
         let overlay = root.appendingPathComponent("chat-overlay.yml")
-        try Data("modelRoles:\n  default: example/original\n  custom-global: example/keep\nfutureSetting:\n  nested: retain\n".utf8).write(to: file)
+        try Data("modelRoles:\n  default: example/original\n  custom-global: example/keep\ntask:\n  perCallModelAllow:\n    - example/approved\nfutureSetting:\n  nested: retain\n".utf8).write(to: file)
         try Data("modelRoles:\n  default: overlay/should-not-save\n  overlay-only: overlay/should-not-copy\ngenerate_image:\n  enabled: true\n".utf8).write(to: overlay)
         try Data().write(to: root.appendingPathComponent("calls.jsonl"))
         LoginEnvironment.setOverlay([
@@ -61,6 +61,15 @@ struct OMPP3NativeCLIChecks {
         await native.set("generate_image.enabled", true, expected: false)
         expect(native.error == nil && native.values["generate_image.enabled"]?.bool == true, "The image tool switch persists through the public native config CLI")
         expect(native.values["modelRoles"]?["default"]?.string == "example/updated" && native.values["modelRoles"]?["custom-global"]?.string == "example/keep", "Enabling image tools preserves existing model roles")
+        await native.set("task.perCallModel", "eval", expected: "off", refreshCatalog: false)
+        expect(native.error == nil && native.values["task.perCallModel"]?.string == "eval",
+               "Hydra's per-call model control writes the native operator setting")
+        await native.set("task.maxEffort", "high", expected: "max", refreshCatalog: false)
+        expect(native.error == nil && native.values["task.maxEffort"]?.string == "high",
+               "Hydra's effort ceiling round-trips through the native enum schema")
+        expect(try String(contentsOf: file, encoding: .utf8).contains("example/approved")
+               && native.values["modelRoles"]?["default"]?.string == "example/updated",
+               "Task policy controls preserve the existing allowlist and model grants")
         let beforeExternal = native.values["modelRoles"]!
         var externallyEdited = try String(contentsOf: file, encoding: .utf8)
         externallyEdited += "\nexternalOwnerField: owner-change\n"
@@ -80,7 +89,7 @@ struct OMPP3NativeCLIChecks {
                "Tool edits preserve the external owner's unrelated configuration")
         let calls = try String(contentsOf: root.appendingPathComponent("calls.jsonl"), encoding: .utf8).split(whereSeparator: \.isNewline).compactMap { JSONValue.parse(String($0)) }
         let writes = calls.filter { $0["command"]?[1]?.string == "set" }
-        expect(writes.count == 5 && writes.allSatisfy { $0["overlayPresent"]?.bool == false }, "Profile mutations strip process overlays and conflicts never start another write")
+        expect(writes.count == 7 && writes.allSatisfy { $0["overlayPresent"]?.bool == false }, "Profile mutations strip process overlays and conflicts never start another write")
 
         let skillFile = root.appendingPathComponent("agent/skills/gui-global-skill/SKILL.md")
         let projectSkill = root.appendingPathComponent("project/.omp/skills/gui-project-skill/SKILL.md")

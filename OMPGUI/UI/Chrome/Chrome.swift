@@ -187,8 +187,8 @@ extension View {
         modifier(ChromeGlassInputSurface(shape: RoundedRectangle(cornerRadius: Chrome.windowCornerRadius, style: .continuous)))
     }
 
-    func chromeGlassCircle() -> some View {
-        modifier(ChromeGlassSurface(shape: .circle))
+    func chromeGlassCircle(tint: Color? = nil) -> some View {
+        modifier(ChromeGlassSurface(shape: .circle, tint: tint))
     }
 
     /// The shared compact control surface for single-line buttons that are neither a
@@ -196,6 +196,15 @@ extension View {
     /// control's active state through the glass.
     func chromeGlassRoundedRect(cornerRadius: CGFloat, tint: Color? = nil) -> some View {
         modifier(ChromeGlassSurface(shape: .roundedRect(cornerRadius), tint: tint))
+    }
+
+    /// Owner-authorized workspace picker cards reuse the floating surface's native
+    /// glass, opaque foreground and performance/accessibility fallback.
+    func chromeGlassCard() -> some View {
+        modifier(ChromeFloatingGlassSurface(
+            shape: RoundedRectangle(cornerRadius: Chrome.cardCornerRadius, style: .continuous),
+            interactive: true, hiddenRimBottom: 0
+        ))
     }
 
     /// The shared content surface over the window backdrop.
@@ -1280,15 +1289,19 @@ struct ChromeRow<Control: View>: View {
     let title: String
     var detail: String?
     var leading: AnyView? = nil
+    var titleAccessory: AnyView? = nil
     @ViewBuilder var control: Control
 
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             if let leading { leading }
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: Chrome.localized(title))
-                    .font(.ui(.body))
-                    .foregroundStyle(Chrome.primaryText)
+                HStack(spacing: 8) {
+                    Text(verbatim: Chrome.localized(title))
+                        .font(.ui(.body))
+                        .foregroundStyle(Chrome.primaryText)
+                    if let titleAccessory { titleAccessory }
+                }
                 if let detail, !detail.isEmpty {
                     Text(verbatim: Chrome.localized(detail))
                         .font(.ui(.subheadline))

@@ -23,7 +23,7 @@ enum WorkspacePanel: String, CaseIterable, Sendable {
         case .git: "arrow.triangle.branch"
         case .trajectory: "point.bottomleft.forward.to.arrow.triangle.uturn.scurvepath"
         case .review: "checkmark.rectangle.stack"
-        case .context: "text.redaction"
+        case .context: "wallet.bifold"
         case .terminal: "terminal"
         case .debug: "ladybug"
         case .browser: "globe"

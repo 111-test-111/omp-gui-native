@@ -136,14 +136,11 @@ struct ContextWorkspacePane: View {
                 metric("Remaining capacity", number(max(0, window - used)))
             }
             if let live {
-                note(live.anchored ? "OMP estimate based on provider usage and local context changes."
-                    : "OMP local estimate; no provider usage anchor is available yet.")
                 metric("Context observed at", live.timestamp.formatted(date: .omitted, time: .standard))
             } else if contextValues.usesSavedResponse || runtime.thread?.hydra?.kind == .native || runtime.thread?.isArchived == true {
                 note("Showing the latest saved response. Pending input and tool results may be absent.")
-            } else {
-                note("Detailed live breakdown requires OMP's public SDK context interface.")
-                if runtime.ompContextIsCached { note("Showing the last saved native context snapshot.") }
+            } else if runtime.ompContextIsCached {
+                note("Showing the last saved native context snapshot.")
             }
         }
     }
@@ -173,9 +170,6 @@ struct ContextWorkspacePane: View {
                     .foregroundStyle(Chrome.secondaryText)
                 if let model = request.record.model { metric("Request model", model) }
             }
-            note(usesRequestComposition
-                ? "Measured from the transformed SDK request before provider serialization."
-                : "Estimated from OMP's current session projection; request hooks may change it.")
             compositionBar(composition)
             let instructions = composition.categories.filter { ["system", "projectContext", "skills", "toolSchemas"].contains($0.kind) }
             let conversation = composition.categories.filter { !["system", "projectContext", "skills", "toolSchemas"].contains($0.kind) }
@@ -205,7 +199,6 @@ struct ContextWorkspacePane: View {
                 metric("Reported reasoning", number(request.metadata.reasoning))
                 metric("Reported input − estimate", request.metadata.difference.map { ($0 > 0 ? "+" : "") + number($0) } ?? "—")
                 metric("Provider payload observed", request.metadata.payloadObserved.map { Chrome.localized($0 ? "Yes" : "No") } ?? "—")
-                note("The difference includes provider framing and request transformations; it is not assigned to system text.")
                 if request.record.status == .running { note("Usage remains unknown until OMP receives the provider's report.") }
             } else {
                 note("No request capture is available on this branch.")
@@ -232,7 +225,6 @@ struct ContextWorkspacePane: View {
                 metric("Tool calls", number(amounts.toolCalls))
                 metric("Tool results", number(amounts.toolResults))
                 metric("Auxiliary model calls", number(amounts.auxiliaryCalls))
-                note("Includes all retained branches and native auxiliary usage in this session file, plus reported task usage. In-flight usage may not be saved yet.")
                 if amounts.missingReports > 0 { metric("Responses without usage", number(amounts.missingReports)) }
                 if amounts.reasoningReports < amounts.reports { note("Reasoning totals cover only calls that report reasoning separately.") }
             } else {

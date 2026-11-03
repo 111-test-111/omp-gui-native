@@ -14,7 +14,7 @@ struct EventProjectionMeasurement {
             return Double(elapsed.seconds) * 1_000 + Double(elapsed.attoseconds) / 1e15
         }
         func measure(_ frames: [Data]) -> ([String: Any], [JSONValue]) {
-            let decoder = OMPEventDecoder(prefix: "projection", directory: root.path, capturesSnapshots: false)
+            let decoder = OMPEventDecoder(prefix: "projection", directory: root.path)
             var events: [JSONValue] = []
             decoder.onEvent = { events.append(EventProjectionFixture.observed($0)) }
             var parse = 0.0, decode = 0.0
